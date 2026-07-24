@@ -26,8 +26,8 @@ install:
 	@printf "$(COLOR_GREEN)Installation completed$(COLOR_RESET)\n"
 
 run:
-	@printf "$(COLOR_CYAN)Starting simulation with ia$(COLOR_RESET)\n"
-	@uv run python $(SRC_DIR)/main.py
+	@printf "$(COLOR_CYAN)Starting game$(COLOR_RESET)\n"
+	@uv run python pac-man.py
 
 debug:
 	@printf "$(COLOR_YELLOW)========================================================$(COLOR_RESET)\n"
