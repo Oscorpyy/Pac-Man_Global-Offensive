@@ -15,3 +15,6 @@ class SdlEvent:
                 key = event.key.keysym.sym
                 if key == sdl2.SDLK_ESCAPE:
                     game_state.is_running = False
+            elif event.type == sdl2.SDL_WINDOWEVENT:
+                if event.window.event == sdl2.SDL_WINDOWEVENT_CLOSE:
+                    game_state.is_running = False
