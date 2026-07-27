@@ -2,7 +2,7 @@ import sdl2
 from src.print_logs import print_error, print_info, print_warning
 from src.control import SdlEvent
 from src.game_state import GameState, ScenePossible
-from src.main_menu.main_menu import MainMenu
+from src.scene.main_menu.main_menu import MainMenu
 
 
 class Window:
