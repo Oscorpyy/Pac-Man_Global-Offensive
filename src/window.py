@@ -29,10 +29,13 @@ class Window:
         return window
 
     def main_loop(self) -> None:
-        self.init_window()
+        if self.init_window() == -1:
+            return
+        print_info("window init successful")
         window = self.create_window()
         if window == -1:
             return
+        print_info("window creation successful")
         renderer = sdl2.SDL_CreateRenderer(window, -1, sdl2.SDL_RENDERER_ACCELERATED)
         game_state = GameState()
         event = sdl2.SDL_Event()
