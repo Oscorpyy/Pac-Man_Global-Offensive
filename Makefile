@@ -27,7 +27,7 @@ install:
 
 run:
 	@printf "$(COLOR_CYAN)Starting game$(COLOR_RESET)\n"
-	@uv run python pac-man.py
+	@uv run python pac-man.py config.json
 
 debug:
 	@printf "$(COLOR_YELLOW)========================================================$(COLOR_RESET)\n"
