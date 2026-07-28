@@ -44,5 +44,5 @@ class Window:
         while(game_state.is_running):
             sdl_event.main_loop(event, game_state)
             if game_state.scene == ScenePossible.MAIN:
-                main.draw_background()
+                main.draw_main_menu()
             sdl2.SDL_Delay(16)
