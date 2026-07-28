@@ -48,6 +48,7 @@ clean:
 	@find . -type d -name ".mypy_cache" -exec rm -rf {} +
 	@rm -f output.txt
 	@rm -rf .venv
+	@rm -fr package
 	@printf "$(COLOR_GREEN)✓ Cleanup completed$(COLOR_RESET)\n"
 
 lint:
@@ -77,6 +78,12 @@ lint-strict:
 		printf "$(COLOR_GREEN)✓ $(COLOR_CYAN)Mypy strict$(COLOR_GREEN) [OK]$(COLOR_RESET)\n"
 
 	@printf "$(COLOR_GREEN)✓ Strict verification completed$(COLOR_RESET)\n"
+
+package:
+	mkdir package
+	uv run pyinstaller pac-man.py
+	cp -r assets/ dist/pac-man/
+	cp config.json dist/pac-man/
 
 test:
 	@printf "$(COLOR_CYAN)Running tests...$(COLOR_RESET)\n"
