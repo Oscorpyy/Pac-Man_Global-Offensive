@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<calendar id="za" name="South Africa Mostly Nationwide Holidays 2025-2028" type="country">
+<!-- https://www.gov.za/about-sa/public-holidays -->
+<!-- https://www.timeanddate.com/holidays/south-africa/2028?hol=9 -->
+	<date year="" month="01" date="01" type="HOLIDAY"><![CDATA[New Year's Day]]></date>
+	<date year="" month="03" date="21" type="HOLIDAY"><![CDATA[Human Rights Day]]></date>
+	<date year="" month="04" date="27" type="HOLIDAY"><![CDATA[Freedom Day]]></date>
+	<date year="" month="05" date="01" type="HOLIDAY"><![CDATA[Workers' Day]]></date>
+	<date year="" month="06" date="16" type="HOLIDAY"><![CDATA[Youth Day]]></date>
+	<date year="" month="08" date="09" type="HOLIDAY"><![CDATA[National Women’s Day]]></date>
+	<date year="" month="09" date="24" type="HOLIDAY"><![CDATA[Heritage Day]]></date>
+	<date year="" month="12" date="16" type="HOLIDAY"><![CDATA[Day of Reconciliation]]></date>
+	<date year="" month="12" date="25" type="HOLIDAY"><![CDATA[Christmas]]></date>
+	<date year="" month="12" date="26" type="HOLIDAY"><![CDATA[Day of Goodwill]]></date>
+
+	<date year="2025" month="04" date="18"/>  <!-- Good Friday -->
+	<date year="2025" month="04" date="21"/>  <!-- Family Day -->
+	<date year="2025" month="04" date="28"/>  <!-- Freedom Day (observed) -->
+
+
+    <date year="2026" month="04" date="03"/>  <!-- Good Friday -->
+	<date year="2026" month="04" date="06"/>  <!-- Family Day -->
+	<date year="2026" month="08" date="10"/>  <!-- National Women’s Day (observed) -->
+
+	<date year="2027" month="03" date="26"/>  <!-- Good Friday -->
+	<date year="2027" month="03" date="29"/>  <!-- Family Day -->
+
+	<date year="2028" month="04" date="14"/>  <!-- Good Friday -->
+	<date year="2028" month="04" date="17"/>  <!-- Family Day -->
+	<date year="2028" month="09" date="25"/>  <!-- Heritage Day (observed) -->
+
+</calendar>
+

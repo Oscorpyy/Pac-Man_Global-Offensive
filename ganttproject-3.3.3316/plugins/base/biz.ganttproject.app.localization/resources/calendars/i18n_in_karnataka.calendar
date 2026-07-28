@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<calendar id="in.ka" name="India Karnataka Holidays 2025" type="country">
+    <!-- Data sources
+    https://www.officeholidays.com/countries/india/karnataka/2025
+    https://www.karnataka.com/govt/list-of-2020-karnataka-government-holidays/
+    https://publicholidays.in/karnataka/2025-dates/
+    -->
+    <date year="" month="1" date="26"><![CDATA[Republic Day]]></date>
+    <date year="" month="4" date="14"><![CDATA[Dr. Ambedkar Jayanti]]></date>
+    <date year="" month="5" date="1"><![CDATA[Labor Day]]></date>
+    <date year="" month="8" date="15"><![CDATA[Independence Day]]></date>
+    <date year="" month="10" date="2"><![CDATA[Gandhi Jayanti]]></date>
+    <date year="" month="11" date="1"><![CDATA[Kannada Rajyothsava]]></date>
+    <date year="" month="12" date="25"><![CDATA[Christmas]]></date>
+
+    <date year="2025" month="1" date="14"><![CDATA[Makara Sankranti]]></date>
+    <date year="2025" month="2" date="26"><![CDATA[Maha Shivaratri]]></date>
+    <date year="2025" month="3" date="30"><![CDATA[Ugadi]]></date>
+    <date year="2025" month="5" date="25"><![CDATA[Ramzan-Id/Id-Ul-Fitr]]></date>
+    <date year="2025" month="4" date="10"><![CDATA[Mahavir Jayanti]]></date>
+    <date year="2025" month="4" date="18"><![CDATA[Good Friday]]></date>
+    <date year="2025" month="4" date="30"><![CDATA[Basava Jayanti]]></date>
+    <date year="2025" month="6" date="7"><![CDATA[Bakrid]]></date>
+    <date year="2025" month="7" date="6"><![CDATA[Muharram]]></date>
+    <date year="2025" month="8" date="27"><![CDATA[Ganesh Chaturthi]]></date>
+    <date year="2025" month="9" date="5"><![CDATA[Eid-e-Milad]]></date>
+    <date year="2025" month="9" date="21"><![CDATA[Mahalaya Amavasye]]></date>
+    <date year="2025" month="10" date="1"><![CDATA[Maha Navami]]></date>
+    <date year="2025" month="10" date="2"><![CDATA[Vijaya Dashami]]></date>
+    <date year="2025" month="10" date="7"><![CDATA[Maharishi Valmiki Jayanti]]></date>
+    <date year="2025" month="10" date="20"><![CDATA[Deepavali]]></date>
+    <date year="2025" month="10" date="21"><![CDATA[Deepavali]]></date>
+    <date year="2025" month="11" date="8"><![CDATA[Kanakadasa Jayanti]]></date>
+</calendar>
