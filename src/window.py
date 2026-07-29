@@ -42,7 +42,10 @@ class Window:
         sdl_event = SdlEvent()
         main = MainMenu(renderer, self.width, self.height)
         while(game_state.is_running):
-            sdl_event.main_loop(event, game_state)
+            sdl_event.main_loop(event, game_state, main)
             if game_state.scene == ScenePossible.MAIN:
                 main.draw_main_menu()
+            game_state.frame += 1
+            if game_state.frame > 60:
+                game_state.frame = 1
             sdl2.SDL_Delay(16)

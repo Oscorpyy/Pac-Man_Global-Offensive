@@ -10,5 +10,6 @@ class ScenePossible(Enum):
 
 class GameState:
     def __init__(self) -> None:
-        self.is_running = True
+        self.is_running: bool = True
         self.scene = ScenePossible.MAIN
+        self.frame: int = 1
