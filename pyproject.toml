@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "flake8>=7.3.0",
+    "mazegenerator",
     "mypy>=2.1.0",
     "numpy>=2.5.1",
     "pydantic>=2.13.4",
@@ -13,3 +14,6 @@ dependencies = [
     "pysdl2>=0.9.17",
     "pysdl2-dll>=2.32.10",
 ]
+
+[tool.uv.sources]
+mazegenerator = { path = "mazegenerator-00001/mazegenerator-2.1.0-py3-none-any.whl" }

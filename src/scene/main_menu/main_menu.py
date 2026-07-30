@@ -2,13 +2,16 @@ import sdl2
 import sdl2.sdlimage as sdim
 import sdl2.sdlttf as sttf
 import numpy as np
-import ctypes
-from src.drawing_methods import draw_rect_full, clear_background, draw_text, draw_sprite_sheet
+from src.color import Color
+from src.drawing_methods import draw_rect_full, clear_background, draw_text, draw_sprite_sheet, Button
 from src.scene.helper import get_ptr
 from src.print_logs import print_error
+from src.game_state import GameState, ScenePossible
+
 
 class MainMenu:
-    def __init__(self, renderer, width: int, height: int) -> None:
+    def __init__(self, renderer, width: int, height: int, game_state: GameState) -> None:
+        self.game_state = game_state
         self.renderer = renderer
         # img loading
         sdim.IMG_Init(sdim.IMG_INIT_PNG)
@@ -36,8 +39,6 @@ class MainMenu:
         self.test_x: int = 10
         self.pixels = np.zeros((height, width), dtype=np.uint32)
         self.pitch_background = width * 4
-        self.blue = 0xFF0000FF
-        self.red = 0xFFFF0000
 
 
     def clean_up(self) -> None:
@@ -46,15 +47,22 @@ class MainMenu:
         sttf.TTF_Quit()
 
 
+    def next_scene(self):
+        self.game_state.scene = ScenePossible.GAME
+
+
     def draw_background(self) -> None:
-        clear_background(self.pixels, self.blue)
-        draw_rect_full(self.pixels, 15, 15, self.red, x=self.test_x, y=0)
+        btn_test = Button(self.renderer, self.pixels, self.font, 300, 80, 160, 50, Color.RED, Color.PURPLE, self.next_scene)
+        clear_background(self.pixels, Color.BLUE)
+        draw_rect_full(self.pixels, 15, 15, Color.RED, x=self.test_x, y=0)
+        btn_test.draw_background()
         pixel_ptr = get_ptr(self.pixels)
         sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
         # draw_sprites(self.renderer, self.img_texture, 50, 45, 10)
         draw_sprite_sheet(self.renderer, self.img_texture, 50, 45, 0, 4)
-        draw_text(self.renderer, self.font, self.text, 2)
+        draw_text(self.renderer, self.font, self.text, 10, 200, 2)
+        btn_test.draw_text(b"Start Game")
         sdl2.SDL_RenderPresent(self.renderer)
         self.test_x += 10
         if self.test_x >= self.width:

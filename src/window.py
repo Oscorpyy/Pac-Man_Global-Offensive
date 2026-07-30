@@ -3,6 +3,7 @@ from src.print_logs import print_error, print_info, print_warning
 from src.control import SdlEvent
 from src.game_state import GameState, ScenePossible
 from src.scene.main_menu.main_menu import MainMenu
+from src.scene.game.game import Game
 
 
 class Window:
@@ -40,11 +41,14 @@ class Window:
         game_state = GameState()
         event = sdl2.SDL_Event()
         sdl_event = SdlEvent()
-        main = MainMenu(renderer, self.width, self.height)
+        main = MainMenu(renderer, self.width, self.height, game_state)
+        game = Game()
         while(game_state.is_running):
             sdl_event.main_loop(event, game_state, main)
             if game_state.scene == ScenePossible.MAIN:
                 main.draw_main_menu()
+            if game_state.scene == ScenePossible.GAME:
+                game.temp()
             game_state.frame += 1
             if game_state.frame > 60:
                 game_state.frame = 1
