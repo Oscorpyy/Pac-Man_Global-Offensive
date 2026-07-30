@@ -283,6 +283,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "pyinstaller" },
     { name = "pysdl2" },
+    { name = "pysdl2-dll" },
 ]
 
 [package.metadata]
@@ -293,6 +294,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.13.4" },
     { name = "pyinstaller", specifier = ">=6.21.0" },
     { name = "pysdl2", specifier = ">=0.9.17" },
+    { name = "pysdl2-dll", specifier = ">=2.32.10" },
 ]
 
 [[package]]
@@ -468,6 +470,22 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d7/ff/8704d84ad4d25f0a7bf7912504f64575e432e8d57dfba2fe35f5b2db7e04/pysdl2-0.9.17.tar.gz", hash = "sha256:48c6ef01a4eb123db5f7e46e1a1b565675755b07e615f3fe20a623c94735b52b", size = 775955, upload-time = "2024-12-30T18:07:27.562Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5d/e2/399ea7900e7510096aeb41439e6f1540bef0bdf7e15cc2d8464e4adb71e8/PySDL2-0.9.17-py3-none-any.whl", hash = "sha256:fe923dbf5c7b27bbc1eb2bf58abfa793f8f13fd7ae8b27b1bc2de49920bcbd41", size = 583137, upload-time = "2024-12-30T18:07:25.987Z" },
+]
+
+[[package]]
+name = "pysdl2-dll"
+version = "2.32.10"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/28/5b/bd6fb7cce36ec24cacea8f7d8264db819a3a9de89402653690d70a8da659/pysdl2_dll-2.32.10.tar.gz", hash = "sha256:ad83e0e1a0227633495d6b3ec6701ac5a2beac44e6692f52278033bda1313717", size = 16235, upload-time = "2026-05-26T18:07:45.48Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0e/43/4abf8109b7c68cb73bd0f09bfd429bfbfe9767fdab952098ec4f8fb4418a/pysdl2_dll-2.32.10-py2.py3-none-macosx_10_11_x86_64.whl", hash = "sha256:cab126a82c2bd2cd79b6cb8da906916884789c9f4f1ae4cf861f26438ce651a4", size = 6629721, upload-time = "2026-05-26T18:13:12.263Z" },
+    { url = "https://files.pythonhosted.org/packages/5e/cb/356315a7a30dff1d6b155d70c5293043fa683c52aae2eda236bab163081f/pysdl2_dll-2.32.10-py2.py3-none-macosx_11_0_universal2.whl", hash = "sha256:5ccbd89cd2a032f4ac890606dfe5c33874c0e5e909b2e667438ad7d7fc7fcc5d", size = 6629724, upload-time = "2026-05-26T18:13:13.75Z" },
+    { url = "https://files.pythonhosted.org/packages/c8/3a/0686cdb266f7051e8ed3cfbb38f7e325155beb19bfb9821056debf6dfecb/pysdl2_dll-2.32.10-py2.py3-none-manylinux2014_i686.whl", hash = "sha256:4fad629105d0f138d084a37dcaf33aa47343ba771d1971c27f5cf68ef5428798", size = 4570812, upload-time = "2026-05-26T18:14:40.115Z" },
+    { url = "https://files.pythonhosted.org/packages/5d/6e/07ec92ba241b2aa941abf478e96c1474f2c5975b61d84303fbcb2ba1dcc9/pysdl2_dll-2.32.10-py2.py3-none-manylinux2014_x86_64.whl", hash = "sha256:12b136c38114ae0f8a85453a879795ba5d61663d98673ba19c36c3008ff00353", size = 4272860, upload-time = "2026-05-26T18:14:35.407Z" },
+    { url = "https://files.pythonhosted.org/packages/65/fc/8e35a36010e9dce25247991762ba3fc058c2626d323848c5e293447dcb35/pysdl2_dll-2.32.10-py2.py3-none-manylinux_2_28_aarch64.whl", hash = "sha256:248b1c6c6ba1f43e964f2f9bc723ee4ce39892aca840aee6de25da90c46f685d", size = 4478001, upload-time = "2026-05-26T22:32:00.976Z" },
+    { url = "https://files.pythonhosted.org/packages/2b/1c/91fb667c3968b420de5dd76e840259b44b876b6fc84c5889151633fcc06e/pysdl2_dll-2.32.10-py2.py3-none-manylinux_2_28_x86_64.whl", hash = "sha256:1e6139e3ce832d95d8376b77f4c9288bef34d6b131f844f2a5fcc8873ce8e6da", size = 5218513, upload-time = "2026-05-26T18:26:57.088Z" },
+    { url = "https://files.pythonhosted.org/packages/19/d3/f50924d47313cadf4b8994d1e8c3befb33031f4115c38570e5a4a8f13956/pysdl2_dll-2.32.10-py2.py3-none-win32.whl", hash = "sha256:881e2362fbe5c8d7129fa66f690380bbd0240d9d2cb1bc5612856be1e58e9261", size = 3437042, upload-time = "2026-05-26T18:10:11.243Z" },
+    { url = "https://files.pythonhosted.org/packages/91/8e/3a90c664cca4c61c7538a8b1a7fd86c7dc3521465198a844bce21b4a97c1/pysdl2_dll-2.32.10-py2.py3-none-win_amd64.whl", hash = "sha256:65eba83d68c33b22aa5eca6c9a8521cff5044435ecd5b49521068df82674de6a", size = 4064320, upload-time = "2026-05-26T18:11:29.046Z" },
 ]
 
 [[package]]

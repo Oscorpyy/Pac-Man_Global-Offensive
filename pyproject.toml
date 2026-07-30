@@ -11,4 +11,5 @@ dependencies = [
     "pydantic>=2.13.4",
     "pyinstaller>=6.21.0",
     "pysdl2>=0.9.17",
+    "pysdl2-dll>=2.32.10",
 ]
