@@ -17,3 +17,12 @@ class Config(BaseModel):
     points_per_ghost: int
     seed: int
     level_max_time: int
+
+
+class Score(BaseModel):
+    name: str
+    point: int
+
+
+class Highscore(BaseModel):
+    scores: list[Score]

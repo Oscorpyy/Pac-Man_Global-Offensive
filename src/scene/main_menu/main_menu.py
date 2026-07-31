@@ -1,3 +1,5 @@
+import os
+import json
 import sdl2
 import sdl2.sdlimage as sdim
 import sdl2.sdlttf as sttf
@@ -6,13 +8,15 @@ from src.color import Color
 from src.drawing_methods import draw_rect_full, clear_background, draw_text, draw_sprite_sheet, Button
 from src.scene.helper import get_ptr
 from src.print_logs import print_error
-from src.game_state import GameState, ScenePossible
+from src.game_state import GameConfig, GameState, ScenePossible
 
 
 class MainMenu:
-    def __init__(self, renderer, width: int, height: int, game_state: GameState) -> None:
+    def __init__(self, renderer, width: int, height: int, game_state: GameState, game_config: GameConfig) -> None:
         self.game_state = game_state
+        self.game_config = game_config
         self.renderer = renderer
+        self.top_score = self.get_highscore()
         # img loading
         sdim.IMG_Init(sdim.IMG_INIT_PNG)
         self.img_path = b"assets/test3.png"
@@ -27,8 +31,8 @@ class MainMenu:
         self.font = sttf.TTF_OpenFont(b"assets/Press_Start_2P/PressStart2P-Regular.ttf", self.font_size)
         if not self.font:
             print_error(f"can't charge font {sttf.TTF_GetError()}")
-        self.text = b"aaaaaaaaaa\nadsfasdfsadf"
         self.width = width
+        self.height = height
         self.background = sdl2.SDL_CreateTexture(
             renderer,
             sdl2.SDL_PIXELFORMAT_ARGB8888,
@@ -36,9 +40,22 @@ class MainMenu:
             width,
             height
         )
-        self.test_x: int = 10
         self.pixels = np.zeros((height, width), dtype=np.uint32)
+        self.btn_list: list = [
+            Button(self.renderer, self.pixels, self.font, int(self.width * 0.25), self.height // 3, 160, 50, Color.BLACK, Color.GREEN, self.next_scene, b"Start Game"),
+            Button(self.renderer, self.pixels, self.font, int(self.width * 0.55), self.height // 3, 160, 50, Color.BLACK, Color.GREEN, self.next_scene, b"Settings")
+        ]
         self.pitch_background = width * 4
+
+
+    def get_highscore(self) -> dict:
+        content: dict = {}
+        try:
+            with open(self.game_config.highscore_filename, "r") as f:
+                content = json.load(f)
+        except (FileNotFoundError, PermissionError, ValueError) as e:
+            print_error(f"Caught error: {e}")
+        return content
 
 
     def clean_up(self) -> None:
@@ -47,26 +64,39 @@ class MainMenu:
         sttf.TTF_Quit()
 
 
-    def next_scene(self):
+    def next_scene(self) -> None:
         self.game_state.scene = ScenePossible.GAME
 
 
+    def draw_scores(self) -> None:
+        scores_lst = self.top_score.get("scores", None)
+        if scores_lst is not None:
+            scores_lst.sort(key=lambda item: item['point'], reverse=True)
+        draw_text(self.renderer, self.font, b"HIGHSCORE", int(self.width * 0.4), 275)
+        y_offset: int = 300
+        if scores_lst is not None:
+            if len(scores_lst) == 0:
+                draw_text(self.renderer, self.font, b"HIGHSCORE", int(self.width * 0.4), 275)
+            else:
+                for stat in scores_lst:
+                    txt: str = f"{stat.get("name")}: {stat.get("point")}".encode("utf-8")
+                    draw_text(self.renderer, self.font, txt, int(self.width * 0.35), y_offset)
+                    y_offset += 30
+
+
     def draw_background(self) -> None:
-        btn_test = Button(self.renderer, self.pixels, self.font, 300, 80, 160, 50, Color.RED, Color.PURPLE, self.next_scene)
-        clear_background(self.pixels, Color.BLUE)
-        draw_rect_full(self.pixels, 15, 15, Color.RED, x=self.test_x, y=0)
-        btn_test.draw_background()
+        clear_background(self.pixels, Color.NAVY)
+        for btn in self.btn_list:
+            btn.draw_background()
         pixel_ptr = get_ptr(self.pixels)
         sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
         # draw_sprites(self.renderer, self.img_texture, 50, 45, 10)
         draw_sprite_sheet(self.renderer, self.img_texture, 50, 45, 0, 4)
-        draw_text(self.renderer, self.font, self.text, 10, 200, 2)
-        btn_test.draw_text(b"Start Game")
+        for btn in self.btn_list:
+            btn.draw_text()
+        self.draw_scores()
         sdl2.SDL_RenderPresent(self.renderer)
-        self.test_x += 10
-        if self.test_x >= self.width:
-            self.test_x = 10
 
 
     def draw_main_menu(self) -> None:

@@ -48,7 +48,7 @@ def draw_text(renderer, font, text: str, x: int, y: int, scale: int = 1) -> None
 
 # some thing will need to be simplified
 class Button:
-    def __init__(self, renderer, pixels: ndarray, font, x: int, y: int, w: int, h: int, color_rect, color_hover, function: callable, scale: int = 1):
+    def __init__(self, renderer, pixels: ndarray, font, x: int, y: int, w: int, h: int, color_rect, color_hover, function: callable, text: str, scale: int = 1):
         self.renderer = renderer
         self.pixels = pixels
         self.font = font
@@ -56,6 +56,7 @@ class Button:
         self.color_hover = color_hover
         self.scale = scale
         self.action = function
+        self.text = text
         self.x = x
         self.y = y
         self.w = w
@@ -71,8 +72,8 @@ class Button:
         else:
             draw_rect_full(self.pixels, self.w, self.h, self.color_rect, self.x, self.y)
 
-    def draw_text(self, text: str) -> None:
-        text_split: list = text.split(b"\n")
+    def draw_text(self) -> None:
+        text_split: list = self.text.split(b"\n")
         for i in range(len(text_split)):
             text_surface = sttf.TTF_RenderText_Solid(self.font, text_split[i], sdl2.SDL_Color(255, 255, 255, 255))
             line_w = text_surface.contents.w

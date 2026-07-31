@@ -1,13 +1,14 @@
 import sdl2
 from src.print_logs import print_error, print_info, print_warning
 from src.control import SdlEvent
-from src.game_state import GameState, ScenePossible
+from src.game_state import GameState, ScenePossible, GameConfig
 from src.scene.main_menu.main_menu import MainMenu
 from src.scene.game.game import Game
 
 
 class Window:
-    def __init__(self) -> None:
+    def __init__(self, config: GameConfig) -> None:
+        self.config = config
         self.width = 800
         self.height = 600
 
@@ -41,7 +42,7 @@ class Window:
         game_state = GameState()
         event = sdl2.SDL_Event()
         sdl_event = SdlEvent()
-        main = MainMenu(renderer, self.width, self.height, game_state)
+        main = MainMenu(renderer, self.width, self.height, game_state, self.config)
         game = Game()
         while(game_state.is_running):
             sdl_event.main_loop(event, game_state, main)
