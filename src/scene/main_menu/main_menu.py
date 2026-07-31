@@ -43,9 +43,10 @@ class MainMenu:
         self.pixels = np.zeros((height, width), dtype=np.uint32)
         self.btn_list: list = [
             Button(self.renderer, self.pixels, self.font, int(self.width * 0.25), self.height // 3, 160, 50, Color.BLACK, Color.GREEN, self.next_scene, b"Start Game"),
-            Button(self.renderer, self.pixels, self.font, int(self.width * 0.55), self.height // 3, 160, 50, Color.BLACK, Color.GREEN, self.next_scene, b"Settings")
+            Button(self.renderer, self.pixels, self.font, int(self.width * 0.55), self.height // 3, 160, 50, Color.BLACK, Color.GREEN, self.set_can_draw_settings, b"Settings")
         ]
         self.pitch_background = width * 4
+        self.can_draw_settings: bool = False
 
 
     def get_highscore(self) -> dict:
@@ -78,10 +79,25 @@ class MainMenu:
             if len(scores_lst) == 0:
                 draw_text(self.renderer, self.font, b"HIGHSCORE", int(self.width * 0.4), 275)
             else:
+                i = 0
                 for stat in scores_lst:
+                    if i > 9:
+                        continue
                     txt: str = f"{stat.get("name")}: {stat.get("point")}".encode("utf-8")
                     draw_text(self.renderer, self.font, txt, int(self.width * 0.35), y_offset)
                     y_offset += 30
+                    i += 1
+
+
+    def set_can_draw_settings(self) -> None:
+        self.can_draw_settings = True
+
+    
+    def draw_settings(self) -> None:
+        clear_background(self.pixels, Color.NAVY)
+        pixel_ptr = get_ptr(self.pixels)
+        sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
+        sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
 
 
     def draw_background(self) -> None:
@@ -96,8 +112,11 @@ class MainMenu:
         for btn in self.btn_list:
             btn.draw_text()
         self.draw_scores()
-        sdl2.SDL_RenderPresent(self.renderer)
 
 
     def draw_main_menu(self) -> None:
-        self.draw_background()
+        if self.can_draw_settings is True:
+            self.draw_settings()
+        else:
+            self.draw_background()
+        sdl2.SDL_RenderPresent(self.renderer)
