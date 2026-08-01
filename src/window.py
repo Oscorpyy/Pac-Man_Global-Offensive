@@ -30,6 +30,11 @@ class Window:
             return -1
         return window
 
+    def scene_to_free(self, game_state: GameState) -> None:
+        match game_state.scene:
+            case ScenePossible.MAIN:
+                self.main.clean_up()
+
     def main_loop(self) -> None:
         if self.init_window() == -1:
             return
@@ -42,15 +47,19 @@ class Window:
         game_state = GameState()
         event = sdl2.SDL_Event()
         sdl_event = SdlEvent()
-        main = MainMenu(renderer, self.width, self.height, game_state, self.config)
-        game = Game()
+        self.main = MainMenu(renderer, self.width, self.height, game_state, self.config)
+        self.game = Game()
         while(game_state.is_running):
-            sdl_event.main_loop(event, game_state, main)
+            sdl_event.main_loop(event, game_state, self.main)
             if game_state.scene == ScenePossible.MAIN:
-                main.draw_main_menu()
+                self.main.draw_main_menu()
             if game_state.scene == ScenePossible.GAME:
-                game.temp()
+                self.game.temp()
             game_state.frame += 1
             if game_state.frame > 60:
                 game_state.frame = 1
             sdl2.SDL_Delay(16)
+        self.scene_to_free(game_state)
+        sdl2.SDL_DestroyRenderer(renderer)
+        sdl2.SDL_DestroyWindow(window)
+        sdl2.SDL_Quit()

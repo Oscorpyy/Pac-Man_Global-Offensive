@@ -18,6 +18,19 @@ def draw_rect_full(
     pixels[y: y + rect_height, x: x + rect_width] = color
 
 
+def draw_rect_not_full(
+    pixels: ndarray,
+    rect_width: int, rect_height: int,
+    color,
+    thickness,
+    x: int = 0, y: int = 0
+) -> None:
+    pixels[y: y + thickness, x: x + rect_width] = color
+    pixels[rect_height + y: rect_height + y + thickness, x: x + rect_width] = color
+    pixels[y : y + rect_height, x: x + thickness] = color
+    pixels[y : y + rect_height + thickness, x + rect_width: x + rect_width + thickness] = color
+
+
 def clear_background(pixels: ndarray, color: int) -> None:
     pixels[:, :] = color
 
@@ -44,6 +57,7 @@ def draw_text(renderer, font, text: str, x: int, y: int, scale: int = 1) -> None
         sdl2.SDL_FreeSurface(text_surface)
         dest_rect = sdl2.SDL_Rect(x, y + (line_h * i * scale), line_w * scale, line_h * scale)
         sdl2.SDL_RenderCopy(renderer, text_texture, None, ctypes.byref(dest_rect))
+        sdl2.SDL_DestroyTexture(text_texture)
 
 
 # some thing will need to be simplified
@@ -84,3 +98,4 @@ class Button:
             sdl2.SDL_FreeSurface(text_surface)
             dest_rect = sdl2.SDL_Rect(center_x, center_y + (line_h * i * self.scale), line_w * self.scale, line_h * self.scale)
             sdl2.SDL_RenderCopy(self.renderer, text_texture, None, ctypes.byref(dest_rect))
+            sdl2.SDL_DestroyTexture(text_texture)

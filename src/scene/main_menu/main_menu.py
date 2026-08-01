@@ -5,10 +5,52 @@ import sdl2.sdlimage as sdim
 import sdl2.sdlttf as sttf
 import numpy as np
 from src.color import Color
-from src.drawing_methods import draw_rect_full, clear_background, draw_text, draw_sprite_sheet, Button
+from src.drawing_methods import (
+    draw_rect_full,
+    clear_background,
+    draw_text,
+    draw_sprite_sheet,
+    Button,
+    draw_rect_not_full
+)
 from src.scene.helper import get_ptr
 from src.print_logs import print_error
 from src.game_state import GameConfig, GameState, ScenePossible
+
+
+class SettingsWindow:
+    def __init__(self, main_widow_width: int, main_widow_height: int, renderer, pixels: np.ndarray, font) -> None:
+        self.m_width = main_widow_width
+        self.m_height = main_widow_height
+        self.pitch_background = self.m_width * 4
+        self.renderer = renderer
+        self.background = sdl2.SDL_CreateTexture(
+            renderer,
+            sdl2.SDL_PIXELFORMAT_ARGB8888,
+            sdl2.SDL_TEXTUREACCESS_STREAMING,
+            self.m_width,
+            self.m_height
+        )
+        self.pixels = pixels
+        self.font = font
+        # self.btn_settings: list = [
+        #     Button(self.renderer, self.pixels, self.font, int(self.width * 0.25), self.height // 3, 160, 50, Color.BLACK, Color.GREEN, self.next_scene, b"back"),
+        # ]
+
+    def clean_up(self) -> None:
+        sdl2.SDL_DestroyTexture(self.background)
+    
+    def draw_settings(self) -> None:
+        clear_background(self.pixels, Color.NAVY)
+        settings_background_x = self.m_width // 2
+        settings_background_y = self.m_height // 2
+        settings_pos_x = settings_background_x // 2
+        settings_pos_y = settings_background_y // 2
+        draw_rect_full(self.pixels, settings_background_x, settings_background_y, Color.BLACK, settings_pos_x, settings_pos_y)
+        draw_rect_not_full(self.pixels, settings_background_x, settings_background_y, Color.WHITE, 5,settings_pos_x, settings_pos_y)
+        pixel_ptr = get_ptr(self.pixels)
+        sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
+        sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
 
 
 class MainMenu:
@@ -33,6 +75,8 @@ class MainMenu:
             print_error(f"can't charge font {sttf.TTF_GetError()}")
         self.width = width
         self.height = height
+        self.pixels = np.zeros((height, width), dtype=np.uint32)
+        self.settings_win = SettingsWindow(width, height, renderer, self.pixels, self.font)
         self.background = sdl2.SDL_CreateTexture(
             renderer,
             sdl2.SDL_PIXELFORMAT_ARGB8888,
@@ -40,7 +84,6 @@ class MainMenu:
             width,
             height
         )
-        self.pixels = np.zeros((height, width), dtype=np.uint32)
         self.btn_list: list = [
             Button(self.renderer, self.pixels, self.font, int(self.width * 0.25), self.height // 3, 160, 50, Color.BLACK, Color.GREEN, self.next_scene, b"Start Game"),
             Button(self.renderer, self.pixels, self.font, int(self.width * 0.55), self.height // 3, 160, 50, Color.BLACK, Color.GREEN, self.set_can_draw_settings, b"Settings")
@@ -63,6 +106,9 @@ class MainMenu:
         sdim.IMG_Quit()
         sttf.TTF_CloseFont(self.font)
         sttf.TTF_Quit()
+        sdl2.SDL_DestroyTexture(self.img_texture)
+        sdl2.SDL_DestroyTexture(self.background)
+        self.settings_win.clean_up()
 
 
     def next_scene(self) -> None:
@@ -90,14 +136,8 @@ class MainMenu:
 
 
     def set_can_draw_settings(self) -> None:
-        self.can_draw_settings = True
-
-    
-    def draw_settings(self) -> None:
-        clear_background(self.pixels, Color.NAVY)
-        pixel_ptr = get_ptr(self.pixels)
-        sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
-        sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
+        if self.can_draw_settings is False:
+            self.can_draw_settings = True
 
 
     def draw_background(self) -> None:
@@ -116,7 +156,9 @@ class MainMenu:
 
     def draw_main_menu(self) -> None:
         if self.can_draw_settings is True:
-            self.draw_settings()
+            self.settings_win.draw_settings()
         else:
             self.draw_background()
         sdl2.SDL_RenderPresent(self.renderer)
+        if self.game_state.scene != ScenePossible.MAIN:
+            self.clean_up()
