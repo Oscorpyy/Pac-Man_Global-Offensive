@@ -1,12 +1,23 @@
 from enum import IntEnum
+from sdl2 import SDL_Color
+
 
 class Color(IntEnum):
     BLUE = 0xFF0000FF
+    DARK_BLUE = 0xFF000080
+    ABYSS_BLUE = 0xFF003B59
+    DARK_TURQUOISE = 0xFF00A3B5
     RED = 0xFFFF0000
+    DARK_RED = 0xFF8B0000
+    CARMIN = 0xFF960019
     GREEN = 0xFF008000
+    DARK_GREEN = 0xFF314F40
     YELLOW = 0xFFFFFF00
+    CYBER_YELLOW = 0xFFFFD300
     BLACK = 0xFF000000
     WHITE = 0xFFFFFFFF
+    ST_WHITE = 0x66FFFFFF
+    LT_WHITE = 0x22FFFFFF
     
     CYAN = 0xFF00FFFF
     MAGENTA = 0xFFFF00FF
@@ -38,3 +49,10 @@ class Color(IntEnum):
     TOMATO = 0xFFFF6347
     KHAKI = 0xFFF0E68C
     BEIGE = 0xFFF5F5DC
+
+def color_to_sdl_color(color: Color) -> SDL_Color:
+    b = color & 0xFF
+    g = (color >> 8) & 0xFF
+    r = (color >> 16) & 0xFF
+    a = (color >> 24) & 0xFF
+    return SDL_Color(r, g, b, a)

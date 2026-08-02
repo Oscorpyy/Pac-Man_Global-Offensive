@@ -1,6 +1,9 @@
+import json
+
 from src.window import Window
 from src.print_logs import print_error
 from src.parsing import check_config_file
+from src.game_state import GameConfig
 import sys
 
 def main() -> None:
@@ -10,7 +13,14 @@ def main() -> None:
     if check_config_file(sys.argv) is False:
         print_error("Config file invalid")
         return
-    window = Window()
+    try:
+        with open(sys.argv[1], "r") as f:
+            content = json.load(f)
+    except Exception as e:
+        print_error(f"Caught error: {e}")
+        return
+    config = GameConfig(content)
+    window = Window(config)
     window.main_loop()
 
 
