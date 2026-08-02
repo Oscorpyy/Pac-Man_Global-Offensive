@@ -1,12 +1,35 @@
-from numpy import ndarray
+from numpy import ndarray, arange, sin, clip
+from src.color import Color, color_to_sdl_color
 import sdl2
 import ctypes
 import sdl2.sdlttf as sttf
 
 
-def put_pixels(pixels_array, x, y, width, height, color) -> None:
+def put_pixels(pixels_array: ndarray, x: int, y: int, width: int, height: int, color: Color) -> None:
     if 0 <= x < width and 0 <= y < height:
         pixels_array[y * width + x] = color
+
+
+def put_pixels_alpha(pixels: ndarray, x: int, y: int, width: int, height: int, color: Color) -> None:
+    if 0 <= x < width and 0 <= y < height:
+        a_extract = color >> 24 & 0xFF
+        if a_extract == 0:
+            return
+        if a_extract == 255:
+            pixels[y, x] = color
+        pixel_extract = pixels[y, x]
+        br_extract = pixel_extract >> 16 & 0xFF
+        bg_extract = pixel_extract >> 8 & 0xFF
+        bb_extract = pixel_extract & 0xFF
+
+        r_extract = color >> 16 & 0xFF
+        g_extract = color >> 8 & 0xFF
+        b_extract = color & 0xFF
+        r_final = ((r_extract * a_extract) + (br_extract * (255 - a_extract))) // 255
+        g_final = ((g_extract * a_extract) + (bg_extract * (255 - a_extract))) // 255
+        b_final = ((b_extract * a_extract) + (bb_extract * (255 - a_extract))) // 255
+        final_color = (0xFF << 24) | (r_final << 16) | (g_final << 8) | (b_final)
+        pixels[y, x] = final_color
 
 
 def draw_rect_full(
@@ -47,10 +70,10 @@ def draw_sprite_sheet(renderer, img_texture, x: int, y: int, frame: int, scale: 
     sdl2.SDL_RenderCopy(renderer, img_texture, ctypes.byref(src_rect), ctypes.byref(dest_rect))
 
 
-def draw_text(renderer, font, text: str, x: int, y: int, scale: int = 1) -> None:
+def draw_text(renderer, font, text: str, x: int, y: int, color: Color, scale: int = 1) -> None:
     text_split: list = text.split(b"\n")
     for i in range(len(text_split)):
-        text_surface = sttf.TTF_RenderText_Solid(font, text_split[i], sdl2.SDL_Color(255, 255, 255, 255))
+        text_surface = sttf.TTF_RenderText_Solid(font, text_split[i], color_to_sdl_color(color))
         line_w = text_surface.contents.w
         line_h = text_surface.contents.h
         text_texture = sdl2.SDL_CreateTextureFromSurface(renderer, text_surface)
@@ -58,6 +81,78 @@ def draw_text(renderer, font, text: str, x: int, y: int, scale: int = 1) -> None
         dest_rect = sdl2.SDL_Rect(x, y + (line_h * i * scale), line_w * scale, line_h * scale)
         sdl2.SDL_RenderCopy(renderer, text_texture, None, ctypes.byref(dest_rect))
         sdl2.SDL_DestroyTexture(text_texture)
+
+
+def draw_line(pixels: ndarray, start_x: int, start_y: int, end_x: int, end_y: int, color, thick: int) -> None:
+    x_diff = abs(start_x - end_x)
+    y_diff = abs(start_y - end_y)
+    error = x_diff - y_diff
+    if start_y < end_y:
+        s_y = 1
+    else:
+        s_y = -1
+    if start_x < end_x:
+        s_x = 1
+    else:
+        s_x = -1
+    x_res = []
+    y_res = []
+    while (True):
+        if (start_x == end_x and start_y == end_y):
+            break
+        x_res.append(start_x)
+        y_res.append(start_y)
+        error_temp = error * 2
+        if error_temp > -y_diff:
+            error = error - y_diff
+            start_x = start_x + s_x
+        if error_temp < x_diff:
+            error = error + x_diff
+            start_y = start_y + s_y
+    pixels[y_res, x_res] = color
+
+
+def draw_sin(pixels: ndarray, width: int, height: int, center: int, amp: int, frq: float, thickness, color, frame: float) -> None:
+    x_coords = arange(width)
+    y_coords = center + amp * sin(x_coords * frq + frame)
+    y_coords = y_coords.astype(int)
+    offset = thickness // 2
+    for i in range(-offset, offset + 1):
+        y_thick = clip(y_coords + i, 0, height - 1)
+        pixels[y_thick, x_coords] = color
+
+
+def draw_sin_a(pixels: ndarray, width: int, height: int, center: int, amp: int, frq: float, thickness, color, frame: float) -> None:
+    x_coords = arange(width)
+    y_coords = center + amp * sin(x_coords * frq + frame)
+    y_coords = y_coords.astype(int)
+    offset = thickness // 2
+    r_extract = color >> 16 & 0xFF
+    g_extract = color >> 8 & 0xFF
+    b_extract = color & 0xFF
+    a_extract = color >> 24 & 0xFF
+    inverse_alpha = 255 - a_extract
+    r_term = r_extract * a_extract
+    g_term = g_extract * a_extract
+    b_term = b_extract * a_extract
+    for i in range(-offset, offset + 1):
+        y_thick = clip(y_coords + i, 0, height - 1)
+        if a_extract == 0:
+            return
+        if a_extract == 255:
+            pixels[y_thick, x_coords] = color
+            continue
+        pixel_extract = pixels[y_thick, x_coords]
+        br_extract = pixel_extract >> 16 & 0xFF
+        bg_extract = pixel_extract >> 8 & 0xFF
+        bb_extract = pixel_extract & 0xFF
+
+
+        r_final = ((r_term) + (br_extract * (inverse_alpha))) // 255
+        g_final = ((g_term) + (bg_extract * (inverse_alpha))) // 255
+        b_final = ((b_term) + (bb_extract * (inverse_alpha))) // 255
+        final_color = (0xFF << 24) | (r_final << 16) | (g_final << 8) | (b_final)
+        pixels[y_thick, x_coords] = final_color
 
 
 # some thing will need to be simplified
@@ -86,10 +181,10 @@ class Button:
         else:
             draw_rect_full(self.pixels, self.w, self.h, self.color_rect, self.x, self.y)
 
-    def draw_text(self) -> None:
+    def draw_text(self, color: Color) -> None:
         text_split: list = self.text.split(b"\n")
         for i in range(len(text_split)):
-            text_surface = sttf.TTF_RenderText_Solid(self.font, text_split[i], sdl2.SDL_Color(255, 255, 255, 255))
+            text_surface = sttf.TTF_RenderText_Solid(self.font, text_split[i], color_to_sdl_color(color))
             line_w = text_surface.contents.w
             line_h = text_surface.contents.h
             center_y: int = int(self.y + (self.h // 2) - (line_h // 2))

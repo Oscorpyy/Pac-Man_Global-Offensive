@@ -6,56 +6,33 @@ import sdl2.sdlttf as sttf
 import numpy as np
 from src.color import Color
 from src.drawing_methods import (
-    draw_rect_full,
+    draw_sin_a,
+    put_pixels_alpha,
+    put_pixels,
     clear_background,
     draw_text,
     draw_sprite_sheet,
     Button,
-    draw_rect_not_full
+    draw_rect_not_full,
+    draw_sin
 )
 from src.scene.helper import get_ptr
 from src.print_logs import print_error
 from src.game_state import GameConfig, GameState, ScenePossible
+from src.scene.main_menu.settings import SettingsWindow
+from src.scene.main_menu.instruction import InstructionWindow
 
 
-class SettingsWindow:
-    def __init__(self, main_widow_width: int, main_widow_height: int, renderer, pixels: np.ndarray, font) -> None:
-        self.m_width = main_widow_width
-        self.m_height = main_widow_height
-        self.pitch_background = self.m_width * 4
-        self.renderer = renderer
-        self.background = sdl2.SDL_CreateTexture(
-            renderer,
-            sdl2.SDL_PIXELFORMAT_ARGB8888,
-            sdl2.SDL_TEXTUREACCESS_STREAMING,
-            self.m_width,
-            self.m_height
-        )
-        self.pixels = pixels
-        self.font = font
-        # self.btn_settings: list = [
-        #     Button(self.renderer, self.pixels, self.font, int(self.width * 0.25), self.height // 3, 160, 50, Color.BLACK, Color.GREEN, self.next_scene, b"back"),
-        # ]
-
-    def clean_up(self) -> None:
-        sdl2.SDL_DestroyTexture(self.background)
-    
-    def draw_settings(self) -> None:
-        clear_background(self.pixels, Color.NAVY)
-        settings_background_x = self.m_width // 2
-        settings_background_y = self.m_height // 2
-        settings_pos_x = settings_background_x // 2
-        settings_pos_y = settings_background_y // 2
-        draw_rect_full(self.pixels, settings_background_x, settings_background_y, Color.BLACK, settings_pos_x, settings_pos_y)
-        draw_rect_not_full(self.pixels, settings_background_x, settings_background_y, Color.WHITE, 5,settings_pos_x, settings_pos_y)
-        pixel_ptr = get_ptr(self.pixels)
-        sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
-        sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
+class MenuDrawingState:
+    def __init__(self) -> None:
+        self.state_lst: list = ["main", "instruction", "settings"]
+        self.current = self.state_lst[0]
 
 
 class MainMenu:
     def __init__(self, renderer, width: int, height: int, game_state: GameState, game_config: GameConfig) -> None:
         self.game_state = game_state
+        self.menu_state = MenuDrawingState()
         self.game_config = game_config
         self.renderer = renderer
         self.top_score = self.get_highscore()
@@ -77,6 +54,7 @@ class MainMenu:
         self.height = height
         self.pixels = np.zeros((height, width), dtype=np.uint32)
         self.settings_win = SettingsWindow(width, height, renderer, self.pixels, self.font)
+        self.instruction_win = InstructionWindow(width, height, renderer, self.pixels, self.font)
         self.background = sdl2.SDL_CreateTexture(
             renderer,
             sdl2.SDL_PIXELFORMAT_ARGB8888,
@@ -84,12 +62,29 @@ class MainMenu:
             width,
             height
         )
+        len_column = width // 3
+        midle_column = len_column // 2
+        btn_width = 200
         self.btn_list: list = [
-            Button(self.renderer, self.pixels, self.font, int(self.width * 0.25), self.height // 3, 160, 50, Color.BLACK, Color.GREEN, self.next_scene, b"Start Game"),
-            Button(self.renderer, self.pixels, self.font, int(self.width * 0.55), self.height // 3, 160, 50, Color.BLACK, Color.GREEN, self.set_can_draw_settings, b"Settings")
+            Button(self.renderer, self.pixels, self.font, int(len_column) - (btn_width // 2) - midle_column, self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.next_scene, b"Start Game"),
+            Button(self.renderer, self.pixels, self.font, int(len_column * 2) - (btn_width // 2) - midle_column, self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.set_can_draw_settings, b"Settings"),
+            Button(self.renderer, self.pixels, self.font, int(len_column * 3) - (btn_width // 2) - midle_column, self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.set_can_draw_settings, b"Instructions"),
+            Button(self.renderer, self.pixels, self.font, 0, 0, 100, 50, Color.WHITE, Color.RED, self.close_game, b"Exit")
         ]
         self.pitch_background = width * 4
-        self.can_draw_settings: bool = False
+        self.time: float = 0.0
+        self.b_color_lst = [
+            Color.DARK_BLUE,
+            Color.ABYSS_BLUE,
+            Color.TEAL,
+            Color.CARMIN,
+            Color.DARK_RED,
+            Color.DARK_GREEN,
+            Color.GREEN,
+            Color.DARK_TURQUOISE
+        ]
+        self.b_color_len = len(self.b_color_lst)
+        self.b_color_choose = 0
 
 
     def get_highscore(self) -> dict:
@@ -119,46 +114,64 @@ class MainMenu:
         scores_lst = self.top_score.get("scores", None)
         if scores_lst is not None:
             scores_lst.sort(key=lambda item: item['point'], reverse=True)
-        draw_text(self.renderer, self.font, b"HIGHSCORE", int(self.width * 0.4), 275)
+        draw_text(self.renderer, self.font, b"HIGHSCORE", int(self.width * 0.4), 275, Color.WHITE)
         y_offset: int = 300
         if scores_lst is not None:
             if len(scores_lst) == 0:
-                draw_text(self.renderer, self.font, b"HIGHSCORE", int(self.width * 0.4), 275)
+                draw_text(self.renderer, self.font, b"HIGHSCORE", int(self.width * 0.4), 275, Color.WHITE)
             else:
                 i = 0
                 for stat in scores_lst:
                     if i > 9:
                         continue
                     txt: str = f"{stat.get("name")}: {stat.get("point")}".encode("utf-8")
-                    draw_text(self.renderer, self.font, txt, int(self.width * 0.35), y_offset)
+                    draw_text(self.renderer, self.font, txt, int(self.width * 0.35), y_offset, Color.WHITE)
                     y_offset += 30
                     i += 1
 
 
     def set_can_draw_settings(self) -> None:
-        if self.can_draw_settings is False:
-            self.can_draw_settings = True
+        self.menu_state.current = self.menu_state.state_lst[2]
+    
+    def set_can_draw_instructions(self) -> None:
+        self.menu_state.current = self.menu_state.state_lst[1]
+
+    def close_game(self) -> None:
+        self.game_state.is_running = False
 
 
     def draw_background(self) -> None:
-        clear_background(self.pixels, Color.NAVY)
+        clear_background(self.pixels, self.b_color_lst[self.b_color_choose])
+        draw_sin_a(self.pixels, self.width, self.height, self.height // 2, 50, 0.02, 200, Color.LT_WHITE, self.time)
+        draw_sin_a(self.pixels, self.width, self.height, self.height // 2, 50, 0.01, 130, Color.ST_WHITE, self.time)
+        draw_sin_a(self.pixels, self.width, self.height, self.height // 2, 50, -0.02, 80, Color.ST_WHITE, self.time)
         for btn in self.btn_list:
             btn.draw_background()
+        # for i in range(220):
+            # for y in range(220):
+                # put_pixels_alpha(self.pixels, 10 + y, 300 + i, self.width, self.height, Color.TRED)
         pixel_ptr = get_ptr(self.pixels)
         sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
-        # draw_sprites(self.renderer, self.img_texture, 50, 45, 10)
         draw_sprite_sheet(self.renderer, self.img_texture, 50, 45, 0, 4)
         for btn in self.btn_list:
-            btn.draw_text()
+            btn.draw_text(Color.BLACK)
         self.draw_scores()
 
 
     def draw_main_menu(self) -> None:
-        if self.can_draw_settings is True:
-            self.settings_win.draw_settings()
-        else:
+        if self.menu_state.current == self.menu_state.state_lst[2]:
+            self.settings_win.draw_settings(self.time, self.b_color_lst[self.b_color_choose])
+        elif self.menu_state.current == self.menu_state.state_lst[1]:
+            self.instruction_win.draw_instructions(self.time, self.b_color_lst[self.b_color_choose])
+        elif self.menu_state.current == self.menu_state.state_lst[0]:
             self.draw_background()
         sdl2.SDL_RenderPresent(self.renderer)
         if self.game_state.scene != ScenePossible.MAIN:
             self.clean_up()
+        self.time += 0.1
+        if self.time >= 6.28:
+            self.time = 0.0
+            self.b_color_choose += 1
+            if self.b_color_choose > self.b_color_len - 1:
+                self.b_color_choose = 0
