@@ -135,24 +135,24 @@ def draw_sin_a(pixels: ndarray, width: int, height: int, center: int, amp: int, 
     r_term = r_extract * a_extract
     g_term = g_extract * a_extract
     b_term = b_extract * a_extract
-    for i in range(-offset, offset + 1):
-        y_thick = clip(y_coords + i, 0, height - 1)
-        if a_extract == 0:
-            return
-        if a_extract == 255:
-            pixels[y_thick, x_coords] = color
-            continue
-        pixel_extract = pixels[y_thick, x_coords]
-        br_extract = pixel_extract >> 16 & 0xFF
-        bg_extract = pixel_extract >> 8 & 0xFF
-        bb_extract = pixel_extract & 0xFF
+    offsets = arange(-offset, offset + 1)[:, None]
+    y_thick = clip(y_coords + offsets, 0, height - 1)
+    if a_extract == 0:
+        return
+    if a_extract == 255:
+        pixels[y_thick, x_coords] = color
+        return
+    pixel_extract = pixels[y_thick, x_coords]
+    br_extract = pixel_extract >> 16 & 0xFF
+    bg_extract = pixel_extract >> 8 & 0xFF
+    bb_extract = pixel_extract & 0xFF
 
 
-        r_final = ((r_term) + (br_extract * (inverse_alpha))) // 255
-        g_final = ((g_term) + (bg_extract * (inverse_alpha))) // 255
-        b_final = ((b_term) + (bb_extract * (inverse_alpha))) // 255
-        final_color = (0xFF << 24) | (r_final << 16) | (g_final << 8) | (b_final)
-        pixels[y_thick, x_coords] = final_color
+    r_final = ((r_term) + (br_extract * (inverse_alpha))) >> 8
+    g_final = ((g_term) + (bg_extract * (inverse_alpha))) >> 8
+    b_final = ((b_term) + (bb_extract * (inverse_alpha))) >> 8
+    final_color = (0xFF << 24) | (r_final << 16) | (g_final << 8) | (b_final)
+    pixels[y_thick, x_coords] = final_color
 
 
 # some thing will need to be simplified

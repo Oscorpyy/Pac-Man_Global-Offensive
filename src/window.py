@@ -1,4 +1,5 @@
 import sdl2
+from src.scene.game.CS.secret_game import SecretGame
 from src.print_logs import print_error, print_info, print_warning
 from src.control import SdlEvent
 from src.game_state import GameState, ScenePossible, GameConfig
@@ -48,13 +49,17 @@ class Window:
         event = sdl2.SDL_Event()
         sdl_event = SdlEvent()
         self.main = MainMenu(renderer, self.width, self.height, game_state, self.config)
-        self.game = Game()
+        self.game = Game(renderer, self.width, self.height, game_state, self.config)
+        self.secret_game = SecretGame(renderer, self.width, self.height, game_state, self.config)
         while(game_state.is_running):
             sdl_event.main_loop(event, game_state, self.main)
-            if game_state.scene == ScenePossible.MAIN:
-                self.main.draw_main_menu()
-            if game_state.scene == ScenePossible.GAME:
-                self.game.temp()
+            match game_state.scene:
+                case ScenePossible.MAIN:
+                    self.main.draw_main_menu()
+                case ScenePossible.GAME:
+                    self.game.draw_game()
+                case ScenePossible.CSGO:
+                    self.secret_game.draw_secret_game()
             game_state.frame += 1
             if game_state.frame > 60:
                 game_state.frame = 1

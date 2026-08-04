@@ -7,14 +7,10 @@ import numpy as np
 from src.color import Color
 from src.drawing_methods import (
     draw_sin_a,
-    put_pixels_alpha,
-    put_pixels,
     clear_background,
     draw_text,
     draw_sprite_sheet,
     Button,
-    draw_rect_not_full,
-    draw_sin
 )
 from src.scene.helper import get_ptr
 from src.print_logs import print_error
@@ -104,6 +100,7 @@ class MainMenu:
         sdl2.SDL_DestroyTexture(self.img_texture)
         sdl2.SDL_DestroyTexture(self.background)
         self.settings_win.clean_up()
+        self.instruction_win.clean_up()
 
 
     def next_scene(self) -> None:
@@ -147,9 +144,6 @@ class MainMenu:
         draw_sin_a(self.pixels, self.width, self.height, self.height // 2, 50, -0.02, 80, Color.ST_WHITE, self.time)
         for btn in self.btn_list:
             btn.draw_background()
-        # for i in range(220):
-            # for y in range(220):
-                # put_pixels_alpha(self.pixels, 10 + y, 300 + i, self.width, self.height, Color.TRED)
         pixel_ptr = get_ptr(self.pixels)
         sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)

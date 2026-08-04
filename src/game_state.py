@@ -1,6 +1,5 @@
 from enum import Enum
-
-from pydantic import config
+from sdl2 import SDLK_LEFT, SDLK_RIGHT, SDLK_UP, SDLK_DOWN
 
 
 class ScenePossible(Enum):
@@ -8,6 +7,7 @@ class ScenePossible(Enum):
     GAME = "game"
     WIN = "win_screen"
     LOOSE = "loose_screen"
+    CSGO = "global_offensive"
 
 
 class GameState:
@@ -15,6 +15,8 @@ class GameState:
         self.is_running: bool = True
         self.scene = ScenePossible.MAIN
         self.frame: int = 1
+        self.konami_code_excepted: list = [SDLK_UP, SDLK_UP, SDLK_DOWN, SDLK_DOWN, SDLK_LEFT, SDLK_RIGHT, SDLK_LEFT, SDLK_RIGHT]
+        self.konami_code_entered: list = []
 
 
 class GameConfig:
