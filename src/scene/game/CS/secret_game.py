@@ -6,6 +6,7 @@ from src.drawing_methods import clear_background, draw_sprite_sheet
 from src.color import Color
 from src.scene.helper import get_ptr
 from src.print_logs import print_error
+from src.image import Image
 
 
 class SecretGame:
@@ -23,12 +24,7 @@ class SecretGame:
         )
         self.pitch_background = width * 4
         self.tilemap_data = tilemap
-        self.img_path = b"assets/tileset.png"
-        self.img_surface = sdim.IMG_Load(self.img_path)
-        if not self.img_surface:
-            print_error(f"can't charge image {sdim.IMG_GetError()}")
-        self.img_texture = sdl2.SDL_CreateTextureFromSurface(self.renderer, self.img_surface)
-        sdl2.SDL_FreeSurface(self.img_surface)
+        self.map_tiles = Image(b"assets/tileset.png", self.renderer)
 
 
     def draw_tilemap(self, scale) -> None:
@@ -39,7 +35,7 @@ class SecretGame:
             if tile == 0:
                 pass
             else:
-                draw_sprite_sheet(self.renderer, self.img_texture, x, y, tile - 41, scale)
+                draw_sprite_sheet(self.renderer, self.map_tiles, x, y, tile - 41, scale)
             tile_count += 1
             x += 32
             if tile_count > 39:
@@ -48,7 +44,7 @@ class SecretGame:
                 tile_count = 0
 
     def draw_secret_game(self) -> None:
-        clear_background(self.pixels, Color.BLUE)
+        clear_background(self.pixels, Color.BLACK)
         pixel_ptr = get_ptr(self.pixels)
         sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)

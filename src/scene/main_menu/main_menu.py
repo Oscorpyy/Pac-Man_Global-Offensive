@@ -17,6 +17,7 @@ from src.print_logs import print_error
 from src.game_state import GameConfig, GameState, ScenePossible
 from src.scene.main_menu.settings import SettingsWindow
 from src.scene.main_menu.instruction import InstructionWindow
+from src.image import Image
 
 
 class MenuDrawingState:
@@ -34,12 +35,7 @@ class MainMenu:
         self.top_score = self.get_highscore()
         # img loading
         sdim.IMG_Init(sdim.IMG_INIT_PNG)
-        self.img_path = b"assets/test3.png"
-        self.img_surface = sdim.IMG_Load(self.img_path)
-        if not self.img_surface:
-            print_error(f"can't charge image {sdim.IMG_GetError()}")
-        self.img_texture = sdl2.SDL_CreateTextureFromSurface(self.renderer, self.img_surface)
-        sdl2.SDL_FreeSurface(self.img_surface)
+        self.character =  Image(b"assets/test3.png", renderer)
         # Font loading
         sttf.TTF_Init()
         self.font_size = 16
@@ -97,7 +93,7 @@ class MainMenu:
         sdim.IMG_Quit()
         sttf.TTF_CloseFont(self.font)
         sttf.TTF_Quit()
-        sdl2.SDL_DestroyTexture(self.img_texture)
+        sdl2.SDL_DestroyTexture(self.character.texture)
         sdl2.SDL_DestroyTexture(self.background)
         self.settings_win.clean_up()
         self.instruction_win.clean_up()
@@ -147,7 +143,7 @@ class MainMenu:
         pixel_ptr = get_ptr(self.pixels)
         sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
-        draw_sprite_sheet(self.renderer, self.img_texture, 50, 45, 1, 4)
+        draw_sprite_sheet(self.renderer, self.character, 50, 45, 1, 4)
         for btn in self.btn_list:
             btn.draw_text(Color.BLACK)
         self.draw_scores()

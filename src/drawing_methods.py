@@ -1,5 +1,6 @@
 from numpy import ndarray, arange, sin, clip
 from src.color import Color, color_to_sdl_color
+from src.image import Image
 import sdl2
 import ctypes
 import sdl2.sdlttf as sttf
@@ -58,16 +59,28 @@ def clear_background(pixels: ndarray, color: int) -> None:
     pixels[:, :] = color
 
 
-def draw_sprites(renderer, img_texture, x: int, y: int, scale: int) -> None:
+def draw_sprites(renderer, img: Image, x: int, y: int, scale: int) -> None:
     dest_rect = sdl2.SDL_Rect(x, y, 32 * scale, 32 * scale)
-    sdl2.SDL_RenderCopy(renderer, img_texture, None, ctypes.byref(dest_rect))
+    sdl2.SDL_RenderCopy(renderer, img.texture, None, ctypes.byref(dest_rect))
 
 
-def draw_sprite_sheet(renderer, img_texture, x: int, y: int, frame: int, scale: int) -> None:
-    frame_to_draw: int = 0 + (32 * frame)
+def draw_sprite_sheet(renderer, img: Image, x: int, y: int, frame: int, scale: int) -> None:
+    frame_nb_width: int = img.width // 32
+    frame_nb_height: int = img.height // 32
+    frame_draw_w: int = frame % frame_nb_width
+    frame_draw_h: int = frame // frame_nb_width
+    # if frame > frame_nb_width:
+    #     frame_draw_w = frame % 32
+    #     print(frame_draw_w)
+    #     frame_draw_h = frame // 32
+    # else:
+    #     frame_draw_w = frame
+    # frame_to_draw: int = (32 * frame_draw_h) + (32 * frame_draw_w)
+    frame_x = 32 * frame_draw_w
+    frame_y = 32 * frame_draw_h
     dest_rect = sdl2.SDL_Rect(x, y, 32 * scale, 32 * scale)
-    src_rect = sdl2.SDL_Rect(frame_to_draw, 0, 32, 32)
-    sdl2.SDL_RenderCopy(renderer, img_texture, ctypes.byref(src_rect), ctypes.byref(dest_rect))
+    src_rect = sdl2.SDL_Rect(frame_x, frame_y, 32, 32)
+    sdl2.SDL_RenderCopy(renderer, img.texture, ctypes.byref(src_rect), ctypes.byref(dest_rect))
 
 
 def draw_text(renderer, font, text: str, x: int, y: int, color: Color, scale: int = 1) -> None:
