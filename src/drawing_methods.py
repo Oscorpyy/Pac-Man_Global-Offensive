@@ -69,13 +69,6 @@ def draw_sprite_sheet(renderer, img: Image, x: int, y: int, frame: int, scale: i
     frame_nb_height: int = img.height // 32
     frame_draw_w: int = frame % frame_nb_width
     frame_draw_h: int = frame // frame_nb_width
-    # if frame > frame_nb_width:
-    #     frame_draw_w = frame % 32
-    #     print(frame_draw_w)
-    #     frame_draw_h = frame // 32
-    # else:
-    #     frame_draw_w = frame
-    # frame_to_draw: int = (32 * frame_draw_h) + (32 * frame_draw_w)
     frame_x = 32 * frame_draw_w
     frame_y = 32 * frame_draw_h
     dest_rect = sdl2.SDL_Rect(x, y, 32 * scale, 32 * scale)
