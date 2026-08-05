@@ -1,4 +1,7 @@
+from typing import Any
+
 import sdl2
+import json
 from src.scene.game.CS.secret_game import SecretGame
 from src.print_logs import print_error, print_info, print_warning
 from src.control import SdlEvent
@@ -36,6 +39,24 @@ class Window:
             case ScenePossible.MAIN:
                 self.main.clean_up()
 
+    def get_secret_map_data(self) -> list:
+        map_tiles = []
+        try:
+            with open("assets/de_office.json") as f:
+                content = json.load(f)
+                map_data = content.get("layers", [])
+                if map_data is None:
+                    print_error("Something went wrong with de_office map data")
+                else:
+                    map_tiles = map_data[0].get("data", [])
+                    if map_tiles is None:
+                        print_error("Something went wrong with de_office map data")
+                        map_tiles = []
+        except (FileNotFoundError, PermissionError, ValueError):
+            print_error("can't find de_office.json")
+            map_tiles = []
+        return map_tiles
+
     def main_loop(self) -> None:
         if self.init_window() == -1:
             return
@@ -48,9 +69,10 @@ class Window:
         game_state = GameState()
         event = sdl2.SDL_Event()
         sdl_event = SdlEvent()
+        de_office = self.get_secret_map_data()
         self.main = MainMenu(renderer, self.width, self.height, game_state, self.config)
         self.game = Game(renderer, self.width, self.height, game_state, self.config)
-        self.secret_game = SecretGame(renderer, self.width, self.height, game_state, self.config)
+        self.secret_game = SecretGame(renderer, self.width, self.height, game_state, self.config, de_office)
         while(game_state.is_running):
             sdl_event.main_loop(event, game_state, self.main)
             match game_state.scene:

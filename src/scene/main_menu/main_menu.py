@@ -147,7 +147,7 @@ class MainMenu:
         pixel_ptr = get_ptr(self.pixels)
         sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
-        draw_sprite_sheet(self.renderer, self.img_texture, 50, 45, 0, 4)
+        draw_sprite_sheet(self.renderer, self.img_texture, 50, 45, 1, 4)
         for btn in self.btn_list:
             btn.draw_text(Color.BLACK)
         self.draw_scores()

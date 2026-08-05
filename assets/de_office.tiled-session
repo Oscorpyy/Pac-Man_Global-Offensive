@@ -9,27 +9,34 @@
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
+        "tileset.tsx": {
+            "dynamicWrapping": false
+        },
         "untitled.tmx": {
             "scale": 0.75,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 805.9999999999999,
-                "y": 2576
+                "x": 254.66666666666663,
+                "y": 1040.6666666666665
             }
+        },
+        "untitled.tmx#tileset": {
+            "scaleInEditor": 1
         }
     },
-    "last.imagePath": "/home/azazel/Documents/42proj/M4/Pac-Man_Global-Offensive/assets",
-    "map.height": 100,
+    "last.exportedFilePath": "/home/lgoderne/Documents/42Proj/m4/Pac-Man_Global-Offensive/assets",
+    "last.imagePath": "/home/lgoderne/Documents/42Proj/m4/Pac-Man_Global-Offensive/assets",
+    "map.height": 40,
+    "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
-    "map.width": 100,
+    "map.width": 40,
     "openFiles": [
-        "untitled.tmx",
-        "background.tsx"
+        "untitled.tmx"
     ],
     "project": "de_office.tiled-project",
     "recentFiles": [
-        "background.tsx",
-        "untitled.tmx"
+        "untitled.tmx",
+        "background.tsx"
     ],
     "tileset.lastUsedFormat": "tsx"
 }

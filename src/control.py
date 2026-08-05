@@ -1,6 +1,7 @@
 import sdl2
 import ctypes
 from sdl2.events import SDL_Event
+from src.print_logs import print_info
 from src.game_state import GameState, ScenePossible
 from typing import Any
 
@@ -28,7 +29,7 @@ class SdlEvent:
                         game_state.konami_code_entered = []
                     if game_state.konami_code_entered == game_state.konami_code_excepted:
                         game_state.scene = ScenePossible.CSGO
-                        print("CS MOD ENTERED")
+                        print_info("CS MOD ENTERED")
                     print(game_state.konami_code_entered)
 
             elif event.type == sdl2.SDL_WINDOWEVENT:
