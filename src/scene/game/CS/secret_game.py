@@ -35,7 +35,7 @@ class SecretGame:
             if tile == 0:
                 pass
             else:
-                draw_sprite_sheet(self.renderer, self.map_tiles, x, y, tile - 41, scale)
+                draw_sprite_sheet(self.renderer, self.map_tiles, x * scale, y * scale, tile - 41, scale)
             tile_count += 1
             x += 32
             if tile_count > 39:
@@ -48,5 +48,5 @@ class SecretGame:
         pixel_ptr = get_ptr(self.pixels)
         sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
-        self.draw_tilemap(1)
+        self.draw_tilemap(2)
         sdl2.SDL_RenderPresent(self.renderer)
