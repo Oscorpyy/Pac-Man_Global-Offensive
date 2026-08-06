@@ -58,9 +58,9 @@ class MainMenu:
         midle_column = len_column // 2
         btn_width = 200
         self.btn_list: list = [
-            Button(self.renderer, self.pixels, self.font, int(len_column) - (btn_width // 2) - midle_column, self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.next_scene, b"Start Game"),
-            Button(self.renderer, self.pixels, self.font, int(len_column * 2) - (btn_width // 2) - midle_column, self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.set_can_draw_settings, b"Settings"),
-            Button(self.renderer, self.pixels, self.font, int(len_column * 3) - (btn_width // 2) - midle_column, self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.set_can_draw_settings, b"Instructions"),
+            Button(self.renderer, self.pixels, self.font, (self.width // 2 - (btn_width // 2)), self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.next_scene, b"Start Game"),
+            Button(self.renderer, self.pixels, self.font, (self.width // 2 - (btn_width // 2)) - (btn_width + 32), self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.set_can_draw_settings, b"Settings"),
+            Button(self.renderer, self.pixels, self.font, (self.width // 2 - (btn_width // 2)) + (btn_width + 32), self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.set_can_draw_settings, b"Instructions"),
             Button(self.renderer, self.pixels, self.font, 0, 0, 100, 50, Color.WHITE, Color.RED, self.close_game, b"Exit")
         ]
         self.pitch_background = width * 4
@@ -107,18 +107,18 @@ class MainMenu:
         scores_lst = self.top_score.get("scores", None)
         if scores_lst is not None:
             scores_lst.sort(key=lambda item: item['point'], reverse=True)
-        draw_text(self.renderer, self.font, b"HIGHSCORE", int(self.width * 0.4), 275, Color.WHITE)
-        y_offset: int = 300
+        draw_text(self.renderer, self.font, b"HIGHSCORE", self.width // 2 - (len("HIGHSCORE") * 16 // 2), self.height // 2, Color.WHITE)
+        y_offset: int = self.height // 2 + 30
         if scores_lst is not None:
             if len(scores_lst) == 0:
-                draw_text(self.renderer, self.font, b"HIGHSCORE", int(self.width * 0.4), 275, Color.WHITE)
+                draw_text(self.renderer, self.font, b"HIGHSCORE", self.width // 2 - (len("HIGHSCORE") * 16 // 2), self.height // 2, Color.WHITE)
             else:
                 i = 0
                 for stat in scores_lst:
                     if i > 9:
                         continue
                     txt: str = f"{stat.get("name")}: {stat.get("point")}".encode("utf-8")
-                    draw_text(self.renderer, self.font, txt, int(self.width * 0.35), y_offset, Color.WHITE)
+                    draw_text(self.renderer, self.font, txt, self.width // 2 - (len(txt) * 16 // 2), y_offset, Color.WHITE)
                     y_offset += 30
                     i += 1
 
