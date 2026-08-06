@@ -7,10 +7,11 @@ from src.color import Color
 from src.scene.helper import get_ptr
 from src.print_logs import print_error
 from src.image import Image
+from src.camera import Camera
 
 
 class SecretGame:
-    def __init__(self, renderer, width: int, height: int, game_state: GameState, config: GameConfig, tilemap):
+    def __init__(self, renderer, width: int, height: int, game_state: GameState, config: GameConfig, tilemap, cam: Camera):
         self.renderer = renderer
         self.pixels = np.zeros((height, width), dtype=np.uint32)
         self.game_state = game_state
@@ -25,6 +26,7 @@ class SecretGame:
         self.pitch_background = width * 4
         self.tilemap_data = tilemap
         self.map_tiles = Image(b"assets/tileset.png", self.renderer)
+        self.cam = cam
 
 
     def draw_tilemap(self, scale) -> None:
@@ -42,6 +44,9 @@ class SecretGame:
                 x = 0
                 y += 32
                 tile_count = 0
+
+    def update_player_pos(self) -> None:
+        pass
 
     def draw_secret_game(self) -> None:
         clear_background(self.pixels, Color.BLACK)

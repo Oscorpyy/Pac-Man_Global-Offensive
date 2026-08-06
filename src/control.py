@@ -31,6 +31,9 @@ class SdlEvent:
                         game_state.scene = ScenePossible.CSGO
                         print_info("CS MOD ENTERED")
                     print(game_state.konami_code_entered)
+                if game_state.scene == ScenePossible.CSGO:
+                    scene.
+                    
 
             elif event.type == sdl2.SDL_WINDOWEVENT:
                 if event.window.event == sdl2.SDL_WINDOWEVENT_CLOSE:

@@ -8,6 +8,7 @@ from src.control import SdlEvent
 from src.game_state import GameState, ScenePossible, GameConfig
 from src.scene.main_menu.main_menu import MainMenu
 from src.scene.game.game import Game
+from src.camera import Camera
 
 
 class Window:
@@ -72,7 +73,9 @@ class Window:
         de_office = self.get_secret_map_data()
         self.main = MainMenu(renderer, self.width, self.height, game_state, self.config)
         self.game = Game(renderer, self.width, self.height, game_state, self.config)
-        self.secret_game = SecretGame(renderer, self.width, self.height, game_state, self.config, de_office)
+        self.cam = Camera()
+        self.secret_game = SecretGame(renderer, self.width, self.height, game_state, self.config, de_office, self.cam)
+
         while(game_state.is_running):
             sdl_event.main_loop(event, game_state, self.main)
             match game_state.scene:
