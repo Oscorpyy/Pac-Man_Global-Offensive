@@ -8,6 +8,7 @@ from src.scene.helper import get_ptr
 from src.print_logs import print_error
 from src.image import Image
 from src.camera import Camera
+from src.player import CsPlayer
 
 
 class SecretGame:
@@ -16,6 +17,8 @@ class SecretGame:
         self.pixels = np.zeros((height, width), dtype=np.uint32)
         self.game_state = game_state
         self.config = config
+        self.width = width
+        self.height = height
         self.background = sdl2.SDL_CreateTexture(
             renderer,
             sdl2.SDL_PIXELFORMAT_ARGB8888,
@@ -26,7 +29,20 @@ class SecretGame:
         self.pitch_background = width * 4
         self.tilemap_data = tilemap
         self.map_tiles = Image(b"assets/tileset.png", self.renderer)
+        self.player_sprite = Image(b"assets/test2.png", self.renderer)
+        self.player = CsPlayer(self.player_sprite, cam)
         self.cam = cam
+        self.cam.offset_x = self.player.pos_x - (self.width // 4) + (self.player.sprite.width // 2)
+        self.cam.offset_y = self.player.pos_y - (self.height // 4) + (self.player.sprite.height // 2)
+        print(self.cam.offset_x)
+        print(self.player.pos_x)
+        print(self.cam.offset_y)
+        print(self.player.pos_y)
+        self.speed: int = 3
+        self.key_w: bool = False
+        self.key_s: bool = False
+        self.key_a: bool = False
+        self.key_d: bool = False
 
 
     def draw_tilemap(self, scale) -> None:
@@ -37,7 +53,7 @@ class SecretGame:
             if tile == 0:
                 pass
             else:
-                draw_sprite_sheet(self.renderer, self.map_tiles, x * scale, y * scale, tile - 41, scale)
+                draw_sprite_sheet(self.renderer, self.map_tiles, (x - self.cam.offset_x) * scale, (y - self.cam.offset_y) * scale, tile - 41, scale)
             tile_count += 1
             x += 32
             if tile_count > 39:
@@ -45,8 +61,29 @@ class SecretGame:
                 y += 32
                 tile_count = 0
 
+    def set_keystate(self, key, is_pressed: bool) -> None:
+        if key == sdl2.SDLK_w:
+            self.key_w = is_pressed
+        elif key == sdl2.SDLK_s:
+            self.key_s = is_pressed
+        elif key == sdl2.SDLK_a:
+            self.key_a = is_pressed
+        elif key == sdl2.SDLK_d:
+            self.key_d = is_pressed
+
     def update_player_pos(self) -> None:
-        pass
+        if (self.key_w is True):
+            self.player.pos_y -= self.speed
+            self.cam.offset_y -= self.speed
+        if (self.key_s is True):
+            self.player.pos_y += self.speed
+            self.cam.offset_y += self.speed
+        if (self.key_a is True):
+            self.player.pos_x -= self.speed
+            self.cam.offset_x -= self.speed
+        if (self.key_d is True):
+            self.player.pos_x += self.speed
+            self.cam.offset_x += self.speed
 
     def draw_secret_game(self) -> None:
         clear_background(self.pixels, Color.BLACK)
@@ -54,4 +91,6 @@ class SecretGame:
         sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
         self.draw_tilemap(2)
+        self.player.draw_player(self.renderer, 2)
         sdl2.SDL_RenderPresent(self.renderer)
+        self.update_player_pos()

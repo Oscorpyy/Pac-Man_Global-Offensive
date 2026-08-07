@@ -14,8 +14,8 @@ from src.camera import Camera
 class Window:
     def __init__(self, config: GameConfig) -> None:
         self.config = config
-        self.width = 800
-        self.height = 600
+        self.width = 1920
+        self.height = 1080
 
     def init_window(self) -> int:
         if sdl2.SDL_Init(sdl2.SDL_INIT_VIDEO) != 0:
@@ -77,13 +77,15 @@ class Window:
         self.secret_game = SecretGame(renderer, self.width, self.height, game_state, self.config, de_office, self.cam)
 
         while(game_state.is_running):
-            sdl_event.main_loop(event, game_state, self.main)
             match game_state.scene:
                 case ScenePossible.MAIN:
                     self.main.draw_main_menu()
+                    sdl_event.main_loop(event, game_state, self.main)
                 case ScenePossible.GAME:
+                    sdl_event.main_loop(event, game_state, self.game)
                     self.game.draw_game()
                 case ScenePossible.CSGO:
+                    sdl_event.main_loop(event, game_state, self.secret_game)
                     self.secret_game.draw_secret_game()
             game_state.frame += 1
             if game_state.frame > 60:

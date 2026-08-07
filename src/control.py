@@ -6,9 +6,11 @@ from src.game_state import GameState, ScenePossible
 from typing import Any
 
 class SdlEvent:
-    def player_control(self) -> None:
+    def __init__(self) -> None:
         pass
 
+    def player_control(self) -> None:
+        pass
 
     def free_memory(self, game_state: GameState, scene: Any) -> None:
         match game_state.scene:
@@ -17,10 +19,10 @@ class SdlEvent:
 
     def main_loop(self, event: SDL_Event, game_state: GameState, scene: Any) -> None:
         while sdl2.SDL_PollEvent(ctypes.byref(event)) != 0:
+            key = event.key.keysym.sym
             if event.type == sdl2.SDL_Quit:
                 game_state.is_running = False
             elif event.type == sdl2.SDL_KEYDOWN:
-                key = event.key.keysym.sym
                 if key == sdl2.SDLK_ESCAPE:
                     pass
                 if game_state.scene == ScenePossible.GAME:
@@ -30,10 +32,14 @@ class SdlEvent:
                     if game_state.konami_code_entered == game_state.konami_code_excepted:
                         game_state.scene = ScenePossible.CSGO
                         print_info("CS MOD ENTERED")
+                        continue
                     print(game_state.konami_code_entered)
                 if game_state.scene == ScenePossible.CSGO:
-                    scene.
-                    
+                    scene.set_keystate(key, True)
+
+            elif event.type == sdl2.SDL_KEYUP:
+                if game_state.scene == ScenePossible.CSGO:
+                    scene.set_keystate(key, False)
 
             elif event.type == sdl2.SDL_WINDOWEVENT:
                 if event.window.event == sdl2.SDL_WINDOWEVENT_CLOSE:
