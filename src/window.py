@@ -1,7 +1,7 @@
-from typing import Any
-
 import sdl2
 import json
+import time
+from typing import Any
 from src.scene.game.CS.secret_game import SecretGame
 from src.print_logs import print_error, print_info, print_warning
 from src.control import SdlEvent
@@ -16,6 +16,7 @@ class Window:
         self.config = config
         self.width = 1920
         self.height = 1080
+        self.fps: int = 0
 
     def init_window(self) -> int:
         if sdl2.SDL_Init(sdl2.SDL_INIT_VIDEO) != 0:
@@ -75,8 +76,13 @@ class Window:
         self.game = Game(renderer, self.width, self.height, game_state, self.config)
         self.cam = Camera()
         self.secret_game = SecretGame(renderer, self.width, self.height, game_state, self.config, de_office, self.cam)
-
+        last_time = time.perf_counter()
         while(game_state.is_running):
+            current_time = time.perf_counter()
+            dt = current_time - last_time
+            last_time = current_time
+            if dt > 0:
+                game_state.fps = 1.0 / dt
             match game_state.scene:
                 case ScenePossible.MAIN:
                     self.main.draw_main_menu()

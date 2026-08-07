@@ -6,6 +6,7 @@ import sdl2.sdlttf as sttf
 import numpy as np
 from src.color import Color
 from src.drawing_methods import (
+    draw_fps,
     draw_sin_a,
     clear_background,
     draw_text,
@@ -156,6 +157,7 @@ class MainMenu:
             self.instruction_win.draw_instructions(self.time, self.b_color_lst[self.b_color_choose])
         elif self.menu_state.current == self.menu_state.state_lst[0]:
             self.draw_background()
+        draw_fps(self.renderer, self.font, self.game_state.fps)
         sdl2.SDL_RenderPresent(self.renderer)
         if self.game_state.scene != ScenePossible.MAIN:
             self.clean_up()

@@ -1,8 +1,9 @@
 import sdl2
+import sdl2.sdlttf as sttf
 import sdl2.sdlimage as sdim
 import numpy as np
 from src.game_state import GameConfig, GameState
-from src.drawing_methods import clear_background, draw_sprite_sheet
+from src.drawing_methods import clear_background, draw_fps, draw_sprite_sheet
 from src.color import Color
 from src.scene.helper import get_ptr
 from src.print_logs import print_error
@@ -30,6 +31,11 @@ class SecretGame:
         self.tilemap_data = tilemap
         self.map_tiles = Image(b"assets/tileset.png", self.renderer)
         self.player_sprite = Image(b"assets/test2.png", self.renderer)
+        sttf.TTF_Init()
+        self.font_size = 16
+        self.font = sttf.TTF_OpenFont(b"assets/Press_Start_2P/PressStart2P-Regular.ttf", self.font_size)
+        if not self.font:
+            print_error(f"can't charge font {sttf.TTF_GetError()}")
         self.player = CsPlayer(self.player_sprite, cam)
         self.cam = cam
         self.cam.offset_x = self.player.pos_x - (self.width // 4) + (self.player.sprite.width // 2)
@@ -92,5 +98,6 @@ class SecretGame:
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
         self.draw_tilemap(2)
         self.player.draw_player(self.renderer, 2)
+        draw_fps(self.renderer, self.font, self.game_state.fps)
         sdl2.SDL_RenderPresent(self.renderer)
         self.update_player_pos()

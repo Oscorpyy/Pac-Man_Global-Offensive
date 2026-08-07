@@ -17,6 +17,7 @@ class GameState:
         self.frame: int = 1
         self.konami_code_excepted: list = [SDLK_UP, SDLK_UP, SDLK_DOWN, SDLK_DOWN, SDLK_LEFT, SDLK_RIGHT, SDLK_LEFT, SDLK_RIGHT]
         self.konami_code_entered: list = []
+        self.fps: int = 0
 
 
 class GameConfig:

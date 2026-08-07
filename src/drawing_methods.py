@@ -6,6 +6,9 @@ import ctypes
 import sdl2.sdlttf as sttf
 
 
+def draw_fps(renderer, font, fps: int) -> None:
+    draw_text(renderer, font, str(fps).encode(), 0, 0, Color.GREEN)
+
 def put_pixels(pixels_array: ndarray, x: int, y: int, width: int, height: int, color: Color) -> None:
     if 0 <= x < width and 0 <= y < height:
         pixels_array[y * width + x] = color
