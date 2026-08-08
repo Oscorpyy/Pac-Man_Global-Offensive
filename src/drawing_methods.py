@@ -69,7 +69,6 @@ def draw_sprites(renderer, img: Image, x: int, y: int, scale: int) -> None:
 
 def draw_sprite_sheet(renderer, img: Image, x: int, y: int, frame: int, scale: int) -> None:
     frame_nb_width: int = img.width // 32
-    frame_nb_height: int = img.height // 32
     frame_draw_w: int = frame % frame_nb_width
     frame_draw_h: int = frame // frame_nb_width
     frame_x = 32 * frame_draw_w
@@ -126,9 +125,9 @@ def draw_sin(pixels: ndarray, width: int, height: int, center: int, amp: int, fr
     y_coords = center + amp * sin(x_coords * frq + frame)
     y_coords = y_coords.astype(int)
     offset = thickness // 2
-    for i in range(-offset, offset + 1):
-        y_thick = clip(y_coords + i, 0, height - 1)
-        pixels[y_thick, x_coords] = color
+    offsets = arange(-offset, offset + 1)[:, None]
+    y_thick = clip(y_coords + offsets, 0, height - 1)
+    pixels[y_thick, x_coords] = color
 
 
 def draw_sin_a(pixels: ndarray, width: int, height: int, center: int, amp: int, frq: float, thickness, color, frame: float) -> None:

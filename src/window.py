@@ -14,8 +14,8 @@ from src.camera import Camera
 class Window:
     def __init__(self, config: GameConfig) -> None:
         self.config = config
-        self.width = 1920
-        self.height = 1080
+        self.width = 800
+        self.height = 600
         self.fps: int = 0
 
     def init_window(self) -> int:

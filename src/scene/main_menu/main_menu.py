@@ -1,4 +1,5 @@
 import os
+import math
 import json
 import sdl2
 import sdl2.sdlimage as sdim
@@ -7,7 +8,7 @@ import numpy as np
 from src.color import Color
 from src.drawing_methods import (
     draw_fps,
-    draw_sin_a,
+    draw_sin,
     clear_background,
     draw_text,
     draw_sprite_sheet,
@@ -78,7 +79,7 @@ class MainMenu:
         ]
         self.b_color_len = len(self.b_color_lst)
         self.b_color_choose = 0
-
+        self.background_color = 0xFF0000FF
 
     def get_highscore(self) -> dict:
         content: dict = {}
@@ -88,7 +89,6 @@ class MainMenu:
         except (FileNotFoundError, PermissionError, ValueError) as e:
             print_error(f"Caught error: {e}")
         return content
-
 
     def clean_up(self) -> None:
         sdim.IMG_Quit()
@@ -123,7 +123,6 @@ class MainMenu:
                     y_offset += 30
                     i += 1
 
-
     def set_can_draw_settings(self) -> None:
         self.menu_state.current = self.menu_state.state_lst[2]
     
@@ -133,12 +132,10 @@ class MainMenu:
     def close_game(self) -> None:
         self.game_state.is_running = False
 
-
     def draw_background(self) -> None:
-        clear_background(self.pixels, self.b_color_lst[self.b_color_choose])
-        draw_sin_a(self.pixels, self.width, self.height, self.height // 2, 50, 0.02, 200, Color.LT_WHITE, self.time)
-        draw_sin_a(self.pixels, self.width, self.height, self.height // 2, 50, 0.01, 130, Color.ST_WHITE, self.time)
-        draw_sin_a(self.pixels, self.width, self.height, self.height // 2, 50, -0.02, 80, Color.ST_WHITE, self.time)
+        clear_background(self.pixels, self.get_rainbow_color(self.time * 0.2))
+        draw_sin(self.pixels, self.width, self.height, int(self.height * 0.9), 50, 0.01, 10, Color.ST_WHITE, self.time)
+        draw_sin(self.pixels, self.width, self.height, int(self.height * 0.9), 50, -0.02, 10, Color.ST_WHITE, self.time)
         for btn in self.btn_list:
             btn.draw_background()
         pixel_ptr = get_ptr(self.pixels)
@@ -149,6 +146,13 @@ class MainMenu:
             btn.draw_text(Color.BLACK)
         self.draw_scores()
 
+    def get_rainbow_color(self, time_var: float) -> int:
+        center = 100
+        amp = 40
+        r = int(center + amp * math.sin(time_var))
+        g = int(center + amp * math.sin(time_var + 2))
+        b = int(center + amp * math.sin(time_var + 4))
+        return (0xFF << 24) | (r << 16) | (g << 8) | b
 
     def draw_main_menu(self) -> None:
         if self.menu_state.current == self.menu_state.state_lst[2]:
@@ -162,8 +166,8 @@ class MainMenu:
         if self.game_state.scene != ScenePossible.MAIN:
             self.clean_up()
         self.time += 0.1
-        if self.time >= 6.28:
-            self.time = 0.0
-            self.b_color_choose += 1
-            if self.b_color_choose > self.b_color_len - 1:
-                self.b_color_choose = 0
+        # if self.time >= 6.28:
+        #     self.time = 0.0
+        #     self.b_color_choose += 1
+        #     if self.b_color_choose > self.b_color_len - 1:
+        #         self.b_color_choose = 0
