@@ -1,4 +1,4 @@
-import sdl2
+import sdl2 
 import numpy as np
 from src.scene.helper import get_ptr
 from src.game_state import GameConfig, GameState
@@ -20,6 +20,13 @@ class Game:
             height
         )
         self.pitch_background = width * 4
+
+    def clean_up(self) -> None:
+        # sdim.IMG_Quit()
+        # sttf.TTF_CloseFont(self.font)
+        # sttf.TTF_Quit()
+        # sdl2.SDL_DestroyTexture(self.character.texture)
+        sdl2.SDL_DestroyTexture(self.background)
 
     def draw_game(self) -> None:
         clear_background(self.pixels, Color.BLACK)

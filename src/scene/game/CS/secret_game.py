@@ -2,6 +2,7 @@ import sdl2
 import sdl2.sdlttf as sttf
 import sdl2.sdlimage as sdim
 import numpy as np
+import ctypes
 from src.game_state import GameConfig, GameState
 from src.drawing_methods import clear_background, draw_fps, draw_sprite_sheet
 from src.color import Color
@@ -10,6 +11,12 @@ from src.print_logs import print_error
 from src.image import Image
 from src.camera import Camera
 from src.player import CsPlayer
+
+
+class MouseVector2:
+    def __init__(self) -> None:
+        self.x, self.y = ctypes.c_int(0), ctypes.c_int(0)
+        self.mouse_button: sdl2.Uint32
 
 
 class SecretGame:
@@ -49,6 +56,15 @@ class SecretGame:
         self.key_s: bool = False
         self.key_a: bool = False
         self.key_d: bool = False
+        self.current_mouse_pos = MouseVector2()
+
+    def clean_up(self) -> None:
+        sdim.IMG_Quit()
+        sttf.TTF_CloseFont(self.font)
+        sttf.TTF_Quit()
+        sdl2.SDL_DestroyTexture(self.player_sprite.texture)
+        sdl2.SDL_DestroyTexture(self.map_tiles.texture)
+        sdl2.SDL_DestroyTexture(self.background)
 
 
     def draw_tilemap(self, scale) -> None:
@@ -80,16 +96,23 @@ class SecretGame:
     def update_player_pos(self) -> None:
         if (self.key_w is True):
             self.player.pos_y -= self.speed
-            self.cam.offset_y -= self.speed
         if (self.key_s is True):
             self.player.pos_y += self.speed
-            self.cam.offset_y += self.speed
         if (self.key_a is True):
             self.player.pos_x -= self.speed
-            self.cam.offset_x -= self.speed
         if (self.key_d is True):
             self.player.pos_x += self.speed
-            self.cam.offset_x += self.speed
+
+    def update_cam_mouse_move(self, scale: int) -> None:
+        factor = 0.3
+        self.current_mouse_pos.mouse_button = sdl2.SDL_GetMouseState(ctypes.byref(self.current_mouse_pos.x), ctypes.byref(self.current_mouse_pos.y))
+        base_x = self.player.pos_x - (self.width // (2 * scale)) 
+        base_y = self.player.pos_y - (self.height // (2 * scale))
+        diff_x = self.current_mouse_pos.x.value - (self.width // 2)
+        diff_y = self.current_mouse_pos.y.value - (self.height // 2)
+        self.cam.offset_x = int(base_x + ((diff_x / scale) * factor))
+        self.cam.offset_y = int(base_y + ((diff_y / scale) * factor))
+
 
     def draw_secret_game(self) -> None:
         clear_background(self.pixels, Color.BLACK)
@@ -101,3 +124,4 @@ class SecretGame:
         draw_fps(self.renderer, self.font, self.game_state.fps)
         sdl2.SDL_RenderPresent(self.renderer)
         self.update_player_pos()
+        self.update_cam_mouse_move(2)

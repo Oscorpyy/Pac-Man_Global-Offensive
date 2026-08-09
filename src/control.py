@@ -12,11 +12,6 @@ class SdlEvent:
     def player_control(self) -> None:
         pass
 
-    def free_memory(self, game_state: GameState, scene: Any) -> None:
-        match game_state.scene:
-            case ScenePossible.MAIN:
-                scene.clean_up()
-
     def main_loop(self, event: SDL_Event, game_state: GameState, scene: Any) -> None:
         while sdl2.SDL_PollEvent(ctypes.byref(event)) != 0:
             key = event.key.keysym.sym

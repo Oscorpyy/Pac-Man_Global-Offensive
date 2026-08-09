@@ -14,9 +14,8 @@ from src.camera import Camera
 class Window:
     def __init__(self, config: GameConfig) -> None:
         self.config = config
-        self.width = 800
-        self.height = 600
-        self.fps: int = 0
+        self.width = 1920
+        self.height = 1080
 
     def init_window(self) -> int:
         if sdl2.SDL_Init(sdl2.SDL_INIT_VIDEO) != 0:
@@ -40,6 +39,10 @@ class Window:
         match game_state.scene:
             case ScenePossible.MAIN:
                 self.main.clean_up()
+            case ScenePossible.GAME:
+                self.game.clean_up()
+            case ScenePossible.CSGO:
+                self.secret_game.clean_up()
 
     def get_secret_map_data(self) -> list:
         map_tiles = []
