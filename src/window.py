@@ -14,8 +14,8 @@ from src.camera import Camera
 class Window:
     def __init__(self, config: GameConfig) -> None:
         self.config = config
-        self.width = 1920
-        self.height = 1080
+        self.width = 3440
+        self.height = 1440
 
     def init_window(self) -> int:
         if sdl2.SDL_Init(sdl2.SDL_INIT_VIDEO) != 0:
@@ -85,7 +85,13 @@ class Window:
             dt = current_time - last_time
             last_time = current_time
             if dt > 0:
-                game_state.fps = 1.0 / dt
+                game_state.fps_lst.append(1.0 / dt)
+                if len(game_state.fps_lst) > 9:
+                    game_state.fps_lst.pop(0)
+                fps_addition = 0
+                for value in game_state.fps_lst:
+                    fps_addition += value
+                game_state.fps = int(fps_addition / len(game_state.fps_lst))
             match game_state.scene:
                 case ScenePossible.MAIN:
                     self.main.draw_main_menu()
