@@ -7,19 +7,21 @@ from src.color import Color
 
 
 class Game:
-    def __init__(self, renderer, width: int, height: int, game_state: GameState, config: GameConfig):
+    def __init__(self, renderer, game_state: GameState, config: GameConfig):
+        self.width = config.screen_width
+        self.height = config.screen_height
         self.renderer = renderer
-        self.pixels = np.zeros((height, width), dtype=np.uint32)
+        self.pixels = np.zeros((self.height, self.width), dtype=np.uint32)
         self.game_state = game_state
         self.config = config
         self.background = sdl2.SDL_CreateTexture(
             renderer,
             sdl2.SDL_PIXELFORMAT_ARGB8888,
             sdl2.SDL_TEXTUREACCESS_STREAMING,
-            width,
-            height
+            self.width,
+            self.height
         )
-        self.pitch_background = width * 4
+        self.pitch_background = self.width * 4
 
     def clean_up(self) -> None:
         # sdim.IMG_Quit()

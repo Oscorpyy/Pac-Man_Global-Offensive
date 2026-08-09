@@ -20,21 +20,21 @@ class MouseVector2:
 
 
 class SecretGame:
-    def __init__(self, renderer, width: int, height: int, game_state: GameState, config: GameConfig, tilemap, cam: Camera):
+    def __init__(self, renderer, game_state: GameState, config: GameConfig, tilemap, cam: Camera):
         self.renderer = renderer
-        self.pixels = np.zeros((height, width), dtype=np.uint32)
+        self.width = config.screen_width
+        self.height = config.screen_height
+        self.pixels = np.zeros((self.height, self.width), dtype=np.uint32)
         self.game_state = game_state
         self.config = config
-        self.width = width
-        self.height = height
         self.background = sdl2.SDL_CreateTexture(
             renderer,
             sdl2.SDL_PIXELFORMAT_ARGB8888,
             sdl2.SDL_TEXTUREACCESS_STREAMING,
-            width,
-            height
+            self.width,
+            self.height
         )
-        self.pitch_background = width * 4
+        self.pitch_background = self.width * 4
         self.tilemap_data = tilemap
         self.map_tiles = Image(b"assets/tileset.png", self.renderer)
         self.player_sprite = Image(b"assets/test2.png", self.renderer)

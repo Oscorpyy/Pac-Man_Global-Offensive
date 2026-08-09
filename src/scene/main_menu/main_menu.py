@@ -29,7 +29,7 @@ class MenuDrawingState:
 
 
 class MainMenu:
-    def __init__(self, renderer, width: int, height: int, game_state: GameState, game_config: GameConfig) -> None:
+    def __init__(self, renderer, game_state: GameState, game_config: GameConfig) -> None:
         self.game_state = game_state
         self.menu_state = MenuDrawingState()
         self.game_config = game_config
@@ -44,19 +44,19 @@ class MainMenu:
         self.font = sttf.TTF_OpenFont(b"assets/Press_Start_2P/PressStart2P-Regular.ttf", self.font_size)
         if not self.font:
             print_error(f"can't charge font {sttf.TTF_GetError()}")
-        self.width = width
-        self.height = height
-        self.pixels = np.zeros((height, width), dtype=np.uint32)
-        self.settings_win = SettingsWindow(width, height, renderer, self.pixels, self.font)
-        self.instruction_win = InstructionWindow(width, height, renderer, self.pixels, self.font)
+        self.width = self.game_config.screen_width
+        self.height = self.game_config.screen_height
+        self.pixels = np.zeros((self.height, self.width), dtype=np.uint32)
+        self.settings_win = SettingsWindow(self.width, self.height, renderer, self.pixels, self.font)
+        self.instruction_win = InstructionWindow(self.width, self.height, renderer, self.pixels, self.font)
         self.background = sdl2.SDL_CreateTexture(
             renderer,
             sdl2.SDL_PIXELFORMAT_ARGB8888,
             sdl2.SDL_TEXTUREACCESS_STREAMING,
-            width,
-            height
+            self.width,
+            self.height
         )
-        len_column = width // 3
+        len_column = self.width // 3
         midle_column = len_column // 2
         btn_width = 200
         self.btn_list: list = [
@@ -65,7 +65,7 @@ class MainMenu:
             Button(self.renderer, self.pixels, self.font, (self.width // 2 - (btn_width // 2)) + (btn_width + 32), self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.set_can_draw_settings, b"Instructions"),
             Button(self.renderer, self.pixels, self.font, 0, 0, 100, 50, Color.WHITE, Color.RED, self.close_game, b"Exit")
         ]
-        self.pitch_background = width * 4
+        self.pitch_background = self.width * 4
         self.time: float = 0.0
         self.b_color_lst = [
             Color.DARK_BLUE,
@@ -166,8 +166,3 @@ class MainMenu:
         if self.game_state.scene != ScenePossible.MAIN:
             self.clean_up()
         self.time += 0.1
-        # if self.time >= 6.28:
-        #     self.time = 0.0
-        #     self.b_color_choose += 1
-        #     if self.b_color_choose > self.b_color_len - 1:
-        #         self.b_color_choose = 0

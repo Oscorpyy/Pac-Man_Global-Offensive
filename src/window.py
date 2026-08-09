@@ -14,8 +14,8 @@ from src.camera import Camera
 class Window:
     def __init__(self, config: GameConfig) -> None:
         self.config = config
-        self.width = 3440
-        self.height = 1440
+        self.width = self.config.screen_width
+        self.height = self.config.screen_height
 
     def init_window(self) -> int:
         if sdl2.SDL_Init(sdl2.SDL_INIT_VIDEO) != 0:
@@ -75,10 +75,10 @@ class Window:
         event = sdl2.SDL_Event()
         sdl_event = SdlEvent()
         de_office = self.get_secret_map_data()
-        self.main = MainMenu(renderer, self.width, self.height, game_state, self.config)
-        self.game = Game(renderer, self.width, self.height, game_state, self.config)
+        self.main = MainMenu(renderer, game_state, self.config)
+        self.game = Game(renderer, game_state, self.config)
         self.cam = Camera()
-        self.secret_game = SecretGame(renderer, self.width, self.height, game_state, self.config, de_office, self.cam)
+        self.secret_game = SecretGame(renderer, game_state, self.config, de_office, self.cam)
         last_time = time.perf_counter()
         while(game_state.is_running):
             current_time = time.perf_counter()
