@@ -74,13 +74,13 @@ class Window:
         renderer = sdl2.SDL_CreateRenderer(window, -1, sdl2.SDL_RENDERER_ACCELERATED)
         game_state = GameState()
         event = sdl2.SDL_Event()
+        transition = Transition(renderer, game_state, self.config)
         sdl_event = SdlEvent()
         de_office = self.get_secret_map_data()
-        transition = Transition(renderer, game_state.scene, self.config)
         self.main = MainMenu(renderer, game_state, self.config, transition)
-        self.game = Game(renderer, game_state, self.config)
+        self.game = Game(renderer, game_state, self.config, transition)
         self.cam = Camera()
-        self.secret_game = SecretGame(renderer, game_state, self.config, de_office, self.cam)
+        self.secret_game = SecretGame(renderer, game_state, self.config, de_office, self.cam, transition)
         last_time = time.perf_counter()
         while(game_state.is_running):
             current_time = time.perf_counter()
@@ -89,19 +89,19 @@ class Window:
             if dt > 0:
                 game_state.fps_lst.append(1.0 / dt)
                 game_state.fps = int(sum(game_state.fps_lst) / len(game_state.fps_lst))
-            if transition.transition_on is False:
-                match game_state.scene:
-                    case ScenePossible.MAIN:
-                        self.main.draw_main_menu()
-                        sdl_event.main_loop(event, game_state, self.main)
-                    case ScenePossible.GAME:
-                        sdl_event.main_loop(event, game_state, self.game)
-                        self.game.draw_game()
-                    case ScenePossible.CSGO:
-                        sdl_event.main_loop(event, game_state, self.secret_game)
-                        self.secret_game.draw_secret_game()
+            match game_state.scene:
+                case ScenePossible.MAIN:
+                    self.main.draw_main_menu()
+                    sdl_event.main_loop(event, game_state, self.main, transition)
+                case ScenePossible.GAME:
+                    sdl_event.main_loop(event, game_state, self.game, transition)
+                    self.game.draw_game()
+                case ScenePossible.CSGO:
+                    sdl_event.main_loop(event, game_state, self.secret_game, transition)
+                    self.secret_game.draw_secret_game()
             if transition.transition_on is True:
                 transition.rect_transition()
+            sdl2.SDL_RenderPresent(renderer)
             game_state.frame += 1
             if game_state.frame > 60:
                 game_state.frame = 1

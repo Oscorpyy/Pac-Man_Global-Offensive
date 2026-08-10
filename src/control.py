@@ -4,6 +4,7 @@ from sdl2.events import SDL_Event
 from src.print_logs import print_info
 from src.game_state import GameState, ScenePossible
 from typing import Any
+from src.transition import Transition
 
 class SdlEvent:
     def __init__(self) -> None:
@@ -12,7 +13,7 @@ class SdlEvent:
     def player_control(self) -> None:
         pass
 
-    def main_loop(self, event: SDL_Event, game_state: GameState, scene: Any) -> None:
+    def main_loop(self, event: SDL_Event, game_state: GameState, scene: Any, transition: Transition) -> None:
         while sdl2.SDL_PollEvent(ctypes.byref(event)) != 0:
             key = event.key.keysym.sym
             if event.type == sdl2.SDL_Quit:
@@ -25,7 +26,9 @@ class SdlEvent:
                     if len(game_state.konami_code_entered) > len(game_state.konami_code_excepted):
                         game_state.konami_code_entered = []
                     if game_state.konami_code_entered == game_state.konami_code_excepted:
-                        game_state.scene = ScenePossible.CSGO
+                        transition.transition_on = True
+                        transition.scene_to_put = ScenePossible.CSGO
+                        # game_state.scene = ScenePossible.CSGO
                         print_info("CS MOD ENTERED")
                         continue
                 if game_state.scene == ScenePossible.CSGO:

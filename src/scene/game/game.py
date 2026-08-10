@@ -4,10 +4,12 @@ from src.scene.helper import get_ptr
 from src.game_state import GameConfig, GameState
 from src.drawing_methods import clear_background
 from src.color import Color
+from src.transition import Transition
 
 
 class Game:
-    def __init__(self, renderer, game_state: GameState, config: GameConfig):
+    def __init__(self, renderer, game_state: GameState, config: GameConfig, transition: Transition):
+        self.transition = transition
         self.width = config.screen_width
         self.height = config.screen_height
         self.renderer = renderer
@@ -35,4 +37,3 @@ class Game:
         pixel_ptr = get_ptr(self.pixels)
         sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
-        sdl2.SDL_RenderPresent(self.renderer)

@@ -8,7 +8,6 @@ import numpy as np
 from src.color import Color
 from src.drawing_methods import (
     draw_fps,
-    draw_sin,
     clear_background,
     draw_sin_a,
     draw_text,
@@ -71,18 +70,6 @@ class MainMenu:
         ]
         self.pitch_background = self.width * 4
         self.time: float = 0.0
-        self.b_color_lst = [
-            Color.DARK_BLUE,
-            Color.ABYSS_BLUE,
-            Color.TEAL,
-            Color.CARMIN,
-            Color.DARK_RED,
-            Color.DARK_GREEN,
-            Color.GREEN,
-            Color.DARK_TURQUOISE
-        ]
-        self.b_color_len = len(self.b_color_lst)
-        self.b_color_choose = 0
         self.background_color = 0xFF0000FF
 
     def get_highscore(self) -> dict:
@@ -105,7 +92,7 @@ class MainMenu:
 
 
     def next_scene(self) -> None:
-        self.game_state.scene = ScenePossible.GAME
+        self.transition.scene_to_put = ScenePossible.GAME
         self.transition.transition_on = True
 
 
@@ -165,7 +152,6 @@ class MainMenu:
         elif self.menu_state.current == self.menu_state.state_lst[0]:
             self.draw_background()
         draw_fps(self.renderer, self.font, self.game_state.fps)
-        sdl2.SDL_RenderPresent(self.renderer)
         if self.game_state.scene != ScenePossible.MAIN:
             self.clean_up()
         self.time += 0.1

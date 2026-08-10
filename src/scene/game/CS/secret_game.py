@@ -11,6 +11,7 @@ from src.print_logs import print_error
 from src.image import Image
 from src.camera import Camera
 from src.player import CsPlayer
+from src.transition import Transition
 
 
 class MouseVector2:
@@ -20,7 +21,8 @@ class MouseVector2:
 
 
 class SecretGame:
-    def __init__(self, renderer, game_state: GameState, config: GameConfig, tilemap, cam: Camera):
+    def __init__(self, renderer, game_state: GameState, config: GameConfig, tilemap, cam: Camera, transition: Transition):
+        self.transition = transition
         self.renderer = renderer
         self.width = config.screen_width
         self.height = config.screen_height
@@ -126,6 +128,5 @@ class SecretGame:
         self.draw_tilemap(2)
         self.player.draw_player(self.renderer, 2)
         draw_fps(self.renderer, self.font, self.game_state.fps)
-        sdl2.SDL_RenderPresent(self.renderer)
         self.update_player_pos()
         self.update_cam_mouse_move(2)
