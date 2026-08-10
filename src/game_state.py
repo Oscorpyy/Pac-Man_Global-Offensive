@@ -1,5 +1,6 @@
 from enum import Enum
 from sdl2 import SDLK_LEFT, SDLK_RIGHT, SDLK_UP, SDLK_DOWN
+from collections import deque
 
 
 class ScenePossible(Enum):
@@ -17,7 +18,7 @@ class GameState:
         self.frame: int = 1
         self.konami_code_excepted: list = [SDLK_UP, SDLK_UP, SDLK_DOWN, SDLK_DOWN, SDLK_LEFT, SDLK_RIGHT, SDLK_LEFT, SDLK_RIGHT]
         self.konami_code_entered: list = []
-        self.fps_lst = []
+        self.fps_lst = deque(maxlen=30)
         self.fps: int = 0
 
 

@@ -86,12 +86,7 @@ class Window:
             last_time = current_time
             if dt > 0:
                 game_state.fps_lst.append(1.0 / dt)
-                if len(game_state.fps_lst) > 9:
-                    game_state.fps_lst.pop(0)
-                fps_addition = 0
-                for value in game_state.fps_lst:
-                    fps_addition += value
-                game_state.fps = int(fps_addition / len(game_state.fps_lst))
+                game_state.fps = int(sum(game_state.fps_lst) / len(game_state.fps_lst))
             match game_state.scene:
                 case ScenePossible.MAIN:
                     self.main.draw_main_menu()

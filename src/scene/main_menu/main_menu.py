@@ -64,7 +64,7 @@ class MainMenu:
         self.btn_list: list = [
             Button(self.renderer, self.pixels, self.font, (self.width // 2 - (btn_width // 2)), self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.next_scene, b"Start Game"),
             Button(self.renderer, self.pixels, self.font, (self.width // 2 - (btn_width // 2)) - (btn_width + 32), self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.set_can_draw_settings, b"Settings"),
-            Button(self.renderer, self.pixels, self.font, (self.width // 2 - (btn_width // 2)) + (btn_width + 32), self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.set_can_draw_settings, b"Instructions"),
+            Button(self.renderer, self.pixels, self.font, (self.width // 2 - (btn_width // 2)) + (btn_width + 32), self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.set_can_draw_instructions, b"Instructions"),
             Button(self.renderer, self.pixels, self.font, 0, 0, 100, 50, Color.WHITE, Color.RED, self.close_game, b"Exit")
         ]
         self.pitch_background = self.width * 4
