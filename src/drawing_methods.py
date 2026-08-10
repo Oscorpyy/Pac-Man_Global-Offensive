@@ -131,25 +131,25 @@ def draw_sin(pixels: ndarray, width: int, height: int, center: int, amp: int, fr
 
 
 def draw_sin_a(pixels: ndarray, width: int, height: int, center: int, amp: int, frq: float, thickness, color, frame: float) -> None:
+    a_extract = color >> 24 & 0xFF
+    if a_extract == 0:
+        return
     x_coords = arange(width)
     y_coords = center + amp * sin(x_coords * frq + frame)
     y_coords = y_coords.astype(int)
     offset = thickness // 2
+    offsets = arange(-offset, offset + 1)[:, None]
+    y_thick = clip(y_coords + offsets, 0, height - 1)
+    if a_extract == 255:
+        pixels[y_thick, x_coords] = color
+        return
     r_extract = color >> 16 & 0xFF
     g_extract = color >> 8 & 0xFF
     b_extract = color & 0xFF
-    a_extract = color >> 24 & 0xFF
     inverse_alpha = 255 - a_extract
     r_term = r_extract * a_extract
     g_term = g_extract * a_extract
     b_term = b_extract * a_extract
-    offsets = arange(-offset, offset + 1)[:, None]
-    y_thick = clip(y_coords + offsets, 0, height - 1)
-    if a_extract == 0:
-        return
-    if a_extract == 255:
-        pixels[y_thick, x_coords] = color
-        return
     pixel_extract = pixels[y_thick, x_coords]
     br_extract = pixel_extract >> 16 & 0xFF
     bg_extract = pixel_extract >> 8 & 0xFF

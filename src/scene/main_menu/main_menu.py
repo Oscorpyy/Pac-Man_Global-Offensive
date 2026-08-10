@@ -10,6 +10,7 @@ from src.drawing_methods import (
     draw_fps,
     draw_sin,
     clear_background,
+    draw_sin_a,
     draw_text,
     draw_sprite_sheet,
     Button,
@@ -35,6 +36,9 @@ class MainMenu:
         self.game_config = game_config
         self.renderer = renderer
         self.top_score = self.get_highscore()
+        self.scores = self.top_score.get("scores", None)
+        if self.scores is not None:
+            self.scores.sort(key=lambda item: item['point'], reverse=True)
         # img loading
         sdim.IMG_Init(sdim.IMG_INIT_PNG)
         self.character =  Image(b"assets/test3.png", renderer)
@@ -56,8 +60,6 @@ class MainMenu:
             self.width,
             self.height
         )
-        len_column = self.width // 3
-        midle_column = len_column // 2
         btn_width = 200
         self.btn_list: list = [
             Button(self.renderer, self.pixels, self.font, (self.width // 2 - (btn_width // 2)), self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.next_scene, b"Start Game"),
@@ -105,17 +107,15 @@ class MainMenu:
 
 
     def draw_scores(self) -> None:
-        scores_lst = self.top_score.get("scores", None)
-        if scores_lst is not None:
-            scores_lst.sort(key=lambda item: item['point'], reverse=True)
+        scores = self.scores
         draw_text(self.renderer, self.font, b"HIGHSCORE", self.width // 2 - (len("HIGHSCORE") * 16 // 2), self.height // 2, Color.WHITE)
         y_offset: int = self.height // 2 + 30
-        if scores_lst is not None:
-            if len(scores_lst) == 0:
+        if scores is not None:
+            if len(scores) == 0:
                 draw_text(self.renderer, self.font, b"HIGHSCORE", self.width // 2 - (len("HIGHSCORE") * 16 // 2), self.height // 2, Color.WHITE)
             else:
                 i = 0
-                for stat in scores_lst:
+                for stat in scores:
                     if i > 9:
                         continue
                     txt: str = f"{stat.get("name")}: {stat.get("point")}".encode("utf-8")
@@ -134,8 +134,8 @@ class MainMenu:
 
     def draw_background(self) -> None:
         clear_background(self.pixels, self.get_rainbow_color(self.time * 0.2))
-        draw_sin(self.pixels, self.width, self.height, int(self.height * 0.9), 50, 0.01, 10, Color.ST_WHITE, self.time)
-        draw_sin(self.pixels, self.width, self.height, int(self.height * 0.9), 50, -0.02, 10, Color.ST_WHITE, self.time)
+        draw_sin_a(self.pixels, self.width, self.height, int(self.height * 0.5), 50, 0.01, 100, Color.ST_WHITE, self.time)
+        draw_sin_a(self.pixels, self.width, self.height, int(self.height * 0.5), 50, -0.02, 60, Color.ST_WHITE, self.time)
         for btn in self.btn_list:
             btn.draw_background()
         pixel_ptr = get_ptr(self.pixels)
@@ -156,9 +156,9 @@ class MainMenu:
 
     def draw_main_menu(self) -> None:
         if self.menu_state.current == self.menu_state.state_lst[2]:
-            self.settings_win.draw_settings(self.time, self.b_color_lst[self.b_color_choose])
+            self.settings_win.draw_settings(self.time, self.get_rainbow_color(self.time * 0.2))
         elif self.menu_state.current == self.menu_state.state_lst[1]:
-            self.instruction_win.draw_instructions(self.time, self.b_color_lst[self.b_color_choose])
+            self.instruction_win.draw_instructions(self.time, self.get_rainbow_color(self.time * 0.2))
         elif self.menu_state.current == self.menu_state.state_lst[0]:
             self.draw_background()
         draw_fps(self.renderer, self.font, self.game_state.fps)

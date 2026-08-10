@@ -28,7 +28,6 @@ class SdlEvent:
                         game_state.scene = ScenePossible.CSGO
                         print_info("CS MOD ENTERED")
                         continue
-                    print(game_state.konami_code_entered)
                 if game_state.scene == ScenePossible.CSGO:
                     scene.set_keystate(key, True)
 

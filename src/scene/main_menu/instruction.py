@@ -9,7 +9,7 @@ from src.drawing_methods import (
     draw_sprite_sheet,
     Button,
     draw_rect_not_full,
-    draw_sin
+    draw_sin_a
 )
 
 
@@ -35,11 +35,10 @@ class InstructionWindow():
     def clean_up(self) -> None:
         sdl2.SDL_DestroyTexture(self.background)
     
-    def draw_instructions(self, time: float, bg: Color) -> None:
+    def draw_instructions(self, time: float, bg: int) -> None:
         clear_background(self.pixels, bg)
-        draw_sin(self.pixels, self.m_width, self.m_height, self.m_height // 2, 100, 0.02, 240, Color.ABYSS_BLUE, time)
-        draw_sin(self.pixels, self.m_width, self.m_height, self.m_height // 2, 100, 0.02, 160, Color.TEAL, time)
-        draw_sin(self.pixels, self.m_width, self.m_height, self.m_height // 2, 100, 0.02, 80, Color.DARK_TURQUOISE, time)
+        draw_sin_a(self.pixels, self.m_width, self.m_height, int(self.m_height * 0.5), 50, 0.01, 100, Color.ST_WHITE, time)
+        draw_sin_a(self.pixels, self.m_width, self.m_height, int(self.m_height * 0.5), 50, -0.02, 60, Color.ST_WHITE, time)
         settings_background_x = self.m_width // 2
         settings_background_y = self.m_height // 2
         settings_pos_x = settings_background_x // 2

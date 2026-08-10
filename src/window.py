@@ -105,7 +105,11 @@ class Window:
             game_state.frame += 1
             if game_state.frame > 60:
                 game_state.frame = 1
-            sdl2.SDL_Delay(16)
+            time_to_wait = (time.perf_counter() - current_time) * 1000.0
+            target_ms = 1000.0 / 60.0
+            time_left = target_ms - time_to_wait
+            if time_left > 0:
+                sdl2.SDL_Delay(int(time_left))
         self.scene_to_free(game_state)
         sdl2.SDL_DestroyRenderer(renderer)
         sdl2.SDL_DestroyWindow(window)
