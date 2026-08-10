@@ -9,6 +9,7 @@ from src.game_state import GameState, ScenePossible, GameConfig
 from src.scene.main_menu.main_menu import MainMenu
 from src.scene.game.game import Game
 from src.camera import Camera
+from src.transition import Transition
 
 
 class Window:
@@ -75,7 +76,8 @@ class Window:
         event = sdl2.SDL_Event()
         sdl_event = SdlEvent()
         de_office = self.get_secret_map_data()
-        self.main = MainMenu(renderer, game_state, self.config)
+        transition = Transition(renderer, game_state.scene, self.config)
+        self.main = MainMenu(renderer, game_state, self.config, transition)
         self.game = Game(renderer, game_state, self.config)
         self.cam = Camera()
         self.secret_game = SecretGame(renderer, game_state, self.config, de_office, self.cam)
@@ -87,16 +89,19 @@ class Window:
             if dt > 0:
                 game_state.fps_lst.append(1.0 / dt)
                 game_state.fps = int(sum(game_state.fps_lst) / len(game_state.fps_lst))
-            match game_state.scene:
-                case ScenePossible.MAIN:
-                    self.main.draw_main_menu()
-                    sdl_event.main_loop(event, game_state, self.main)
-                case ScenePossible.GAME:
-                    sdl_event.main_loop(event, game_state, self.game)
-                    self.game.draw_game()
-                case ScenePossible.CSGO:
-                    sdl_event.main_loop(event, game_state, self.secret_game)
-                    self.secret_game.draw_secret_game()
+            if transition.transition_on is False:
+                match game_state.scene:
+                    case ScenePossible.MAIN:
+                        self.main.draw_main_menu()
+                        sdl_event.main_loop(event, game_state, self.main)
+                    case ScenePossible.GAME:
+                        sdl_event.main_loop(event, game_state, self.game)
+                        self.game.draw_game()
+                    case ScenePossible.CSGO:
+                        sdl_event.main_loop(event, game_state, self.secret_game)
+                        self.secret_game.draw_secret_game()
+            if transition.transition_on is True:
+                transition.rect_transition()
             game_state.frame += 1
             if game_state.frame > 60:
                 game_state.frame = 1

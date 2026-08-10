@@ -21,6 +21,7 @@ from src.game_state import GameConfig, GameState, ScenePossible
 from src.scene.main_menu.settings import SettingsWindow
 from src.scene.main_menu.instruction import InstructionWindow
 from src.image import Image
+from src.transition import Transition
 
 
 class MenuDrawingState:
@@ -30,7 +31,7 @@ class MenuDrawingState:
 
 
 class MainMenu:
-    def __init__(self, renderer, game_state: GameState, game_config: GameConfig) -> None:
+    def __init__(self, renderer, game_state: GameState, game_config: GameConfig, transition: Transition) -> None:
         self.game_state = game_state
         self.menu_state = MenuDrawingState()
         self.game_config = game_config
@@ -53,6 +54,7 @@ class MainMenu:
         self.pixels = np.zeros((self.height, self.width), dtype=np.uint32)
         self.settings_win = SettingsWindow(self.width, self.height, renderer, self.pixels, self.font)
         self.instruction_win = InstructionWindow(self.width, self.height, renderer, self.pixels, self.font)
+        self.transition = transition
         self.background = sdl2.SDL_CreateTexture(
             renderer,
             sdl2.SDL_PIXELFORMAT_ARGB8888,
@@ -104,6 +106,7 @@ class MainMenu:
 
     def next_scene(self) -> None:
         self.game_state.scene = ScenePossible.GAME
+        self.transition.transition_on = True
 
 
     def draw_scores(self) -> None:
