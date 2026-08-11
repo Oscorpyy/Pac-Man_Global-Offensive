@@ -2,52 +2,52 @@
     "highscore_filename": "scores.json",
     "level_array_multiple_levels": [
         {
-            "name": "king",
+            "name": "level1",
             "width": 10,
             "height": 10
         },
         {
-            "name": "yes",
+            "name": "level2",
             "width": 15,
             "height": 15
         },
         {
-            "name": "yes",
+            "name": "level3",
             "width": 15,
             "height": 15
         },
         {
-            "name": "king",
+            "name": "level4",
             "width": 10,
             "height": 10
         },
         {
-            "name": "yes",
+            "name": "level5",
             "width": 15,
             "height": 15
         },
         {
-            "name": "yes",
+            "name": "level6",
             "width": 15,
             "height": 15
         },
         {
-            "name": "yes",
+            "name": "level7",
             "width": 15,
             "height": 15
         },
         {
-            "name": "king",
+            "name": "level8",
             "width": 10,
             "height": 10
         },
         {
-            "name": "yes",
+            "name": "level9",
             "width": 15,
             "height": 15
         },
         {
-            "name": "yes",
+            "name": "level10",
             "width": 15,
             "height": 15
         }

@@ -7,7 +7,8 @@ from src.scene.helper import get_ptr
 
 
 class Transition:
-    def __init__(self, renderer, game_state: GameState, config: GameConfig) -> None:
+    def __init__(self, renderer, game_state: GameState,
+                 config: GameConfig) -> None:
         self.transition_on = False
         self.game_state = game_state
         self.scene_to_put: ScenePossible
@@ -31,13 +32,13 @@ class Transition:
     def clean_up(self) -> None:
         sdl2.SDL_DestroyTexture(self.background)
 
-
     def rect_transition(self) -> None:
         rect_height = self.height
         clear_background(self.pixels, 0x00000000)
         draw_rect_full(self.pixels, self.rect_width, rect_height, Color.BLUE)
         pixel_ptr = get_ptr(self.pixels)
-        sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
+        sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr,
+                               self.pitch_background)
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
         if not self.sens_transition:
             self.rect_width += self.speed
@@ -50,6 +51,7 @@ class Transition:
                 self.transition_on = False
                 self.sens_transition = False
                 self.rect_width = 0
+                self.speed = 40
 
     def set_scene_to_put(self, scene: ScenePossible) -> None:
         self.scene_to_put = scene

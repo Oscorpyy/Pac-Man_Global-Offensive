@@ -5,7 +5,7 @@ from sdl2.events import SDL_Event
 from src.print_logs import print_info
 from src.game_state import GameState, ScenePossible
 from typing import Any
-from src.transition import Transition
+
 
 class SdlEvent:
     def __init__(self) -> None:
@@ -25,16 +25,20 @@ class SdlEvent:
                     if game_state.scene == ScenePossible.MAIN:
                         game_state.is_running = False
                     elif game_state.scene == ScenePossible.GAME:
+                        transition.speed = 80
                         transition.transition_on = True
                         transition.scene_to_put = ScenePossible.MAIN
                     elif game_state.scene == ScenePossible.CSGO:
+                        transition.speed = 80
                         transition.transition_on = True
                         transition.scene_to_put = ScenePossible.GAME
                 if game_state.scene == ScenePossible.GAME:
                     game_state.konami_code_entered.append(key)
-                    if len(game_state.konami_code_entered) > len(game_state.konami_code_excepted):
+                    if len(game_state.konami_code_entered) > len(
+                            game_state.konami_code_excepted):
                         game_state.konami_code_entered = []
-                    if game_state.konami_code_entered == game_state.konami_code_excepted:
+                    if game_state.konami_code_entered == (
+                            game_state.konami_code_excepted):
                         transition.transition_on = True
                         transition.scene_to_put = ScenePossible.CSGO
                         # game_state.scene = ScenePossible.CSGO
