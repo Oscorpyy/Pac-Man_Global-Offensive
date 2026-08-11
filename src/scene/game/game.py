@@ -87,16 +87,18 @@ class Game:
     def create_maze_levels(self) -> None:
         self.maze_levels = []
         for level in self.config.level_array_multiple_levels:
-            if self.current_level == 1:
+            if level["name"] == "level1":
                 try:
                     self.seed = int(self.config.seed)
                 except ValueError:
                     self.seed = 0
+            else:
+                self.seed = 0
             maze = MazeGenerator((tuple([level["width"], level["height"]])),
                                  False, tuple([0, 0]),
                                  tuple([level["width"] - 1, level["height"] - 1]),
                                  self.seed)
-            maze.generate()
+            print(f"Level {level} generated with seed {maze._seed}")
             self.maze_levels.append(maze.maze)
 
     def draw_game(self) -> None:
