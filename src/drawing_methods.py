@@ -1,9 +1,13 @@
 from numpy import ndarray, arange, sin, clip
 from src.color import Color, color_to_sdl_color
+from src.image import Image
 import sdl2
 import ctypes
 import sdl2.sdlttf as sttf
 
+
+def draw_fps(renderer, font, fps: int) -> None:
+    draw_text(renderer, font, f"FPS: {str(fps)}".encode(), 0, 0, Color.GREEN)
 
 def put_pixels(pixels_array: ndarray, x: int, y: int, width: int, height: int, color: Color) -> None:
     if 0 <= x < width and 0 <= y < height:
@@ -58,16 +62,20 @@ def clear_background(pixels: ndarray, color: int) -> None:
     pixels[:, :] = color
 
 
-def draw_sprites(renderer, img_texture, x: int, y: int, scale: int) -> None:
+def draw_sprites(renderer, img: Image, x: int, y: int, scale: int) -> None:
     dest_rect = sdl2.SDL_Rect(x, y, 32 * scale, 32 * scale)
-    sdl2.SDL_RenderCopy(renderer, img_texture, None, ctypes.byref(dest_rect))
+    sdl2.SDL_RenderCopy(renderer, img.texture, None, ctypes.byref(dest_rect))
 
 
-def draw_sprite_sheet(renderer, img_texture, x: int, y: int, frame: int, scale: int) -> None:
-    frame_to_draw: int = 0 + (32 * frame)
+def draw_sprite_sheet(renderer, img: Image, x: int, y: int, frame: int, scale: int) -> None:
+    frame_nb_width: int = img.width // 32
+    frame_draw_w: int = frame % frame_nb_width
+    frame_draw_h: int = frame // frame_nb_width
+    frame_x = 32 * frame_draw_w
+    frame_y = 32 * frame_draw_h
     dest_rect = sdl2.SDL_Rect(x, y, 32 * scale, 32 * scale)
-    src_rect = sdl2.SDL_Rect(frame_to_draw, 0, 32, 32)
-    sdl2.SDL_RenderCopy(renderer, img_texture, ctypes.byref(src_rect), ctypes.byref(dest_rect))
+    src_rect = sdl2.SDL_Rect(frame_x, frame_y, 32, 32)
+    sdl2.SDL_RenderCopy(renderer, img.texture, ctypes.byref(src_rect), ctypes.byref(dest_rect))
 
 
 def draw_text(renderer, font, text: str, x: int, y: int, color: Color, scale: int = 1) -> None:
@@ -117,42 +125,42 @@ def draw_sin(pixels: ndarray, width: int, height: int, center: int, amp: int, fr
     y_coords = center + amp * sin(x_coords * frq + frame)
     y_coords = y_coords.astype(int)
     offset = thickness // 2
-    for i in range(-offset, offset + 1):
-        y_thick = clip(y_coords + i, 0, height - 1)
-        pixels[y_thick, x_coords] = color
+    offsets = arange(-offset, offset + 1)[:, None]
+    y_thick = clip(y_coords + offsets, 0, height - 1)
+    pixels[y_thick, x_coords] = color
 
 
 def draw_sin_a(pixels: ndarray, width: int, height: int, center: int, amp: int, frq: float, thickness, color, frame: float) -> None:
+    a_extract = color >> 24 & 0xFF
+    if a_extract == 0:
+        return
     x_coords = arange(width)
     y_coords = center + amp * sin(x_coords * frq + frame)
     y_coords = y_coords.astype(int)
     offset = thickness // 2
+    offsets = arange(-offset, offset + 1)[:, None]
+    y_thick = clip(y_coords + offsets, 0, height - 1)
+    if a_extract == 255:
+        pixels[y_thick, x_coords] = color
+        return
     r_extract = color >> 16 & 0xFF
     g_extract = color >> 8 & 0xFF
     b_extract = color & 0xFF
-    a_extract = color >> 24 & 0xFF
     inverse_alpha = 255 - a_extract
     r_term = r_extract * a_extract
     g_term = g_extract * a_extract
     b_term = b_extract * a_extract
-    for i in range(-offset, offset + 1):
-        y_thick = clip(y_coords + i, 0, height - 1)
-        if a_extract == 0:
-            return
-        if a_extract == 255:
-            pixels[y_thick, x_coords] = color
-            continue
-        pixel_extract = pixels[y_thick, x_coords]
-        br_extract = pixel_extract >> 16 & 0xFF
-        bg_extract = pixel_extract >> 8 & 0xFF
-        bb_extract = pixel_extract & 0xFF
+    pixel_extract = pixels[y_thick, x_coords]
+    br_extract = pixel_extract >> 16 & 0xFF
+    bg_extract = pixel_extract >> 8 & 0xFF
+    bb_extract = pixel_extract & 0xFF
 
 
-        r_final = ((r_term) + (br_extract * (inverse_alpha))) // 255
-        g_final = ((g_term) + (bg_extract * (inverse_alpha))) // 255
-        b_final = ((b_term) + (bb_extract * (inverse_alpha))) // 255
-        final_color = (0xFF << 24) | (r_final << 16) | (g_final << 8) | (b_final)
-        pixels[y_thick, x_coords] = final_color
+    r_final = ((r_term) + (br_extract * (inverse_alpha))) >> 8
+    g_final = ((g_term) + (bg_extract * (inverse_alpha))) >> 8
+    b_final = ((b_term) + (bb_extract * (inverse_alpha))) >> 8
+    final_color = (0xFF << 24) | (r_final << 16) | (g_final << 8) | (b_final)
+    pixels[y_thick, x_coords] = final_color
 
 
 # some thing will need to be simplified

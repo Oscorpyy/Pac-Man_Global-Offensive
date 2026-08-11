@@ -1,10 +1,10 @@
 import json
-
+import sys
 from src.window import Window
 from src.print_logs import print_error
 from src.parsing import check_config_file
 from src.game_state import GameConfig
-import sys
+
 
 def main() -> None:
     if len(sys.argv) > 2 or len(sys.argv) < 2:

@@ -17,6 +17,8 @@ class Config(BaseModel):
     points_per_ghost: int
     seed: int
     level_max_time: int
+    screen_width: int
+    screen_height: int
 
 
 class Score(BaseModel):
