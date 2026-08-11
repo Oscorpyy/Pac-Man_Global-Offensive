@@ -94,6 +94,7 @@ class MainMenu:
     def next_scene(self) -> None:
         self.transition.scene_to_put = ScenePossible.GAME
         self.transition.transition_on = True
+        self.transition.rect = True
 
 
     def draw_scores(self) -> None:

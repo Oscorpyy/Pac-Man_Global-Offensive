@@ -21,6 +21,10 @@ class SdlEvent:
             elif event.type == sdl2.SDL_KEYDOWN:
                 if key == sdl2.SDLK_ESCAPE:
                     pass
+                if game_state.scene == ScenePossible.INTRO:
+                    if key:
+                        transition.transition_on = False
+                        game_state.scene = ScenePossible.MAIN
                 if game_state.scene == ScenePossible.GAME:
                     game_state.konami_code_entered.append(key)
                     if len(game_state.konami_code_entered) > len(game_state.konami_code_excepted):
@@ -28,6 +32,7 @@ class SdlEvent:
                     if game_state.konami_code_entered == game_state.konami_code_excepted:
                         transition.transition_on = True
                         transition.scene_to_put = ScenePossible.CSGO
+                        transition.rect = True
                         # game_state.scene = ScenePossible.CSGO
                         print_info("CS MOD ENTERED")
                         continue

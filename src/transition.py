@@ -28,6 +28,8 @@ class Transition:
         self.rect_width = 0
         self.speed = 40
         self.intro_fade_color = 0
+        self.rect: bool = False
+        self.intro: bool = False
 
     def clean_up(self) -> None:
         sdl2.SDL_DestroyTexture(self.background)
@@ -51,20 +53,22 @@ class Transition:
                 self.transition_on = False
                 self.sens_transition = False
                 self.rect_width = 0
+                self.rect = False
 
     def intro_transition(self) -> None:
         if not self.sens_transition:
-            self.intro_fade_color += 10
+            self.intro_fade_color += 5
             if self.intro_fade_color >= 255:
                 self.intro_fade_color = 255
                 self.game_state.scene = self.scene_to_put
                 self.sens_transition = True
         else:
-            self.intro_fade_color -= 10
+            self.intro_fade_color -= 5
             if self.intro_fade_color <= 0:
                 self.intro_fade_color = 0
                 self.transition_on = False
                 self.sens_transition = False
+                self.intro = False
         final_color = (self.intro_fade_color << 24) | 0x000000
         clear_background(self.pixels, final_color)
         pixel_ptr = get_ptr(self.pixels)
@@ -73,3 +77,9 @@ class Transition:
 
     def set_scene_to_put(self, scene: ScenePossible) -> None:
         self.scene_to_put = scene
+
+    def draw_transition(self) -> None:
+        if self.rect is True:
+            self.rect_transition()
+        if self.intro is True:
+            self.intro_transition()

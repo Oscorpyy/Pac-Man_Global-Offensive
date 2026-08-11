@@ -105,7 +105,7 @@ class Window:
                     sdl_event.main_loop(event, game_state, self.secret_game, transition)
                     self.secret_game.draw_secret_game()
             if transition.transition_on is True:
-                transition.rect_transition()
+                transition.draw_transition()
             sdl2.SDL_RenderPresent(renderer)
             game_state.frame += 1
             if game_state.frame > 60:

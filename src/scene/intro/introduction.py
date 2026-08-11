@@ -57,6 +57,7 @@ class Introduction:
         draw_text(self.renderer, self.font, b"Made by:\n- Opernod\n- Lgoderne", int(self.width * 0.2) - int(self.sdl_logo.width * 0.2 * 0.5), int(self.height * 0.5) - int(self.sdl_logo.height * 0.2 * 0.5), Color.WHITE)
         draw_sprites(self.renderer, self.sdl_logo, int(self.width * 0.8) - int(self.sdl_logo.width * 0.2 * 0.5), int(self.height * 0.5) - int(self.sdl_logo.height * 0.5), 0.2)
         draw_text(self.renderer, self.font, b"Made with SDL2", int(self.width * 0.8) - int(self.sdl_logo.width * 0.2 * 0.5), int(self.height * 0.5) - int(self.sdl_logo.height * 0.2 * 0.5), Color.WHITE)
-        if (time.perf_counter() - self.time_passed> 5):
+        if (time.perf_counter() - self.time_passed > 3):
             self.transition.scene_to_put = ScenePossible.MAIN
-            self.transition.intro_transition()
+            self.transition.transition_on = True
+            self.transition.intro = True
