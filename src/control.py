@@ -1,3 +1,4 @@
+from src.transition import Transition
 import sdl2
 import ctypes
 from sdl2.events import SDL_Event
@@ -13,14 +14,22 @@ class SdlEvent:
     def player_control(self) -> None:
         pass
 
-    def main_loop(self, event: SDL_Event, game_state: GameState, scene: Any, transition: Transition) -> None:
+    def main_loop(self, event: SDL_Event, game_state: GameState, scene: Any,
+                  transition: Transition) -> None:
         while sdl2.SDL_PollEvent(ctypes.byref(event)) != 0:
             key = event.key.keysym.sym
             if event.type == sdl2.SDL_Quit:
                 game_state.is_running = False
             elif event.type == sdl2.SDL_KEYDOWN:
                 if key == sdl2.SDLK_ESCAPE:
-                    pass
+                    if game_state.scene == ScenePossible.MAIN:
+                        game_state.is_running = False
+                    elif game_state.scene == ScenePossible.GAME:
+                        transition.transition_on = True
+                        transition.scene_to_put = ScenePossible.MAIN
+                    elif game_state.scene == ScenePossible.CSGO:
+                        transition.transition_on = True
+                        transition.scene_to_put = ScenePossible.GAME
                 if game_state.scene == ScenePossible.GAME:
                     game_state.konami_code_entered.append(key)
                     if len(game_state.konami_code_entered) > len(game_state.konami_code_excepted):
