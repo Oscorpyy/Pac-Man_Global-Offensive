@@ -90,19 +90,23 @@ class Window:
             last_time = current_time
             if dt > 0:
                 game_state.fps_lst.append(1.0 / dt)
-                game_state.fps = int(sum(game_state.fps_lst) / len(game_state.fps_lst))
+                game_state.fps = int(sum(game_state.fps_lst) / len(
+                    game_state.fps_lst))
             match game_state.scene:
                 case ScenePossible.INTRO:
                     self.intro.draw_intro()
                     sdl_event.main_loop(event, game_state, self.main, transition)
                 case ScenePossible.MAIN:
                     self.main.draw_main_menu()
-                    sdl_event.main_loop(event, game_state, self.main, transition)
+                    sdl_event.main_loop(event, game_state,
+                                        self.main, transition)
                 case ScenePossible.GAME:
-                    sdl_event.main_loop(event, game_state, self.game, transition)
+                    sdl_event.main_loop(event, game_state,
+                                        self.game, transition)
                     self.game.draw_game()
                 case ScenePossible.CSGO:
-                    sdl_event.main_loop(event, game_state, self.secret_game, transition)
+                    sdl_event.main_loop(event, game_state,
+                                        self.secret_game, transition)
                     self.secret_game.draw_secret_game()
             if transition.transition_on is True:
                 transition.draw_transition()

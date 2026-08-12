@@ -17,7 +17,9 @@ class GameState:
         self.is_running: bool = True
         self.scene = ScenePossible.INTRO
         self.frame: int = 1
-        self.konami_code_excepted: list = [SDLK_UP, SDLK_UP, SDLK_DOWN, SDLK_DOWN, SDLK_LEFT, SDLK_RIGHT, SDLK_LEFT, SDLK_RIGHT]
+        self.konami_code_excepted: list = [SDLK_UP, SDLK_UP, SDLK_DOWN,
+                                           SDLK_DOWN, SDLK_LEFT, SDLK_RIGHT,
+                                           SDLK_LEFT, SDLK_RIGHT]
         self.konami_code_entered: list = []
         self.fps_lst = deque(maxlen=30)
         self.fps: int = 0

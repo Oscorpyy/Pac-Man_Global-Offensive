@@ -180,6 +180,7 @@ class Button:
         self.color_hover = color_hover
         self.scale = scale
         self.action = function
+        self.hold_boutton_state = False
         self.text = text
         self.x = x
         self.y = y
@@ -191,10 +192,15 @@ class Button:
         button_state = sdl2.mouse.SDL_GetMouseState(ctypes.byref(mouse_x), ctypes.byref(mouse_y))
         if (mouse_x.value >= self.x and mouse_x.value <= self.x + self.w) and (mouse_y.value >= self.y and mouse_y.value <= self.y + self.h):
             draw_rect_full(self.pixels, self.w, self.h, self.color_hover, self.x, self.y)
-            if button_state == 1:
+            if button_state == 1 and not self.hold_boutton_state:
                 self.action()
+                self.hold_boutton_state = True
+            elif button_state == 0 and self.hold_boutton_state:
+                self.hold_boutton_state = False
         else:
             draw_rect_full(self.pixels, self.w, self.h, self.color_rect, self.x, self.y)
+            if button_state == 0:
+                self.hold_boutton_state = False
 
     def draw_text(self, color: Color) -> None:
         text_split: list = self.text.split(b"\n")
