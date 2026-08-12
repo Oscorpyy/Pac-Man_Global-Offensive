@@ -69,6 +69,11 @@ def draw_sprites(renderer, img: Image, x: int, y: int, scale: float) -> None:
     sdl2.SDL_RenderCopy(renderer, img.texture, None, ctypes.byref(dest_rect))
 
 
+def draw_sprites_fullscreen(renderer, img: Image, x: int, y: int, scale: float, dest_w: int, dest_h: int) -> None:
+    dest_rect = sdl2.SDL_Rect(x, y, dest_w, dest_h)
+    sdl2.SDL_RenderCopy(renderer, img.texture, None, ctypes.byref(dest_rect))
+
+
 def draw_sprite_sheet(renderer, img: Image, x: int, y: int, frame: int, scale: int) -> None:
     frame_nb_width: int = img.width // 32
     frame_draw_w: int = frame % frame_nb_width

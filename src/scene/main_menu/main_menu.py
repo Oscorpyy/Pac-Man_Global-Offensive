@@ -94,7 +94,7 @@ class MainMenu:
     def next_scene(self) -> None:
         self.transition.scene_to_put = ScenePossible.GAME
         self.transition.transition_on = True
-        self.transition.rect = True
+        self.transition.img = True
 
 
     def draw_scores(self) -> None:
@@ -116,7 +116,7 @@ class MainMenu:
 
     def set_can_draw_settings(self) -> None:
         self.menu_state.current = self.menu_state.state_lst[2]
-    
+
     def set_can_draw_instructions(self) -> None:
         self.menu_state.current = self.menu_state.state_lst[1]
 
