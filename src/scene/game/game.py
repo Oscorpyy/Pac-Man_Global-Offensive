@@ -42,8 +42,8 @@ class Game:
 
     def clean_up(self) -> None:
         # sdim.IMG_Quit()
-        # sttf.TTF_CloseFont(self.font)
-        # sttf.TTF_Quit()
+        sttf.TTF_CloseFont(self.font)
+        sttf.TTF_Quit()
         # sdl2.SDL_DestroyTexture(self.character.texture)
         sdl2.SDL_DestroyTexture(self.background)
 

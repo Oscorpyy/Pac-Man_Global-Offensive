@@ -22,7 +22,18 @@ class SdlEvent:
                 game_state.is_running = False
             elif event.type == sdl2.SDL_KEYDOWN:
                 if key == sdl2.SDLK_ESCAPE:
-                    pass
+                    if game_state.scene == ScenePossible.MAIN:
+                        game_state.is_running = False
+                    elif game_state.scene == ScenePossible.GAME:
+                        transition.speed = 80
+                        transition.transition_on = True
+                        transition.scene_to_put = ScenePossible.MAIN
+                        transition.img = True
+                    elif game_state.scene == ScenePossible.CSGO:
+                        transition.speed = 80
+                        transition.transition_on = True
+                        transition.scene_to_put = ScenePossible.GAME
+                        transition.img = True
                 if game_state.scene == ScenePossible.INTRO:
                     if key:
                         transition.transition_on = False
