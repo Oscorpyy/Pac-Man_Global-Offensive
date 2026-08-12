@@ -62,8 +62,15 @@ def clear_background(pixels: ndarray, color: int) -> None:
     pixels[:, :] = color
 
 
-def draw_sprites(renderer, img: Image, x: int, y: int, scale: int) -> None:
-    dest_rect = sdl2.SDL_Rect(x, y, 32 * scale, 32 * scale)
+def draw_sprites(renderer, img: Image, x: int, y: int, scale: float) -> None:
+    dest_w: int = int(img.width * scale)
+    dest_h: int = int(img.height * scale)
+    dest_rect = sdl2.SDL_Rect(x, y, dest_w, dest_h)
+    sdl2.SDL_RenderCopy(renderer, img.texture, None, ctypes.byref(dest_rect))
+
+
+def draw_sprites_fullscreen(renderer, img: Image, x: int, y: int, scale: float, dest_w: int, dest_h: int) -> None:
+    dest_rect = sdl2.SDL_Rect(x, y, dest_w, dest_h)
     sdl2.SDL_RenderCopy(renderer, img.texture, None, ctypes.byref(dest_rect))
 
 

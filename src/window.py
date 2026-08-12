@@ -2,6 +2,7 @@ import sdl2
 import json
 import time
 from typing import Any
+from src.scene.intro.introduction import Introduction
 from src.scene.game.CS.secret_game import SecretGame
 from src.print_logs import print_error, print_info, print_warning
 from src.control import SdlEvent
@@ -77,6 +78,7 @@ class Window:
         transition = Transition(renderer, game_state, self.config)
         sdl_event = SdlEvent()
         de_office = self.get_secret_map_data()
+        self.intro = Introduction(renderer, game_state, self.config, transition)
         self.main = MainMenu(renderer, game_state, self.config, transition)
         self.game = Game(renderer, game_state, self.config, transition)
         self.cam = Camera()
@@ -91,6 +93,9 @@ class Window:
                 game_state.fps = int(sum(game_state.fps_lst) / len(
                     game_state.fps_lst))
             match game_state.scene:
+                case ScenePossible.INTRO:
+                    self.intro.draw_intro()
+                    sdl_event.main_loop(event, game_state, self.main, transition)
                 case ScenePossible.MAIN:
                     self.main.draw_main_menu()
                     sdl_event.main_loop(event, game_state,
@@ -104,7 +109,7 @@ class Window:
                                         self.secret_game, transition)
                     self.secret_game.draw_secret_game()
             if transition.transition_on is True:
-                transition.rect_transition()
+                transition.draw_transition()
             sdl2.SDL_RenderPresent(renderer)
             game_state.frame += 1
             if game_state.frame > 60:
