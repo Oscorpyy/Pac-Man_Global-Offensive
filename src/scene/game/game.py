@@ -4,7 +4,7 @@ from sdl2 import sdlttf as sttf
 import numpy as np
 from src.scene.helper import get_ptr
 from src.game_state import GameConfig, GameState
-from src.drawing_methods import clear_background, Button, draw_text
+from src.drawing_methods import clear_background, Button, draw_fps, draw_text
 from src.color import Color
 from src.transition import Transition
 from mazegenerator.mazegenerator import MazeGenerator

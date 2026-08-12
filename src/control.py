@@ -36,8 +36,7 @@ class SdlEvent:
                             game_state.konami_code_excepted):
                         transition.transition_on = True
                         transition.scene_to_put = ScenePossible.CSGO
-                        transition.rect = True
-                        # game_state.scene = ScenePossible.CSGO
+                        transition.img = True
                         print_info("CS MOD ENTERED")
                         continue
                 if game_state.scene == ScenePossible.CSGO:
