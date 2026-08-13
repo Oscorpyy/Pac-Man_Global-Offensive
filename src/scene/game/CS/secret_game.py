@@ -49,10 +49,6 @@ class SecretGame:
         self.cam = cam
         self.cam.offset_x = self.player.pos_x - (self.width // 4) + (self.player.sprite.width // 2)
         self.cam.offset_y = self.player.pos_y - (self.height // 4) + (self.player.sprite.height // 2)
-        print(self.cam.offset_x)
-        print(self.player.pos_x)
-        print(self.cam.offset_y)
-        print(self.player.pos_y)
         self.speed: int = 3
         self.key_w: bool = False
         self.key_s: bool = False
