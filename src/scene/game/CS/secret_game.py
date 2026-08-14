@@ -39,7 +39,7 @@ class SecretGame:
         self.pitch_background = self.width * 4
         self.tilemap_data = tilemap
         self.map_tiles = Image(b"assets/tileset.png", self.renderer)
-        self.player_sprite = Image(b"assets/test2.png", self.renderer)
+        self.player_sprite = Image(b"assets/tileset.png", self.renderer)
         sttf.TTF_Init()
         self.font_size = 16
         self.font = sttf.TTF_OpenFont(b"assets/Press_Start_2P/PressStart2P-Regular.ttf", self.font_size)

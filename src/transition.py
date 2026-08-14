@@ -64,14 +64,15 @@ class Transition:
                 self.rect = False
 
     def image_transition(self) -> None:
+        dynamic_speed = int(max(5, abs(self.img_x) * 0.09))
         if not self.sens_transition:
-            self.img_x += self.speed
+            self.img_x += dynamic_speed
             if self.img_x >= 0:
                 self.img_x = 0
                 self.game_state.scene = self.scene_to_put
                 self.sens_transition = True
         else:
-            self.img_x -= self.speed
+            self.img_x -= dynamic_speed
         if self.img_x <= -self.width:
             self.img_x = -self.width
             self.transition_on = False
