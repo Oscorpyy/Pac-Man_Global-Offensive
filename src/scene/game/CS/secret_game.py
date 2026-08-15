@@ -39,7 +39,7 @@ class SecretGame:
         self.pitch_background = self.width * 4
         self.tilemap_data = tilemap
         self.map_tiles = Image(b"assets/tileset.png", self.renderer)
-        self.player_sprite = Image(b"assets/tileset.png", self.renderer)
+        self.player_sprite = Image(b"assets/terrorist/terrorist_sheet.png", self.renderer)
         sttf.TTF_Init()
         self.font_size = 16
         self.font = sttf.TTF_OpenFont(b"assets/Press_Start_2P/PressStart2P-Regular.ttf", self.font_size)
@@ -50,10 +50,6 @@ class SecretGame:
         self.cam.offset_x = self.player.pos_x - (self.width // 4) + (self.player.sprite.width // 2)
         self.cam.offset_y = self.player.pos_y - (self.height // 4) + (self.player.sprite.height // 2)
         self.speed: int = 3
-        self.key_w: bool = False
-        self.key_s: bool = False
-        self.key_a: bool = False
-        self.key_d: bool = False
         self.current_mouse_pos = MouseVector2()
 
     def clean_up(self) -> None:
@@ -87,22 +83,22 @@ class SecretGame:
 
     def set_keystate(self, key, is_pressed: bool) -> None:
         if key == sdl2.SDLK_w:
-            self.key_w = is_pressed
+            self.player.key_w = is_pressed
         elif key == sdl2.SDLK_s:
-            self.key_s = is_pressed
+            self.player.key_s = is_pressed
         elif key == sdl2.SDLK_a:
-            self.key_a = is_pressed
+            self.player.key_a = is_pressed
         elif key == sdl2.SDLK_d:
-            self.key_d = is_pressed
+            self.player.key_d = is_pressed
 
     def update_player_pos(self) -> None:
-        if (self.key_w is True):
+        if (self.player.key_w is True):
             self.player.pos_y -= self.speed
-        if (self.key_s is True):
+        if (self.player.key_s is True):
             self.player.pos_y += self.speed
-        if (self.key_a is True):
+        if (self.player.key_a is True):
             self.player.pos_x -= self.speed
-        if (self.key_d is True):
+        if (self.player.key_d is True):
             self.player.pos_x += self.speed
 
     def update_cam_mouse_move(self, scale: int) -> None:
@@ -125,4 +121,5 @@ class SecretGame:
         self.player.draw_player(self.renderer, 2)
         draw_fps(self.renderer, self.font, self.game_state.fps)
         self.update_player_pos()
+        self.player.update()
         self.update_cam_mouse_move(2)

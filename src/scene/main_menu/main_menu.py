@@ -44,12 +44,12 @@ class MainMenu:
         self.logo =  Image(b"assets/game_logo.png", renderer)
         # Font loading
         sttf.TTF_Init()
-        self.font_size = 16
+        self.font_size: int = 16
         self.font = sttf.TTF_OpenFont(b"assets/Press_Start_2P/PressStart2P-Regular.ttf", self.font_size)
         if not self.font:
             print_error(f"can't charge font {sttf.TTF_GetError()}")
-        self.width = self.game_config.screen_width
-        self.height = self.game_config.screen_height
+        self.width: int = self.game_config.screen_width
+        self.height: int = self.game_config.screen_height
         self.pixels = np.zeros((self.height, self.width), dtype=np.uint32)
         self.settings_win = SettingsWindow(self.width, self.height, renderer, self.pixels, self.font)
         self.instruction_win = InstructionWindow(self.width, self.height, renderer, self.pixels, self.font)
