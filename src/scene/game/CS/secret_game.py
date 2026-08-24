@@ -64,22 +64,23 @@ class SecretGame:
     def draw_tilemap(self, scale) -> None:
         renderer = self.renderer
         map_tiles = self.map_tiles
-        x = 0
-        y = 0
-        tile_count = 0
         cam_scaled_x = self.cam.offset_x * scale
         cam_scaled_y = self.cam.offset_y * scale
-        for tile in self.tilemap_data:
-            if tile == 0:
-                pass
-            else:
-                draw_sprite_sheet(renderer, map_tiles, (x * scale) - cam_scaled_x, (y * scale) - cam_scaled_y, tile - 41, scale)
-            tile_count += 1
-            x += 32
-            if tile_count > 39:
-                x = 0
-                y += 32
-                tile_count = 0
+        for layer in self.tilemap_data:
+            x = 0
+            y = 0
+            tile_count = 0
+            for tile in layer:
+                if tile == 0:
+                    pass
+                else:
+                    draw_sprite_sheet(renderer, map_tiles, (x * scale) - cam_scaled_x, (y * scale) - cam_scaled_y, tile - 78, scale)
+                tile_count += 1
+                x += 32
+                if tile_count > 39:
+                    x = 0
+                    y += 32
+                    tile_count = 0
 
     def set_keystate(self, key, is_pressed: bool) -> None:
         if key == sdl2.SDLK_w:
@@ -113,7 +114,7 @@ class SecretGame:
 
 
     def draw_secret_game(self) -> None:
-        clear_background(self.pixels, Color.BLACK)
+        clear_background(self.pixels, Color.GRAY)
         pixel_ptr = get_ptr(self.pixels)
         sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)

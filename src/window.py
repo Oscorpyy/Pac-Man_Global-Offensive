@@ -55,10 +55,11 @@ class Window:
                 if map_data is None:
                     print_error("Something went wrong with de_office map data")
                 else:
-                    map_tiles = map_data[0].get("data", [])
-                    if map_tiles is None:
-                        print_error("Something went wrong with de_office map data")
-                        map_tiles = []
+                    for i in range(len(map_data)):
+                        map_tiles.append(map_data[i].get("data", []))
+                        if map_tiles is None:
+                            print_error("Something went wrong with de_office map data")
+                            map_tiles = []
         except (FileNotFoundError, PermissionError, ValueError):
             print_error("can't find de_office.json")
             map_tiles = []
