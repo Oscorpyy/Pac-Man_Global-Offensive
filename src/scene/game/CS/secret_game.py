@@ -118,7 +118,7 @@ class SecretGame:
         sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
         self.draw_tilemap(2)
-        self.player.draw_player(self.renderer, 2)
+        self.player.draw_player(self.renderer, 2, self.current_mouse_pos.x.value, self.current_mouse_pos.y.value)
         draw_fps(self.renderer, self.font, self.game_state.fps)
         self.update_player_pos()
         self.player.update()

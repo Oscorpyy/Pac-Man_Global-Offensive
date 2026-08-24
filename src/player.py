@@ -1,3 +1,4 @@
+import math
 from src.camera import Camera
 from src.image import Image
 from src.drawing_methods import draw_sprite_sheet
@@ -28,23 +29,31 @@ class CsPlayer:
             self.current_frame += 1
             self.current_frame = self.current_frame % self.frame_number
 
-    def draw_player(self, renderer,  scale: int) -> None:
-        if self.key_a is True and self.key_w is True:
-            draw_sprite_sheet(renderer, self.sprite, (self.pos_x - self.cam.offset_x) * scale, (self.pos_y - self.cam.offset_y) * scale, self.current_frame + 125, scale)
-        elif self.key_a is True and self.key_s is True:
-            draw_sprite_sheet(renderer, self.sprite, (self.pos_x - self.cam.offset_x) * scale, (self.pos_y - self.cam.offset_y) * scale, self.current_frame + 101, scale)
-        elif self.key_d is True and self.key_s is True:
-            draw_sprite_sheet(renderer, self.sprite, (self.pos_x - self.cam.offset_x) * scale, (self.pos_y - self.cam.offset_y) * scale, self.current_frame + 150, scale)
-        elif self.key_d is True and self.key_w is True:
-            draw_sprite_sheet(renderer, self.sprite, (self.pos_x - self.cam.offset_x) * scale, (self.pos_y - self.cam.offset_y) * scale, self.current_frame + 175, scale)
-        elif self.key_w is True:
-            draw_sprite_sheet(renderer, self.sprite, (self.pos_x - self.cam.offset_x) * scale, (self.pos_y - self.cam.offset_y) * scale, self.current_frame + 75, scale)
-        elif self.key_a is True:
-            draw_sprite_sheet(renderer, self.sprite, (self.pos_x - self.cam.offset_x) * scale, (self.pos_y - self.cam.offset_y) * scale, self.current_frame + 50, scale)
-        elif self.key_d is True:
-            draw_sprite_sheet(renderer, self.sprite, (self.pos_x - self.cam.offset_x) * scale, (self.pos_y - self.cam.offset_y) * scale, self.current_frame + 26, scale)
-        else:
-            draw_sprite_sheet(renderer, self.sprite, (self.pos_x - self.cam.offset_x) * scale, (self.pos_y - self.cam.offset_y) * scale, self.current_frame, scale)
+    def draw_player(self, renderer,  scale: int, mouse_x: int, mouse_y: int) -> None:
+        pos_x = (self.pos_x - self.cam.offset_x) * scale
+        pos_y = (self.pos_y - self.cam.offset_y) * scale
+        dx = mouse_x - pos_x
+        dy = mouse_y - pos_y
+        angle_rad = math.atan2(dy, dx)
+        angle = math.degrees(angle_rad)
+        angle = (angle + 360) % 360
+        direction_index = int(((angle + 22.5) % 360) // 45)
+        if direction_index == 5:
+            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y, self.current_frame + 125, scale)
+        elif direction_index == 3:
+            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y, self.current_frame + 101, scale)
+        elif direction_index == 1:
+            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y, self.current_frame + 150, scale)
+        elif direction_index == 7:
+            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y, self.current_frame + 175, scale)
+        elif direction_index == 6:
+            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y, self.current_frame + 75, scale)
+        elif direction_index == 4:
+            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y, self.current_frame + 50, scale)
+        elif direction_index == 0:
+            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y, self.current_frame + 26, scale)
+        elif direction_index == 2:
+            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y, self.current_frame, scale)
 
 
 class PacPlayer:
