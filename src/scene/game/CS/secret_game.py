@@ -66,14 +66,17 @@ class SecretGame:
         map_tiles = self.map_tiles
         cam_scaled_x = self.cam.offset_x * scale
         cam_scaled_y = self.cam.offset_y * scale
+        tile_scaled = 32 * scale
         for layer in self.tilemap_data:
             x = 0
             y = 0
             tile_count = 0
             for tile in layer:
+                screen_x = (x * scale) - cam_scaled_x
+                screen_y = (y * scale) - cam_scaled_y
                 if tile == 0:
                     pass
-                else:
+                elif (screen_x > -tile_scaled and screen_x < self.width) and (screen_y > -tile_scaled and screen_y < self.height):
                     draw_sprite_sheet(renderer, map_tiles, (x * scale) - cam_scaled_x, (y * scale) - cam_scaled_y, tile - 78, scale)
                 tile_count += 1
                 x += 32
