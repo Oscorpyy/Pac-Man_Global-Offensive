@@ -6,7 +6,7 @@ import ctypes
 from src.game_state import GameConfig, GameState
 from src.drawing_methods import clear_background, draw_fps, draw_sprite_sheet
 from src.color import Color
-from src.scene.helper import get_ptr
+from src.scene.helper import Vector2, get_ptr
 from src.print_logs import print_error
 from src.image import Image
 from src.camera import Camera
@@ -46,6 +46,8 @@ class SecretGame:
         if not self.font:
             print_error(f"can't charge font {sttf.TTF_GetError()}")
         self.player = CsPlayer(self.player_sprite, cam)
+        self.player.pos_x = 300
+        self.player.pos_y = 400
         self.cam = cam
         self.cam.offset_x = self.player.pos_x - (self.width // 4) + (self.player.sprite.width // 2)
         self.cam.offset_y = self.player.pos_y - (self.height // 4) + (self.player.sprite.height // 2)
@@ -67,10 +69,13 @@ class SecretGame:
         cam_scaled_x = self.cam.offset_x * scale
         cam_scaled_y = self.cam.offset_y * scale
         tile_scaled = 32 * scale
+        i = 0
         for layer in self.tilemap_data:
             x = 0
             y = 0
             tile_count = 0
+            if i == 2:
+                continue
             for tile in layer:
                 screen_x = (x * scale) - cam_scaled_x
                 screen_y = (y * scale) - cam_scaled_y
@@ -84,6 +89,7 @@ class SecretGame:
                     x = 0
                     y += 32
                     tile_count = 0
+            i += 1
 
     def set_keystate(self, key, is_pressed: bool) -> None:
         if key == sdl2.SDLK_w:
@@ -95,15 +101,41 @@ class SecretGame:
         elif key == sdl2.SDLK_d:
             self.player.key_d = is_pressed
 
+    def can_player_move(self, pos_x: int, pos_y: int) -> bool:
+        x = 0
+        y = 0
+        tile_count = 0
+        player_size = 32
+        for tile in self.tilemap_data[2]:
+            if tile != 0:
+                if (pos_x + player_size > x and pos_x < x + 32 and
+                    pos_y + player_size > y and pos_y < y + 32):
+                    return False
+            tile_count += 1
+            x += 32
+            if tile_count > 39:
+                x = 0
+                tile_count = 0
+                y += 32
+        return True
+
     def update_player_pos(self) -> None:
         if (self.player.key_w is True):
-            self.player.pos_y -= self.speed
+            pos_y = self.player.pos_y - self.speed
+            if self.can_player_move(self.player.pos_x, pos_y) is True:
+                self.player.pos_y = pos_y
         if (self.player.key_s is True):
-            self.player.pos_y += self.speed
+            pos_y = self.player.pos_y + self.speed
+            if self.can_player_move(self.player.pos_x, pos_y) is True:
+                self.player.pos_y = pos_y
         if (self.player.key_a is True):
-            self.player.pos_x -= self.speed
+            pos_x = self.player.pos_x - self.speed
+            if self.can_player_move(pos_x, self.player.pos_y) is True:
+                self.player.pos_x = pos_x
         if (self.player.key_d is True):
-            self.player.pos_x += self.speed
+            pos_x = self.player.pos_x + self.speed
+            if self.can_player_move(pos_x, self.player.pos_y) is True:
+                self.player.pos_x = pos_x
 
     def update_cam_mouse_move(self, scale: int) -> None:
         factor = 0.3
