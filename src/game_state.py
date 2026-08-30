@@ -23,6 +23,14 @@ class GameState:
         self.konami_code_entered: list = []
         self.fps_lst = deque(maxlen=30)
         self.fps: int = 0
+        self.cs_round_win: int = 0
+        self.cs_round_loose: int = 0
+
+    def check_cs_finished(self) -> None:
+        if self.cs_round_win >= 5:
+            self.scene = ScenePossible.WIN
+        if self.cs_round_loose >= 5:
+            self.scene = ScenePossible.LOOSE
 
 
 class GameConfig:

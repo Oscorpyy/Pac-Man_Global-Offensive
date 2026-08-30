@@ -62,7 +62,7 @@ class MainMenu:
             self.height
         )
         btn_width = 200
-        self.btn_list: list = [
+        self.btn_list: list[Button] = [
             Button(self.renderer, self.pixels, self.font, (self.width // 2 - (btn_width // 2)), self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.next_scene, b"Start Game"),
             Button(self.renderer, self.pixels, self.font, (self.width // 2 - (btn_width // 2)) - (btn_width + 32), self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.set_can_draw_settings, b"Settings"),
             Button(self.renderer, self.pixels, self.font, (self.width // 2 - (btn_width // 2)) + (btn_width + 32), self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.set_can_draw_instructions, b"Instructions"),

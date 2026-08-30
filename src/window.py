@@ -120,6 +120,7 @@ class Window:
             time_left = target_ms - time_to_wait
             if time_left > 0:
                 sdl2.SDL_Delay(int(time_left))
+            game_state.check_cs_finished()
         self.scene_to_free(game_state)
         sdl2.SDL_DestroyRenderer(renderer)
         sdl2.SDL_DestroyWindow(window)

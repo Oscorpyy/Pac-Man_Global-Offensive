@@ -74,7 +74,7 @@ class SecretGame:
             x = 0
             y = 0
             tile_count = 0
-            if i == 2:
+            if i == 3:
                 continue
             for tile in layer:
                 screen_x = (x * scale) - cam_scaled_x
@@ -82,7 +82,7 @@ class SecretGame:
                 if tile == 0:
                     pass
                 elif (screen_x > -tile_scaled and screen_x < self.width) and (screen_y > -tile_scaled and screen_y < self.height):
-                    draw_sprite_sheet(renderer, map_tiles, (x * scale) - cam_scaled_x, (y * scale) - cam_scaled_y, tile - 78, scale)
+                    draw_sprite_sheet(renderer, map_tiles, (x * scale) - cam_scaled_x, (y * scale) - cam_scaled_y, tile - 85, scale)
                 tile_count += 1
                 x += 32
                 if tile_count > 39:
@@ -106,7 +106,7 @@ class SecretGame:
         y = 0
         tile_count = 0
         player_size = 32
-        for tile in self.tilemap_data[2]:
+        for tile in self.tilemap_data[3]:
             if tile != 0:
                 if (pos_x + player_size > x and pos_x < x + 32 and
                     pos_y + player_size > y and pos_y < y + 32):
@@ -140,13 +140,12 @@ class SecretGame:
     def update_cam_mouse_move(self, scale: int) -> None:
         factor = 0.3
         self.current_mouse_pos.mouse_button = sdl2.SDL_GetMouseState(ctypes.byref(self.current_mouse_pos.x), ctypes.byref(self.current_mouse_pos.y))
-        base_x = self.player.pos_x - (self.width // (2 * scale)) 
+        base_x = self.player.pos_x - (self.width // (2 * scale))
         base_y = self.player.pos_y - (self.height // (2 * scale))
         diff_x = self.current_mouse_pos.x.value - (self.width // 2)
         diff_y = self.current_mouse_pos.y.value - (self.height // 2)
         self.cam.offset_x = int(base_x + ((diff_x / scale) * factor))
         self.cam.offset_y = int(base_y + ((diff_y / scale) * factor))
-
 
     def draw_secret_game(self) -> None:
         clear_background(self.pixels, Color.GRAY)
