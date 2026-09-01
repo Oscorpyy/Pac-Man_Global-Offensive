@@ -65,6 +65,8 @@ class SecretGame:
         self.bomb_diffuse_time: float = 5.0
         self.player_diffuse_time: float = 0.0
         self.round_start_timer: float = 4.0
+        self.current_icons_frame: int = 0
+        self.tick_counter: int = 0
 
     def clean_up(self) -> None:
         sdim.IMG_Quit()
@@ -208,8 +210,8 @@ class SecretGame:
                 draw_text(self.renderer, self.font, timer.encode(), (self.width // 2) - 10, 40, Color.BLACK)
 
     def draw_number_player(self) -> None:
-        draw_sprite_sheet(self.renderer, self.character_icons, (self.width // 2) - 100, 10, 0, 2)
-        draw_sprite_sheet(self.renderer, self.character_icons, (self.width // 2) + 50, 10, 1, 2)
+        draw_sprite_sheet(self.renderer, self.character_icons, (self.width // 2) - 100, 10, self.current_icons_frame, 2)
+        draw_sprite_sheet(self.renderer, self.character_icons, (self.width // 2) + 50, 10, self.current_icons_frame, 2)
         draw_text(self.renderer, self.font, b"1", (self.width // 2) - 100, 10, Color.WHITE)
         draw_text(self.renderer, self.font, b"0", (self.width // 2) + 50, 10, Color.WHITE)
 
@@ -227,6 +229,15 @@ class SecretGame:
             self.player.pos_x = self.default_player_pos_x
             self.player.pos_y = self.default_player_pos_y
             self.game_state.cs_round_loose += 1
+
+    def update_character_icons(self) -> None:
+        frame_number = 24
+        animation_speed = 5
+        self.tick_counter += 1
+        if self.tick_counter >= animation_speed:
+            self.tick_counter = 0
+            self.current_icons_frame += 1
+            self.current_icons_frame = self.current_icons_frame % frame_number
 
     def draw_secret_game(self) -> None:
         clear_background(self.pixels, Color.GRAY)
@@ -246,3 +257,4 @@ class SecretGame:
         self.defuse_bomb()
         self.update_cam_mouse_move(2)
         self.update_timers()
+        self.update_character_icons()
