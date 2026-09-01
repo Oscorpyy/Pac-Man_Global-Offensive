@@ -21,6 +21,7 @@ class CsPlayer:
         self.key_s: bool = False
         self.key_a: bool = False
         self.key_d: bool = False
+        self.key_e: bool = False
 
     def update(self) -> None:
         self.tick_counter += 1

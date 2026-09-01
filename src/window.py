@@ -88,6 +88,7 @@ class Window:
         while(game_state.is_running):
             current_time = time.perf_counter()
             dt = current_time - last_time
+            game_state.dt = dt
             last_time = current_time
             if dt > 0:
                 game_state.fps_lst.append(1.0 / dt)

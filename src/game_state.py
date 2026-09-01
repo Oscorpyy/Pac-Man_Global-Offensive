@@ -25,6 +25,8 @@ class GameState:
         self.fps: int = 0
         self.cs_round_win: int = 0
         self.cs_round_loose: int = 0
+        self.dt: float = 0.0
+        self.point:int = 0
 
     def check_cs_finished(self) -> None:
         if self.cs_round_win >= 5:
