@@ -22,7 +22,8 @@ class Game:
         self.config = config
         sttf.TTF_Init()
         self.font_size = 16
-        self.font = sttf.TTF_OpenFont(b"assets/Press_Start_2P/PressStart2P-Regular.ttf", self.font_size)
+        self.font = sttf.TTF_OpenFont(
+            b"assets/Press_Start_2P/PressStart2P-Regular.ttf", self.font_size)
         if not self.font:
             print_error(f"can't charge font {sttf.TTF_GetError()}")
         self.seed = 0
@@ -137,30 +138,42 @@ class Game:
                 self.seed = 0
             maze = MazeGenerator((tuple([level["width"], level["height"]])),
                                  False, tuple([0, 0]),
-                                 tuple([level["width"] - 1, level["height"] - 1]),
+                                 tuple([level["width"] - 1,
+                                        level["height"] - 1]),
                                  self.seed)
             print(f"Level {level} generated with seed {maze._seed}")
             self.maze_levels.append(maze.maze)
 
     def draw_game(self) -> None:
         clear_background(self.pixels, Color.BLACK)
-        
-        side = int(min(self.config.screen_width, self.config.screen_height) * 0.9)
+
+        side = int(min(self.config.screen_width,
+                       self.config.screen_height) * 0.9)
         start_height = (self.config.screen_height - side) // 4
         start_width = (self.config.screen_width - side) // 2
 
         current_maze = self.maze_levels[self.current_level - 1]
         current_items = self.items_levels[self.current_level - 1]
-        cellsize = side // self.config.level_array_multiple_levels[self.current_level - 1]["width"]
+        cellsize = side // self.config.level_array_multiple_levels[
+            self.current_level - 1]["width"]
 
         self.player.update()
         self.player.handle_movement(current_maze, current_items)
+        if self.check_level_complete(current_items):
+            # Si c'est le tout dernier niveau, le joueur a gagné la partie !
+            if self.current_level == len(self.config.level_array_multiple_levels):
+                print("Félicitations ! Vous avez terminé tous les niveaux !")
+            else:
+                print(f"Niveau {self.current_level} terminé !")
+                self.next_level()
+        self.draw_maze(current_maze, Color.RED, Color.BLACK, start_width,
+                       start_height, cellsize)
 
-        self.draw_maze(current_maze, Color.RED, Color.BLACK, start_width, start_height, cellsize)
+        self.draw_items(current_items, Color.WHITE, Color.YELLOW, start_width,
+                        start_height, cellsize)
 
-        self.draw_items(current_items, Color.WHITE, Color.YELLOW, start_width, start_height, cellsize)
-
-        self.player.draw_player_pixels(self.pixels, start_width, start_height, cellsize, Color.CYAN)
+        self.player.draw_player_pixels(self.pixels, start_width, start_height,
+                                       cellsize, Color.CYAN)
 
         self.draw_cheat()
         self.btn_prev.draw_background()
@@ -169,9 +182,12 @@ class Game:
         self.btn_next.draw_text(Color.WHITE)
 
         pixel_ptr = get_ptr(self.pixels)
-        sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
+        sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr,
+        self.pitch_background)
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
-        draw_text(self.renderer, self.font, f"Level: {self.current_level}".encode('utf-8'), 10, 50, Color.WHITE, 1)
+        draw_text(self.renderer, self.font,
+                  f"Level: {self.current_level}".encode('utf-8'), 10,
+                  50, Color.WHITE, 1)
 
     def prev_level(self) -> None:
         if self.current_level > 1:
@@ -185,8 +201,10 @@ class Game:
         max_levels = len(self.config.level_array_multiple_levels)
         if self.current_level < max_levels:
             self.current_level += 1
-            self.player.pos_y = len(self.maze_levels[self.current_level - 1]) // 2
-            self.player.pos_x = len(self.maze_levels[self.current_level - 1][0]) // 2
+            self.player.pos_y = len(
+                self.maze_levels[self.current_level - 1]) // 2
+            self.player.pos_x = len(
+                self.maze_levels[self.current_level - 1][0]) // 2
         self.player.key_w = False
         self.player.key_s = False
         self.player.key_a = False
@@ -199,10 +217,12 @@ class Game:
                   color_cel: int, start_x: int, start_y: int,
                   cellsize: int) -> None:
         """
-        Draw the generated maze directly from a 2D array onto the rendering buffer.
+        Draw the generated maze directly from a 2D array onto the rendering
+        buffer.
 
         Args:
-            maze_matrix (list[list[int]]): The 2D array containing bitwise walls.
+            maze_matrix (list[list[int]]): The 2D array containing bitwise
+            walls.
             color_wall (int): Color value for the maze walls.
             color_cel (int): Color value for the cell background/paths.
             start_x (int): X offset to start drawing the maze.
@@ -255,7 +275,8 @@ class Game:
 
     def create_items_levels(self) -> None:
         """
-        Génère les emplacements des pacgums et super-pacgums pour chaque niveau.
+        Génère les emplacements des pacgums et super-pacgums pour chaque
+        niveau.
         0 = Vide (centre ou case inaccessible)
         1 = Pacgum (couloirs)
         2 = Super-pacgum (4 coins)
@@ -264,35 +285,33 @@ class Game:
         for maze in self.maze_levels:
             maze_height = len(maze)
             maze_width = len(maze[0]) if maze_height > 0 else 0
-            
-            # Initialise une matrice vide
-            items_matrix = [[1 for _ in range(maze_width)] for _ in range(maze_height)]
-            
-            # On parcourt la grille pour enlever les pac-gommes des cases inaccessibles
+
+            items_matrix = [[1 for _ in range(maze_width)] for _ in range(
+                maze_height)]
+
             for y in range(maze_height):
                 for x in range(maze_width):
-                    # 15 = case fermée de tous les côtés (1+2+4+8)
                     if maze[y][x] == 15:
                         items_matrix[y][x] = 0
-            
-            # Retire le pacgum au centre (emplacement de départ du joueur)
+
             mid_y = maze_height // 2
             mid_x = maze_width // 2
             items_matrix[mid_y][mid_x] = 0
-            
-            # Place les 4 Super-pacgums (2) dans les coins
+
             if maze_height > 1 and maze_width > 1:
-                items_matrix[0][0] = 2                                  # Haut-Gauche
-                items_matrix[0][maze_width - 1] = 2                     # Haut-Droite
-                items_matrix[maze_height - 1][0] = 2                    # Bas-Gauche
-                items_matrix[maze_height - 1][maze_width - 1] = 2       # Bas-Droite
-                
+                items_matrix[0][0] = 2
+                items_matrix[0][maze_width - 1] = 2
+                items_matrix[maze_height - 1][0] = 2
+                items_matrix[maze_height - 1][maze_width - 1] = 2
+
             self.items_levels.append(items_matrix)
 
-    def draw_items(self, items_matrix: list[list[int]], color_pacgum: int, color_super: int, 
+    def draw_items(self, items_matrix: list[list[int]], color_pacgum: int,
+                   color_super: int,
                    start_x: int, start_y: int, cellsize: int) -> None:
         """
-        Dessine les pacgums (1) et super-pacgums (2) au centre exact des couloirs.
+        Dessine les pacgums (1) et super-pacgums (2) au centre exact des
+        couloirs.
         """
         maze_height = len(items_matrix)
         maze_width = len(items_matrix[0]) if maze_height > 0 else 0
@@ -316,3 +335,13 @@ class Game:
 
                 if y2 > y1 and x2 > x1:
                     self.pixels[y1:y2, x1:x2] = color
+
+    def check_level_complete(self, items_matrix: list[list[int]]) -> bool:
+        """
+        Vérifie si toutes les pac-gommes (1) et super pac-gommes (2)
+        ont été mangées dans la matrice actuelle.
+        """
+        for row in items_matrix:
+            if 1 in row or 2 in row:
+                return False
+        return True
