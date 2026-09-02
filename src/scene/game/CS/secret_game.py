@@ -13,6 +13,7 @@ from src.image import Image
 from src.camera import Camera
 from src.player import CsPlayer
 from src.transition import Transition
+from src.scene.game.CS.bot import CsBot
 
 
 class MouseVector2:
@@ -41,7 +42,8 @@ class SecretGame:
         self.pitch_background = self.width * 4
         self.tilemap_data = tilemap
         self.map_tiles = Image(b"assets/tileset.png", self.renderer)
-        self.player_sprite = Image(b"assets/terrorist/terrorist_sheet.png", self.renderer)
+        self.player_sprite = Image(b"assets/counter_terro/counter.png", self.renderer)
+        self.enemy_sprite = Image(b"assets/terrorist/terrorist_sheet.png", self.renderer)
         self.bomba = Image(b"assets/3D_model/little_bomba.png", self.renderer)
         self.character_icons = Image(b"assets/character_icons.png", self.renderer)
         sttf.TTF_Init()
@@ -50,6 +52,15 @@ class SecretGame:
         if not self.font:
             print_error(f"can't charge font {sttf.TTF_GetError()}")
         self.player = CsPlayer(self.player_sprite, cam)
+        self.ennemy_lst: list = [
+                CsBot(self.enemy_sprite, cam),
+                CsBot(self.enemy_sprite, cam),
+                CsBot(self.enemy_sprite, cam),
+                CsBot(self.enemy_sprite, cam),
+                CsBot(self.enemy_sprite, cam),
+        ]
+        self.ennemy = CsBot(self.enemy_sprite, cam)
+        self.ennemy_number: int = 5
         self.default_player_pos_x = 32 * 2
         self.default_player_pos_y = 32 * 35
         self.player.pos_x = self.default_player_pos_x
@@ -210,7 +221,7 @@ class SecretGame:
                 draw_text(self.renderer, self.font, timer.encode(), (self.width // 2) - 10, 40, Color.BLACK)
 
     def draw_number_player(self) -> None:
-        draw_sprite_sheet(self.renderer, self.character_icons, (self.width // 2) - 100, 10, self.current_icons_frame, 2)
+        draw_sprite_sheet(self.renderer, self.character_icons, (self.width // 2) - 100, 10, self.current_icons_frame + 24, 2)
         draw_sprite_sheet(self.renderer, self.character_icons, (self.width // 2) + 50, 10, self.current_icons_frame, 2)
         draw_text(self.renderer, self.font, b"1", (self.width // 2) - 100, 10, Color.WHITE)
         draw_text(self.renderer, self.font, b"0", (self.width // 2) + 50, 10, Color.WHITE)
@@ -247,6 +258,8 @@ class SecretGame:
         self.draw_tilemap(2)
         draw_sprites(self.renderer, self.bomba, (32 * 2) - (self.cam.offset_x * 2), (64 * 2) - (self.cam.offset_y * 2), 2)
         self.player.draw_player(self.renderer, 2, self.current_mouse_pos.x.value, self.current_mouse_pos.y.value)
+        for bot in self.ennemy_lst:
+            bot.draw_bot(self.renderer, 2)
         draw_fps(self.renderer, self.font, self.game_state.fps)
         self.draw_scores()
         self.draw_timer()
@@ -254,6 +267,11 @@ class SecretGame:
         if self.player.can_move is True:
             self.update_player_pos()
         self.player.update()
+        for bot in self.ennemy_lst:
+            bot.get_next_location()
+            bot.detect_player()
+            bot.move_bot()
+            bot.update()
         self.defuse_bomb()
         self.update_cam_mouse_move(2)
         self.update_timers()
