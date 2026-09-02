@@ -7,7 +7,7 @@ import sdl2.sdlttf as sttf
 
 
 def draw_fps(renderer, font, fps: int) -> None:
-    draw_text(renderer, font, f"FPS: {str(fps)}".encode(), 0, 0, Color.GREEN)
+    draw_text(renderer, font, f"FPS: {str(fps)}".encode(), 5, 5, Color.BLACK)
 
 def put_pixels(pixels_array: ndarray, x: int, y: int, width: int, height: int, color: Color) -> None:
     if 0 <= x < width and 0 <= y < height:

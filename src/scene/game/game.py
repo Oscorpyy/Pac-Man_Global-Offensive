@@ -161,10 +161,10 @@ class Game:
         self.player.handle_movement(current_maze, current_items)
         if self.check_level_complete(current_items):
             # Si c'est le tout dernier niveau, le joueur a gagné la partie !
-            if self.current_level == len(self.config.level_array_multiple_levels):
-                print("Félicitations ! Vous avez terminé tous les niveaux !")
+            if self.current_level == len(
+                    self.config.level_array_multiple_levels):
+                pass
             else:
-                print(f"Niveau {self.current_level} terminé !")
                 self.next_level()
         self.draw_maze(current_maze, Color.RED, Color.BLACK, start_width,
                        start_height, cellsize)
