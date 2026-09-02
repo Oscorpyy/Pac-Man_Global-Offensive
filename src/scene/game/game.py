@@ -345,3 +345,11 @@ class Game:
             if 1 in row or 2 in row:
                 return False
         return True
+
+    def draw_infos(self) -> None:
+        """
+        Dessine les informations du jeu (niveau, score, etc.) sur l'écran.
+        """
+        draw_text(self.renderer, self.font,
+                  f"Level: {self.current_level}".encode('utf-8'), 10,
+                  50, Color.WHITE, 1)
