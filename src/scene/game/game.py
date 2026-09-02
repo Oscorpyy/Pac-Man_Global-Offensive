@@ -53,25 +53,25 @@ class Game:
         if event.type == sdl2.SDL_KEYDOWN:
             key = event.key.keysym.sym
             # print(f"DEBUG: Touche enfoncée = {key}")
-            
+
             if key in (sdl2.SDLK_w, sdl2.SDLK_UP):
                 self.player.key_w = True
                 self.player.key_s = False
                 self.player.key_a = False
                 self.player.key_d = False
-                
+
             elif key in (sdl2.SDLK_s, sdl2.SDLK_DOWN):
                 self.player.key_w = False
                 self.player.key_s = True
                 self.player.key_a = False
                 self.player.key_d = False
-                
+
             elif key in (sdl2.SDLK_a, sdl2.SDLK_LEFT):
                 self.player.key_w = False
                 self.player.key_s = False
                 self.player.key_a = True
                 self.player.key_d = False
-                
+
             elif key in (sdl2.SDLK_d, sdl2.SDLK_RIGHT):
                 self.player.key_w = False
                 self.player.key_s = False
@@ -176,11 +176,21 @@ class Game:
     def prev_level(self) -> None:
         if self.current_level > 1:
             self.current_level -= 1
+        self.player.key_w = False
+        self.player.key_s = False
+        self.player.key_a = False
+        self.player.key_d = False
 
     def next_level(self) -> None:
         max_levels = len(self.config.level_array_multiple_levels)
         if self.current_level < max_levels:
             self.current_level += 1
+            self.player.pos_y = len(self.maze_levels[self.current_level - 1]) // 2
+            self.player.pos_x = len(self.maze_levels[self.current_level - 1][0]) // 2
+        self.player.key_w = False
+        self.player.key_s = False
+        self.player.key_a = False
+        self.player.key_d = False
 
     def draw_cheat(self) -> None:
         pass
@@ -246,7 +256,7 @@ class Game:
     def create_items_levels(self) -> None:
         """
         Génère les emplacements des pacgums et super-pacgums pour chaque niveau.
-        0 = Vide (centre)
+        0 = Vide (centre ou case inaccessible)
         1 = Pacgum (couloirs)
         2 = Super-pacgum (4 coins)
         """
@@ -254,17 +264,29 @@ class Game:
         for maze in self.maze_levels:
             maze_height = len(maze)
             maze_width = len(maze[0]) if maze_height > 0 else 0
+            
+            # Initialise une matrice vide
             items_matrix = [[1 for _ in range(maze_width)] for _ in range(maze_height)]
+            
+            # On parcourt la grille pour enlever les pac-gommes des cases inaccessibles
+            for y in range(maze_height):
+                for x in range(maze_width):
+                    # 15 = case fermée de tous les côtés (1+2+4+8)
+                    if maze[y][x] == 15:
+                        items_matrix[y][x] = 0
+            
+            # Retire le pacgum au centre (emplacement de départ du joueur)
             mid_y = maze_height // 2
             mid_x = maze_width // 2
             items_matrix[mid_y][mid_x] = 0
+            
+            # Place les 4 Super-pacgums (2) dans les coins
             if maze_height > 1 and maze_width > 1:
                 items_matrix[0][0] = 2                                  # Haut-Gauche
                 items_matrix[0][maze_width - 1] = 2                     # Haut-Droite
                 items_matrix[maze_height - 1][0] = 2                    # Bas-Gauche
                 items_matrix[maze_height - 1][maze_width - 1] = 2       # Bas-Droite
                 
-            self.items_levels.append(items_matrix)
             self.items_levels.append(items_matrix)
 
     def draw_items(self, items_matrix: list[list[int]], color_pacgum: int, color_super: int, 
@@ -274,10 +296,10 @@ class Game:
         """
         maze_height = len(items_matrix)
         maze_width = len(items_matrix[0]) if maze_height > 0 else 0
-        
+
         pg_size = max(3, cellsize // 5)
         spg_size = max(6, cellsize // 2)
-        
+
         for y in range(maze_height):
             for x in range(maze_width):
                 item = items_matrix[y][x]
@@ -285,12 +307,12 @@ class Game:
                     continue
                 cx = start_x + (x * cellsize) + (cellsize // 2)
                 cy = start_y + (y * cellsize) + (cellsize // 2)
-                
+
                 radius = (pg_size // 2) if item == 1 else (spg_size // 2)
                 color = color_pacgum if item == 1 else color_super
-                
+
                 y1, y2 = max(0, cy - radius), min(self.height, cy + radius)
                 x1, x2 = max(0, cx - radius), min(self.width, cx + radius)
-                
+
                 if y2 > y1 and x2 > x1:
                     self.pixels[y1:y2, x1:x2] = color
