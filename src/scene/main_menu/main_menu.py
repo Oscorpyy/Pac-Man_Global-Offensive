@@ -51,8 +51,14 @@ class MainMenu:
         self.width: int = self.game_config.screen_width
         self.height: int = self.game_config.screen_height
         self.pixels = np.zeros((self.height, self.width), dtype=np.uint32)
-        self.settings_win = SettingsWindow(self.width, self.height, renderer, self.pixels, self.font)
-        self.instruction_win = InstructionWindow(self.width, self.height, renderer, self.pixels, self.font)
+        self.settings_win = SettingsWindow(
+            self.width, self.height, renderer, self.pixels, self.font,
+            on_close=self.set_can_draw_main
+        )
+        self.instruction_win = InstructionWindow(
+            self.width, self.height, renderer, self.pixels, self.font,
+            on_close=self.set_can_draw_main
+        )
         self.transition = transition
         self.background = sdl2.SDL_CreateTexture(
             renderer,
@@ -62,11 +68,26 @@ class MainMenu:
             self.height
         )
         btn_width = 200
-        self.btn_list: list[Button] = [
-            Button(self.renderer, self.pixels, self.font, (self.width // 2 - (btn_width // 2)), self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.next_scene, b"Start Game"),
-            Button(self.renderer, self.pixels, self.font, (self.width // 2 - (btn_width // 2)) - (btn_width + 32), self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.set_can_draw_settings, b"Settings"),
-            Button(self.renderer, self.pixels, self.font, (self.width // 2 - (btn_width // 2)) + (btn_width + 32), self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE, self.set_can_draw_instructions, b"Instructions"),
-            Button(self.renderer, self.pixels, self.font, 0, 0, 100, 50, Color.WHITE, Color.RED, self.close_game, b"Exit")
+        self.btn_list: list = [
+            Button(self.renderer, self.pixels,
+                   self.font, (self.width // 2 - (btn_width // 2)),
+                   self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE,
+                   self.next_scene, b"Start Game"),
+            Button(self.renderer, self.pixels,
+                   self.font, (self.width // 2 - (btn_width // 2)) - (
+                    btn_width + 32), self.height // 3, btn_width, 50,
+                   Color.GRAY, Color.WHITE, self.set_can_draw_settings,
+                   b"Settings"),
+            Button(self.renderer, self.pixels,
+                   self.font, (self.width // 2 - (btn_width // 2)) + (
+                    btn_width + 32), self.height // 3, btn_width, 50,
+                   Color.GRAY, Color.WHITE, self.set_can_draw_instructions,
+                   b"Instructions"),
+            Button(self.renderer, self.pixels,
+                   self.font, self.game_config.screen_width - 105,
+                   5, 100, 50,
+                   Color.WHITE, Color.RED,
+                   self.close_game, b"Exit")
         ]
         self.pitch_background = self.width * 4
         self.time: float = 0.0
@@ -113,6 +134,9 @@ class MainMenu:
                     draw_text(self.renderer, self.font, txt, self.width // 2 - (len(txt) * 16 // 2), y_offset, Color.WHITE)
                     y_offset += 30
                     i += 1
+
+    def set_can_draw_main(self) -> None:
+        self.menu_state.current = self.menu_state.state_lst[0]
 
     def set_can_draw_settings(self) -> None:
         self.menu_state.current = self.menu_state.state_lst[2]

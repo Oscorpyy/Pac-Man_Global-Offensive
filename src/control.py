@@ -18,7 +18,7 @@ class SdlEvent:
                   transition: Transition) -> None:
         while sdl2.SDL_PollEvent(ctypes.byref(event)) != 0:
             key = event.key.keysym.sym
-            if event.type == sdl2.SDL_Quit:
+            if event.type == sdl2.SDL_QUIT:
                 game_state.is_running = False
             elif event.type == sdl2.SDL_KEYDOWN:
                 if key == sdl2.SDLK_ESCAPE:
@@ -39,6 +39,9 @@ class SdlEvent:
                         transition.transition_on = False
                         game_state.scene = ScenePossible.MAIN
                 if game_state.scene == ScenePossible.GAME:
+                    if hasattr(scene, 'handle_event'):
+                        scene.handle_event(event)
+
                     game_state.konami_code_entered.append(key)
                     if len(game_state.konami_code_entered) > len(
                             game_state.konami_code_excepted):
@@ -54,7 +57,10 @@ class SdlEvent:
                     scene.set_keystate(key, True)
 
             elif event.type == sdl2.SDL_KEYUP:
-                if game_state.scene == ScenePossible.CSGO:
+                if game_state.scene == ScenePossible.GAME:
+                    if hasattr(scene, 'handle_event'):
+                        scene.handle_event(event)
+                elif game_state.scene == ScenePossible.CSGO:
                     scene.set_keystate(key, False)
 
             elif event.type == sdl2.SDL_WINDOWEVENT:
