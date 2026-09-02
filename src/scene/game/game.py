@@ -1,14 +1,17 @@
 import sdl2
+import time
+import ctypes
 from sdl2 import sdlimage as sdim
 from sdl2 import sdlttf as sttf
 import numpy as np
 from src.scene.helper import get_ptr
 from src.game_state import GameConfig, GameState
-from src.drawing_methods import clear_background, Button, draw_fps, draw_text
+from src.drawing_methods import clear_background, draw_fps, draw_text
 from src.color import Color
 from src.transition import Transition
 from mazegenerator.mazegenerator import MazeGenerator
 from src.player import PacPlayer
+from src.print_logs import print_error
 
 class Game:
     def __init__(self, renderer, game_state: GameState, config: GameConfig,
@@ -28,6 +31,9 @@ class Game:
             print_error(f"can't charge font {sttf.TTF_GetError()}")
         self.seed = 0
         self.current_level = 1
+        self.remaining_life = (int(self.config.lives)
+                               if self.config.lives is not None else 3)
+        self.level_start_time = time.time()
         self.maze_levels: list[list[list[int]]]
         self.background = sdl2.SDL_CreateTexture(
             renderer,
@@ -39,13 +45,11 @@ class Game:
         self.pitch_background = self.width * 4
         self.create_maze_levels()
         self.create_items_levels()
-        self.draw_button()
         self.player = PacPlayer()
         mid_y = len(self.maze_levels[0]) // 2
         mid_x = len(self.maze_levels[0][0]) // 2
         self.player.pos_x = mid_x
         self.player.pos_y = mid_y
-        self.draw_button()
 
     def handle_event(self, event) -> None:
         """
@@ -53,7 +57,6 @@ class Game:
         """
         if event.type == sdl2.SDL_KEYDOWN:
             key = event.key.keysym.sym
-            # print(f"DEBUG: Touche enfoncée = {key}")
 
             if key in (sdl2.SDLK_w, sdl2.SDLK_UP):
                 self.player.key_w = True
@@ -95,37 +98,6 @@ class Game:
         sttf.TTF_Quit()
         sdl2.SDL_DestroyTexture(self.background)
 
-    def draw_button(self,) -> None:
-        btn_w, btn_h = 90, 35
-        padding = 10
-        y_pos = 10
-        self.btn_prev = Button(
-            renderer=self.renderer,
-            pixels=self.pixels,
-            font=self.font,
-            x=padding,
-            y=y_pos,
-            w=btn_w,
-            h=btn_h,
-            color_rect=Color.BLUE,
-            color_hover=Color.RED,
-            function=self.prev_level,
-            text=b"PREV"
-        )
-        self.btn_next = Button(
-            renderer=self.renderer,
-            pixels=self.pixels,
-            font=self.font,
-            x=padding + btn_w + padding,
-            y=y_pos,
-            w=btn_w,
-            h=btn_h,
-            color_rect=Color.BLUE,
-            color_hover=Color.RED,
-            function=self.next_level,
-            text=b"NEXT"
-        )
-
     def create_maze_levels(self) -> None:
         self.maze_levels = []
         for level in self.config.level_array_multiple_levels:
@@ -158,9 +130,9 @@ class Game:
             self.current_level - 1]["width"]
 
         self.player.update()
-        self.player.handle_movement(current_maze, current_items)
+        self.player.handle_movement(current_maze, current_items,
+                                    self.game_state, self.config)
         if self.check_level_complete(current_items):
-            # Si c'est le tout dernier niveau, le joueur a gagné la partie !
             if self.current_level == len(
                     self.config.level_array_multiple_levels):
                 pass
@@ -176,22 +148,17 @@ class Game:
                                        cellsize, Color.CYAN)
 
         self.draw_cheat()
-        self.btn_prev.draw_background()
-        self.btn_next.draw_background()
-        self.btn_prev.draw_text(Color.WHITE)
-        self.btn_next.draw_text(Color.WHITE)
 
         pixel_ptr = get_ptr(self.pixels)
         sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr,
-        self.pitch_background)
+                               self.pitch_background)
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
-        draw_text(self.renderer, self.font,
-                  f"Level: {self.current_level}".encode('utf-8'), 10,
-                  50, Color.WHITE, 1)
+        self.draw_info()
 
     def prev_level(self) -> None:
         if self.current_level > 1:
             self.current_level -= 1
+            self.level_start_time = time.time()
         self.player.key_w = False
         self.player.key_s = False
         self.player.key_a = False
@@ -201,6 +168,7 @@ class Game:
         max_levels = len(self.config.level_array_multiple_levels)
         if self.current_level < max_levels:
             self.current_level += 1
+            self.level_start_time = time.time()
             self.player.pos_y = len(
                 self.maze_levels[self.current_level - 1]) // 2
             self.player.pos_x = len(
@@ -209,6 +177,8 @@ class Game:
         self.player.key_s = False
         self.player.key_a = False
         self.player.key_d = False
+        self.player.is_powered_up = False
+        self.power_timer = 0
 
     def draw_cheat(self) -> None:
         pass
@@ -346,10 +316,82 @@ class Game:
                 return False
         return True
 
+    def draw_pacman_icon(self, cx: int, cy: int, radius: int = 7) -> None:
+        """
+        Dessine une icône Pac-Man jaune avec la bouche ouverte.
+        """
+        sdl2.SDL_SetRenderDrawColor(self.renderer, 255, 255, 0, 255)
+        for dy in range(-radius, radius + 1):
+            for dx in range(-radius, radius + 1):
+                if dx * dx + dy * dy <= radius * radius:
+                    if dx > 0 and abs(dy) <= dx * 0.65:
+                        continue
+                    sdl2.SDL_RenderDrawPoint(self.renderer, cx + dx, cy + dy)
+        sdl2.SDL_SetRenderDrawColor(self.renderer, 0, 0, 0, 255)
+        sdl2.SDL_RenderDrawPoint(self.renderer, cx + 1, cy - radius // 2)
+
+    def draw_info(self) -> None:
+        """
+        Dessine un petit rectangle avec les infos suivantes :
+        - current_level
+        - current_score
+        - time_left
+        - remaining_life (affiché via des icônes de pacman)
+        """
+        rect_x, rect_y = 20, 20
+        rect_w, rect_h = 260, 130
+
+        sdl2.SDL_SetRenderDrawBlendMode(self.renderer,
+                                        sdl2.SDL_BLENDMODE_BLEND)
+
+        rect = sdl2.SDL_Rect(rect_x, rect_y, rect_w, rect_h)
+        sdl2.SDL_SetRenderDrawColor(self.renderer, 10, 10, 25, 210)
+        sdl2.SDL_RenderFillRect(self.renderer, ctypes.byref(rect))
+
+        sdl2.SDL_SetRenderDrawColor(self.renderer, 0, 180, 255, 255)
+        sdl2.SDL_RenderDrawRect(self.renderer, ctypes.byref(rect))
+        rect_inner = sdl2.SDL_Rect(rect_x + 2, rect_y + 2, rect_w - 4,
+                                   rect_h - 4)
+        sdl2.SDL_RenderDrawRect(self.renderer, ctypes.byref(rect_inner))
+
+        try:
+            max_time = int(self.config.level_max_time)
+        except (ValueError, TypeError):
+            max_time = 90
+
+        elapsed = time.time() - self.level_start_time
+        time_left = max(0, int(max_time - elapsed))
+
+        text_x = rect_x + 15
+        start_y = rect_y + 12
+        line_step = 28
+
+        draw_text(self.renderer, self.font,
+                  f"LEVEL: {self.current_level}".encode('utf-8'),
+                  text_x, start_y, Color.WHITE, 1)
+
+        draw_text(self.renderer, self.font,
+                  f"SCORE: {self.game_state.point}".encode('utf-8'),
+                  text_x, start_y + line_step, Color.WHITE, 1)
+
+        draw_text(self.renderer, self.font,
+                  f"TIME:  {time_left}".encode('utf-8'),
+                  text_x, start_y + line_step * 2, Color.WHITE, 1)
+
+        draw_text(self.renderer, self.font,
+                  b"LIVES:",
+                  text_x, start_y + line_step * 3, Color.WHITE, 1)
+
+        icons_start_x = text_x + 105
+        icon_cy = start_y + line_step * 3 + 8
+        radius = 7
+
+        for i in range(self.remaining_life):
+            icon_cx = icons_start_x + i * (radius * 2 + 8)
+            self.draw_pacman_icon(icon_cx, icon_cy, radius)
+
     def draw_infos(self) -> None:
         """
         Dessine les informations du jeu (niveau, score, etc.) sur l'écran.
         """
-        draw_text(self.renderer, self.font,
-                  f"Level: {self.current_level}".encode('utf-8'), 10,
-                  50, Color.WHITE, 1)
+        self.draw_info()

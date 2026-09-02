@@ -72,7 +72,7 @@ class PacPlayer:
 
         self.current_frame: int = 0
         self.frame_number: int = 4
-        self.animation_speed: int = 5
+        self.animation_speed: int = 10
         self.tick_counter: int = 0
 
         self.move_cooldown: int = 12
@@ -83,8 +83,28 @@ class PacPlayer:
         self.key_a: bool = False
         self.key_d: bool = False
 
+        self.direction: int = 0  # 0=Right, 1=Left, 2=Up, 3=Down
         self.is_powered_up: bool = False
         self.power_timer: int = 0
+
+        self.texture_argb = None
+        try:
+            import sdl2
+            import sdl2.sdlimage as sdim
+            import ctypes
+            surf = sdim.IMG_Load(b"assets/pacman.png")
+            if surf:
+                conv_surf = sdl2.SDL_ConvertSurfaceFormat(surf, sdl2.SDL_PIXELFORMAT_ARGB8888, 0)
+                sdl2.SDL_FreeSurface(surf)
+                if conv_surf:
+                    w, h = conv_surf.contents.w, conv_surf.contents.h
+                    pitch = conv_surf.contents.pitch
+                    ptr = ctypes.cast(conv_surf.contents.pixels, ctypes.POINTER(ctypes.c_uint32))
+                    self.texture_argb = np.ctypeslib.as_array(ptr, shape=(h, pitch // 4)).copy()
+                    sdl2.SDL_FreeSurface(conv_surf)
+        except Exception as e:
+            print(f"Warning: could not load pacman texture: {e}")
+            self.texture_argb = None
 
     def update(self) -> None:
         """Met à jour le compteur d'animation du sprite."""
@@ -99,11 +119,21 @@ class PacPlayer:
                 self.is_powered_up = False
 
     def handle_movement(self, maze_matrix: list[list[int]],
-                        items_matrix: list[list[int]]) -> None:
+                        items_matrix: list[list[int]],
+                        game_state=None, config=None) -> None:
         """
         Déplace Pac-Man selon les murs (bits 1=Nord, 2=Est, 4=Sud, 8=Ouest)
         et consomme les pacgums sur son passage.
         """
+        if self.key_w:
+            self.direction = 2
+        elif self.key_s:
+            self.direction = 3
+        elif self.key_a:
+            self.direction = 1
+        elif self.key_d:
+            self.direction = 0
+
         if not self.can_move:
             return
 
@@ -138,54 +168,97 @@ class PacPlayer:
             item = items_matrix[self.pos_y][self.pos_x]
             if item == 1:  # Pacgum
                 items_matrix[self.pos_y][self.pos_x] = 0
+                if game_state is not None and config is not None:
+                    pts = config.points_per_pacgum if config.points_per_pacgum is not None else 10
+                    game_state.point += int(pts)
             elif item == 2:  # Super-pacgum
                 items_matrix[self.pos_y][self.pos_x] = 0
                 self.is_powered_up = True
                 self.power_timer = 600  # 10 secondes (60 frames * 10)
+                if game_state is not None and config is not None:
+                    pts = config.points_per_super_pacgum if config.points_per_super_pacgum is not None else 50
+                    game_state.point += int(pts)
 
     def draw_player_pixels(self, pixels: np.ndarray, start_x: int,
                            start_y: int, cellsize: int, color: int) -> None:
         """
-        Dessine Pac-Man avec un effet de couleur
-        clignotant s'il est en mode super-pacgum.
+        Dessine Pac-Man à l'aide de sa vraie texture orientée
+        avec la bouche animée et la gestion de la transparence alpha.
         """
         cx = start_x + (self.pos_x * cellsize) + (cellsize // 2)
         cy = start_y + (self.pos_y * cellsize) + (cellsize // 2)
+        target_size = max(8, int(cellsize * 0.9))
 
-        radius = max(3, int(cellsize * 0.4))
+        r_idx = self.direction % 4
+        mouth_sequence = [0, 1, 2, 3]
+        c_idx = mouth_sequence[self.current_frame % 4]
 
-        draw_color = color
-        if self.is_powered_up:
-            if (10 > (self.power_timer % 10) > 0):
-                draw_color = Color.PURPLE
-            elif (20 > (self.power_timer % 10) > 10):
-                draw_color = Color.BLUE
-            elif (30 > (self.power_timer % 10) > 10):
-                draw_color = Color.GREEN
-            elif (40 > (self.power_timer % 10) > 10):
-                draw_color = Color.YELLOW
-            elif (50 > (self.power_timer % 10) > 10):
-                draw_color = Color.RED
-            elif (60 > (self.power_timer % 10) > 10):
-                draw_color = Color.PURPLE
-            elif (70 > (self.power_timer % 10) > 10):
-                draw_color = Color.BLUE
-            elif (80 > (self.power_timer % 10) > 10):
-                draw_color = Color.GREEN
-            elif (90 > (self.power_timer % 10) > 10):
-                draw_color = Color.YELLOW
-            else:
-                draw_color = Color.WHITE
-            print(f"Power timer: {self.power_timer}, Draw color: {draw_color}")
+        if self.texture_argb is not None:
+            tile = self.texture_argb[r_idx * 64:(r_idx + 1) * 64,
+                                     c_idx * 64:(c_idx + 1) * 64]
 
-        height, width = pixels.shape
-        y1 = max(0, cy - radius)
-        y2 = min(height, cy + radius)
-        x1 = max(0, cx - radius)
-        x2 = min(width, cx + radius)
+            idx_y = (np.arange(target_size) * 64 // target_size).astype(int)
+            idx_x = (np.arange(target_size) * 64 // target_size).astype(int)
+            scaled_tile = tile[np.ix_(idx_y, idx_x)]
 
-        if y2 > y1 and x2 > x1:
-            pixels[y1:y2, x1:x2] = draw_color
+            dst_x1 = cx - target_size // 2
+            dst_y1 = cy - target_size // 2
+            dst_x2 = dst_x1 + target_size
+            dst_y2 = dst_y1 + target_size
+
+            h_scr, w_scr = pixels.shape
+            v_y1 = max(0, dst_y1)
+            v_y2 = min(h_scr, dst_y2)
+            v_x1 = max(0, dst_x1)
+            v_x2 = min(w_scr, dst_x2)
+
+            if v_y2 > v_y1 and v_x2 > v_x1:
+                src_y1 = v_y1 - dst_y1
+                src_y2 = src_y1 + (v_y2 - v_y1)
+                src_x1 = v_x1 - dst_x1
+                src_x2 = src_x1 + (v_x2 - v_x1)
+
+                sub_tile = scaled_tile[src_y1:src_y2, src_x1:src_x2]
+
+                if self.is_powered_up and ((self.power_timer // 5) % 2 == 0):
+                    # Flashing cyan effect when powered up
+                    sub_tile = np.where(sub_tile & 0xFF000000 != 0, 0xFF00FFFF, sub_tile)
+
+                alpha = (sub_tile >> 24) & 0xFF
+
+                mask_opaque = (alpha == 255)
+                mask_blend = (alpha > 0) & (alpha < 255)
+
+                dst_slice = pixels[v_y1:v_y2, v_x1:v_x2]
+                dst_slice[mask_opaque] = sub_tile[mask_opaque]
+
+                if np.any(mask_blend):
+                    a_val = alpha[mask_blend].astype(np.uint32)
+                    inv_a = 255 - a_val
+                    sf = sub_tile[mask_blend]
+                    bg = dst_slice[mask_blend]
+
+                    r_fg = (sf >> 16) & 0xFF
+                    g_fg = (sf >> 8) & 0xFF
+                    b_fg = sf & 0xFF
+                    r_bg = (bg >> 16) & 0xFF
+                    g_bg = (bg >> 8) & 0xFF
+                    b_bg = bg & 0xFF
+
+                    r_fin = (r_fg * a_val + r_bg * inv_a) // 255
+                    g_fin = (g_fg * a_val + g_bg * inv_a) // 255
+                    b_fin = (b_fg * a_val + b_bg * inv_a) // 255
+                    dst_slice[mask_blend] = (0xFF << 24) | (r_fin << 16) | (g_fin << 8) | b_fin
+        else:
+            radius = max(3, int(cellsize * 0.45))
+            h_scr, w_scr = pixels.shape
+            draw_col = 0xFFFFDD00 if not self.is_powered_up else 0xFF00FFFF
+            for dy in range(-radius, radius + 1):
+                for dx in range(-radius, radius + 1):
+                    if dx * dx + dy * dy <= radius * radius:
+                        px, py = cx + dx, cy + dy
+                        if 0 <= px < w_scr and 0 <= py < h_scr:
+                            pixels[py, px] = draw_col
 
     def draw_player(self, renderer, scale: int) -> None:
         """Affiche le sprite SDL2 (si vous utilisez une feuille de sprites)."""
