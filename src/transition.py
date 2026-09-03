@@ -103,6 +103,15 @@ class Transition:
     def set_scene_to_put(self, scene: ScenePossible) -> None:
         self.scene_to_put = scene
 
+    def start_image_transition(self, target_scene: ScenePossible) -> None:
+        self.img_x = -self.width
+        self.sens_transition = False
+        self.scene_to_put = target_scene
+        self.img = True
+        self.rect = False
+        self.intro = False
+        self.transition_on = True
+
     def draw_transition(self) -> None:
         if self.rect is True:
             self.rect_transition()

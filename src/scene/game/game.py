@@ -1,17 +1,22 @@
+import math
+import random
 import sdl2
+import sdl2.sdlimage as sdim
 import time
 import ctypes
-from sdl2 import sdlimage as sdim
 from sdl2 import sdlttf as sttf
 import numpy as np
 from src.scene.helper import get_ptr
-from src.game_state import GameConfig, GameState
-from src.drawing_methods import clear_background, draw_fps, draw_text
+from src.game_state import GameConfig, GameState, ScenePossible
+from src.drawing_methods import draw_text, draw_sprites
 from src.color import Color
 from src.transition import Transition
 from mazegenerator.mazegenerator import MazeGenerator
 from src.player import PacPlayer
+from src.ghost import Ghost
 from src.print_logs import print_error
+from src.image import Image
+
 
 class Game:
     def __init__(self, renderer, game_state: GameState, config: GameConfig,
@@ -23,12 +28,19 @@ class Game:
         self.pixels = np.zeros((self.height, self.width), dtype=np.uint32)
         self.game_state = game_state
         self.config = config
+        sdim.IMG_Init(sdim.IMG_INIT_PNG)
         sttf.TTF_Init()
         self.font_size = 16
         self.font = sttf.TTF_OpenFont(
             b"assets/Press_Start_2P/PressStart2P-Regular.ttf", self.font_size)
         if not self.font:
             print_error(f"can't charge font {sttf.TTF_GetError()}")
+        self.cheat_button_img = Image("assets/settings.png", renderer)
+        self.cheat_menu_open = False
+        self.cheat_button_margin = 12
+        self.cheat_button_size = 44
+        self.cheat_menu_w = min(320, max(220, self.width // 4))
+        self.cheat_menu_h = min(220, max(160, self.height // 4))
         self.seed = 0
         self.current_level = 1
         self.remaining_life = (int(self.config.lives)
@@ -43,6 +55,10 @@ class Game:
             self.height
         )
         self.pitch_background = self.width * 4
+        self.needs_reset: bool = False
+        self.maze_buffer: np.ndarray | None = None
+        self.cached_maze_level = -1
+        self.cached_cellsize = -1
         self.create_maze_levels()
         self.create_items_levels()
         self.player = PacPlayer()
@@ -51,10 +67,60 @@ class Game:
         self.player.pos_x = mid_x
         self.player.pos_y = mid_y
 
+        self.ghosts = [
+            Ghost("red", "assets/red_ghost.png"),
+            Ghost("pink", "assets/pink_ghost.png"),
+            Ghost("blue", "assets/blue_ghost.png"),
+            Ghost("yellow", "assets/yellow_ghost.png")
+        ]
+        self.spawn_ghosts()
+
+    def reset(self) -> None:
+        """Réinitialise complètement une nouvelle partie."""
+        self.current_level = 1
+        self.remaining_life = (int(self.config.lives)
+                               if self.config.lives is not None else 3)
+        self.level_start_time = time.time()
+        self.game_state.point = 0
+        self.maze_buffer = None
+        self.cached_maze_level = -1
+        self.cached_cellsize = -1
+        self.create_maze_levels()
+        self.create_items_levels()
+        self.player = PacPlayer()
+        if self.maze_levels and len(self.maze_levels) > 0:
+            mid_y = len(self.maze_levels[0]) // 2
+            mid_x = len(self.maze_levels[0][0]) // 2
+            self.player.pos_x = mid_x
+            self.player.pos_y = mid_y
+        self.ghosts = [
+            Ghost("red", "assets/red_ghost.png"),
+            Ghost("pink", "assets/pink_ghost.png"),
+            Ghost("blue", "assets/blue_ghost.png"),
+            Ghost("yellow", "assets/yellow_ghost.png")
+        ]
+        self.spawn_ghosts()
+
+    @staticmethod
+    def _safe_int(value, default: int) -> int:
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return default
+
     def handle_event(self, event) -> None:
         """
         Gère les événements propres à la scène de jeu (clavier, etc.).
         """
+        if event.type == sdl2.SDL_MOUSEBUTTONDOWN:
+            button = getattr(event.button, "button", 0)
+            if button == sdl2.SDL_BUTTON_LEFT:
+                mouse_x = getattr(event.button, "x", -1)
+                mouse_y = getattr(event.button, "y", -1)
+                if self._is_cheat_button_hovered(mouse_x, mouse_y):
+                    self.cheat_menu_open = not self.cheat_menu_open
+            return
+
         if event.type == sdl2.SDL_KEYDOWN:
             key = event.key.keysym.sym
 
@@ -63,28 +129,32 @@ class Game:
                 self.player.key_s = False
                 self.player.key_a = False
                 self.player.key_d = False
+                self.player.next_direction = 2
 
             elif key in (sdl2.SDLK_s, sdl2.SDLK_DOWN):
                 self.player.key_w = False
                 self.player.key_s = True
                 self.player.key_a = False
                 self.player.key_d = False
+                self.player.next_direction = 3
 
             elif key in (sdl2.SDLK_a, sdl2.SDLK_LEFT):
                 self.player.key_w = False
                 self.player.key_s = False
                 self.player.key_a = True
                 self.player.key_d = False
+                self.player.next_direction = 1
 
             elif key in (sdl2.SDLK_d, sdl2.SDLK_RIGHT):
                 self.player.key_w = False
                 self.player.key_s = False
                 self.player.key_a = False
                 self.player.key_d = True
+                self.player.next_direction = 0
 
-            elif event.type == sdl2.SDL_KEYUP:
-                key = event.key.keysym.sym
-            elif key in (sdl2.SDLK_w, sdl2.SDLK_UP):
+        elif event.type == sdl2.SDL_KEYUP:
+            key = event.key.keysym.sym
+            if key in (sdl2.SDLK_w, sdl2.SDLK_UP):
                 self.player.key_w = False
             elif key in (sdl2.SDLK_s, sdl2.SDLK_DOWN):
                 self.player.key_s = False
@@ -96,16 +166,26 @@ class Game:
     def clean_up(self) -> None:
         sttf.TTF_CloseFont(self.font)
         sttf.TTF_Quit()
+        sdim.IMG_Quit()
         sdl2.SDL_DestroyTexture(self.background)
+        sdl2.SDL_DestroyTexture(self.cheat_button_img.texture)
+
+    def _is_cheat_button_hovered(self, mouse_x: int, mouse_y: int) -> bool:
+        button_x = (
+            self.width - self.cheat_button_margin - self.cheat_button_size
+        )
+        button_y = self.cheat_button_margin
+        return (
+            button_x <= mouse_x <= button_x + self.cheat_button_size
+            and button_y <= mouse_y <= button_y + self.cheat_button_size
+        )
 
     def create_maze_levels(self) -> None:
         self.maze_levels = []
-        for level in self.config.level_array_multiple_levels:
+        levels = self.config.level_array_multiple_levels or []
+        for level in levels:
             if level["name"] == "level1":
-                try:
-                    self.seed = int(self.config.seed)
-                except ValueError:
-                    self.seed = 0
+                self.seed = self._safe_int(self.config.seed, 0)
             else:
                 self.seed = 0
             maze = MazeGenerator((tuple([level["width"], level["height"]])),
@@ -113,11 +193,13 @@ class Game:
                                  tuple([level["width"] - 1,
                                         level["height"] - 1]),
                                  self.seed)
-            print(f"Level {level} generated with seed {maze._seed}")
+            # print(f"Level {level} generated with seed {maze._seed}")
             self.maze_levels.append(maze.maze)
 
     def draw_game(self) -> None:
-        clear_background(self.pixels, Color.BLACK)
+        if self.needs_reset:
+            self.reset()
+            self.needs_reset = False
 
         side = int(min(self.config.screen_width,
                        self.config.screen_height) * 0.9)
@@ -126,20 +208,48 @@ class Game:
 
         current_maze = self.maze_levels[self.current_level - 1]
         current_items = self.items_levels[self.current_level - 1]
-        cellsize = side // self.config.level_array_multiple_levels[
-            self.current_level - 1]["width"]
+        levels = self.config.level_array_multiple_levels or []
+        current_level_config = levels[self.current_level - 1]
+        cellsize = side // current_level_config["width"]
 
-        self.player.update()
-        self.player.handle_movement(current_maze, current_items,
-                                    self.game_state, self.config)
-        if self.check_level_complete(current_items):
-            if self.current_level == len(
-                    self.config.level_array_multiple_levels):
-                pass
-            else:
-                self.next_level()
         self.draw_maze(current_maze, Color.RED, Color.BLACK, start_width,
                        start_height, cellsize)
+
+        if not self.transition.transition_on:
+            max_time = self._safe_int(self.config.level_max_time, 90)
+            elapsed = time.time() - self.level_start_time
+            time_left = max(0, int(max_time - elapsed))
+            if time_left <= 0:
+                self.on_player_death()
+                return
+
+            dt = (self.game_state.dt
+                  if self.game_state.dt > 0 else (1.0 / 60.0))
+            dt = min(dt, 0.05)
+
+            self.player.update(dt)
+            self.player.handle_movement(current_maze, current_items,
+                                        self.game_state, self.config,
+                                        self.ghosts, dt)
+
+            player_pos = (self.player.pos_x, self.player.pos_y)
+            for ghost in self.ghosts:
+                ghost.update(dt, player_pos)
+                if ghost.is_dead:
+                    continue
+                if ghost.is_vulnerable:
+                    ghost.move_vulnerable(current_maze, dt)
+                else:
+                    ghost.move_normal(current_maze, dt)
+
+            self.handle_ghost_collisions(current_maze)
+
+            if self.check_level_complete(current_items):
+                if self.current_level == len(levels):
+                    self.transition.start_image_transition(ScenePossible.MAIN)
+                    self.needs_reset = True
+                else:
+                    self.next_level()
 
         self.draw_items(current_items, Color.WHITE, Color.YELLOW, start_width,
                         start_height, cellsize)
@@ -147,101 +257,245 @@ class Game:
         self.player.draw_player_pixels(self.pixels, start_width, start_height,
                                        cellsize, Color.CYAN)
 
-        self.draw_cheat()
+        for ghost in self.ghosts:
+            ghost.draw_ghost_pixels(self.pixels, start_width, start_height,
+                                    cellsize)
 
         pixel_ptr = get_ptr(self.pixels)
         sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr,
                                self.pitch_background)
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
         self.draw_info()
+        self.draw_cheat()
+
+    def handle_ghost_collisions(self, maze_matrix: list[list[int]]) -> None:
+        """Gère les collisions entre Pac-Man et les fantômes."""
+        px = getattr(self.player, 'render_x', float(self.player.pos_x))
+        py = getattr(self.player, 'render_y', float(self.player.pos_y))
+        player_pos = (self.player.pos_x, self.player.pos_y)
+
+        maze_height = len(maze_matrix)
+        maze_width = len(maze_matrix[0]) if maze_height > 0 else 0
+        corners = [
+            (0, 0),
+            (maze_width - 1, 0) if maze_width > 0 else (0, 0),
+            (0, maze_height - 1) if maze_height > 0 else (0, 0),
+            (maze_width - 1, maze_height - 1)
+            if maze_width > 0 and maze_height > 0 else (0, 0),
+        ]
+
+        collision_dist = 0.65
+
+        for ghost in self.ghosts:
+            if ghost.is_dead:
+                continue
+            gx = getattr(ghost, 'render_x', float(ghost.pos_x))
+            gy = getattr(ghost, 'render_y', float(ghost.pos_y))
+
+            dist = math.hypot(px - gx, py - gy)
+            grid_match = ((ghost.pos_x, ghost.pos_y) == player_pos)
+
+            if dist > collision_dist and not grid_match:
+                continue
+
+            if ghost.is_vulnerable:
+                ghost.kill(corners)
+                points = self._safe_int(self.config.points_per_ghost, 200)
+                self.game_state.point += points
+                continue
+
+            self.on_player_death()
+            break
+
+    def on_player_death(self) -> None:
+        """Gère la mort du joueur : transition vers le menu principal."""
+        if self.transition.transition_on:
+            return
+
+        self.remaining_life = 0
+        self.player.is_powered_up = False
+        self.player.power_timer = 0
+        self.player.key_w = False
+        self.player.key_s = False
+        self.player.key_a = False
+        self.player.key_d = False
+
+        self.transition.start_image_transition(ScenePossible.MAIN)
+        self.needs_reset = True
+
+    def spawn_ghosts(self) -> None:
+        """Positionne les 4 fantômes sur les emplacements des super-pacgums."""
+        current_items = self.items_levels[self.current_level - 1]
+        super_pacgum_positions = []
+        maze_height = len(current_items)
+        maze_width = len(current_items[0]) if maze_height > 0 else 0
+
+        for y in range(maze_height):
+            for x in range(maze_width):
+                if current_items[y][x] == 2:
+                    super_pacgum_positions.append((x, y))
+
+        fallback_corners = [
+            (0, 0),
+            (maze_width - 1, 0),
+            (0, maze_height - 1),
+            (maze_width - 1, maze_height - 1)
+        ]
+        for pos in fallback_corners:
+            if len(super_pacgum_positions) >= len(self.ghosts):
+                break
+            if pos not in super_pacgum_positions:
+                super_pacgum_positions.append(pos)
+
+        for i, ghost in enumerate(self.ghosts):
+            pos = super_pacgum_positions[i % len(super_pacgum_positions)]
+            ghost.pos_x, ghost.pos_y = pos
+            ghost.is_dead = False
+            ghost.is_vulnerable = False
+            ghost.respawn_timer = 0.0
+            ghost.vulnerable_timer = 0.0
+            ghost.direction = random.randint(0, 3)
 
     def prev_level(self) -> None:
         if self.current_level > 1:
             self.current_level -= 1
             self.level_start_time = time.time()
-        self.player.key_w = False
-        self.player.key_s = False
-        self.player.key_a = False
-        self.player.key_d = False
-
-    def next_level(self) -> None:
-        max_levels = len(self.config.level_array_multiple_levels)
-        if self.current_level < max_levels:
-            self.current_level += 1
-            self.level_start_time = time.time()
+            self.maze_buffer = None
+            self.cached_maze_level = -1
+            self.cached_cellsize = -1
             self.player.pos_y = len(
                 self.maze_levels[self.current_level - 1]) // 2
             self.player.pos_x = len(
                 self.maze_levels[self.current_level - 1][0]) // 2
+            self.spawn_ghosts()
         self.player.key_w = False
         self.player.key_s = False
         self.player.key_a = False
         self.player.key_d = False
+        self.player.next_direction = None
+
+    def next_level(self) -> None:
+        max_levels = len(self.config.level_array_multiple_levels or [])
+        if self.current_level < max_levels:
+            self.current_level += 1
+            self.level_start_time = time.time()
+            self.maze_buffer = None
+            self.cached_maze_level = -1
+            self.cached_cellsize = -1
+            self.player.pos_y = len(
+                self.maze_levels[self.current_level - 1]) // 2
+            self.player.pos_x = len(
+                self.maze_levels[self.current_level - 1][0]) // 2
+            self.spawn_ghosts()
+        self.player.key_w = False
+        self.player.key_s = False
+        self.player.key_a = False
+        self.player.key_d = False
+        self.player.next_direction = None
         self.player.is_powered_up = False
-        self.power_timer = 0
+        self.player.power_timer = 0.0
 
     def draw_cheat(self) -> None:
-        pass
+        button_x = (
+            self.width - self.cheat_button_margin - self.cheat_button_size
+        )
+        button_y = self.cheat_button_margin
+
+        button_w = self.cheat_button_img.width or self.cheat_button_size
+        button_h = self.cheat_button_img.height or self.cheat_button_size
+        if button_w > 0 and button_h > 0:
+            button_scale = min(
+                self.cheat_button_size / button_w,
+                self.cheat_button_size / button_h,
+            )
+            draw_sprites(
+                self.renderer,
+                self.cheat_button_img,
+                button_x,
+                button_y,
+                button_scale,
+            )
+
+        if not self.cheat_menu_open:
+            return
+
+        menu_w = self.cheat_menu_w
+        menu_h = self.cheat_menu_h
+        menu_x = self.width - self.cheat_button_margin - menu_w
+        menu_y = self.cheat_button_margin + self.cheat_button_size + 10
+        if menu_x < 12:
+            menu_x = 12
+
+        overlay = sdl2.SDL_Rect(menu_x, menu_y, menu_w, menu_h)
+        sdl2.SDL_SetRenderDrawBlendMode(
+            self.renderer, sdl2.SDL_BLENDMODE_BLEND
+        )
+        sdl2.SDL_SetRenderDrawColor(self.renderer, 8, 8, 18, 220)
+        sdl2.SDL_RenderFillRect(self.renderer, ctypes.byref(overlay))
+        sdl2.SDL_SetRenderDrawColor(self.renderer, 0, 180, 255, 255)
+        sdl2.SDL_RenderDrawRect(self.renderer, ctypes.byref(overlay))
 
     def draw_maze(self, maze_matrix: list[list[int]], color_wall: int,
                   color_cel: int, start_x: int, start_y: int,
                   cellsize: int) -> None:
         """
-        Draw the generated maze directly from a 2D array onto the rendering
-        buffer.
-
-        Args:
-            maze_matrix (list[list[int]]): The 2D array containing bitwise
-            walls.
-            color_wall (int): Color value for the maze walls.
-            color_cel (int): Color value for the cell background/paths.
-            start_x (int): X offset to start drawing the maze.
-            start_y (int): Y offset to start drawing the maze.
-            cellsize (int): The size of each cell in pixels.
-
-        Returns:
-            None
+        Dessine le labyrinthe directement depuis la matrice 2D sur le buffer.
+        Mis en cache par niveau pour des performances maximales à 60 FPS.
         """
-        NORTH, EAST, SOUTH, WEST = 1, 2, 4, 8
-        thickness = max(1, cellsize // 8)
-        pre_wall: list[np.ndarray] = []
-        for i in range(16):
-            arr = np.full((cellsize, cellsize), color_cel, dtype=np.uint32)
+        if (self.maze_buffer is None or
+                self.cached_maze_level != self.current_level or
+                self.cached_cellsize != cellsize):
+            NORTH, EAST, SOUTH, WEST = 1, 2, 4, 8
+            thickness = max(1, cellsize // 8)
+            pre_wall: list[np.ndarray] = []
+            for i in range(16):
+                arr = np.full((cellsize, cellsize), color_cel, dtype=np.uint32)
 
-            if i & NORTH:
-                arr[0:thickness, :] = color_wall
-            if i & SOUTH:
-                arr[cellsize - thickness:cellsize, :] = color_wall
-            if i & EAST:
-                arr[:, cellsize - thickness:cellsize] = color_wall
-            if i & WEST:
-                arr[:, 0:thickness] = color_wall
+                if i & NORTH:
+                    arr[0:thickness, :] = color_wall
+                if i & SOUTH:
+                    arr[cellsize - thickness:cellsize, :] = color_wall
+                if i & EAST:
+                    arr[:, cellsize - thickness:cellsize] = color_wall
+                if i & WEST:
+                    arr[:, 0:thickness] = color_wall
 
-            pre_wall.append(arr)
-        maze_height = len(maze_matrix)
-        maze_width = len(maze_matrix[0]) if maze_height > 0 else 0
+                pre_wall.append(arr)
+            maze_height = len(maze_matrix)
+            maze_width = len(maze_matrix[0]) if maze_height > 0 else 0
 
-        for y in range(maze_height):
-            for x in range(maze_width):
-                cell_val = maze_matrix[y][x]
-                draw_x = start_x + (x * cellsize)
-                draw_y = start_y + (y * cellsize)
-                v_start_x = max(0, draw_x)
-                v_start_y = max(0, draw_y)
-                v_end_x = min(self.width, draw_x + cellsize)
-                v_end_y = min(self.height, draw_y + cellsize)
+            maze_buffer = np.full((self.height, self.width), color_cel,
+                                  dtype=np.uint32)
 
-                visible_w = v_end_x - v_start_x
-                visible_h = v_end_y - v_start_y
+            for y in range(maze_height):
+                for x in range(maze_width):
+                    cell_val = maze_matrix[y][x]
+                    draw_x = start_x + (x * cellsize)
+                    draw_y = start_y + (y * cellsize)
+                    v_start_x = max(0, draw_x)
+                    v_start_y = max(0, draw_y)
+                    v_end_x = min(self.width, draw_x + cellsize)
+                    v_end_y = min(self.height, draw_y + cellsize)
 
-                if visible_w > 0 and visible_h > 0:
-                    src_start_x = v_start_x - draw_x
-                    src_start_y = v_start_y - draw_y
-                    src_end_x = src_start_x + visible_w
-                    src_end_y = src_start_y + visible_h
-                    self.pixels[v_start_y:v_end_y, v_start_x:v_end_x] = \
-                        pre_wall[cell_val][src_start_y:src_end_y,
-                                           src_start_x:src_end_x]
+                    visible_w = v_end_x - v_start_x
+                    visible_h = v_end_y - v_start_y
+
+                    if visible_w > 0 and visible_h > 0:
+                        src_start_x = v_start_x - draw_x
+                        src_start_y = v_start_y - draw_y
+                        src_end_x = src_start_x + visible_w
+                        src_end_y = src_start_y + visible_h
+                        maze_buffer[v_start_y:v_end_y,
+                                    v_start_x:v_end_x] = \
+                            pre_wall[cell_val][src_start_y:src_end_y,
+                                               src_start_x:src_end_x]
+
+            self.maze_buffer = maze_buffer
+            self.cached_maze_level = self.current_level
+            self.cached_cellsize = cellsize
+
+        if self.maze_buffer is not None:
+            np.copyto(self.pixels, self.maze_buffer)
 
     def create_items_levels(self) -> None:
         """
@@ -354,10 +608,7 @@ class Game:
                                    rect_h - 4)
         sdl2.SDL_RenderDrawRect(self.renderer, ctypes.byref(rect_inner))
 
-        try:
-            max_time = int(self.config.level_max_time)
-        except (ValueError, TypeError):
-            max_time = 90
+        max_time = self._safe_int(self.config.level_max_time, 90)
 
         elapsed = time.time() - self.level_start_time
         time_left = max(0, int(max_time - elapsed))
@@ -367,19 +618,19 @@ class Game:
         line_step = 28
 
         draw_text(self.renderer, self.font,
-                  f"LEVEL: {self.current_level}".encode('utf-8'),
+                  f"LEVEL: {self.current_level}",
                   text_x, start_y, Color.WHITE, 1)
 
         draw_text(self.renderer, self.font,
-                  f"SCORE: {self.game_state.point}".encode('utf-8'),
+                  f"SCORE: {self.game_state.point}",
                   text_x, start_y + line_step, Color.WHITE, 1)
 
         draw_text(self.renderer, self.font,
-                  f"TIME:  {time_left}".encode('utf-8'),
+                  f"TIME:  {time_left}",
                   text_x, start_y + line_step * 2, Color.WHITE, 1)
 
         draw_text(self.renderer, self.font,
-                  b"LIVES:",
+                  "LIVES:",
                   text_x, start_y + line_step * 3, Color.WHITE, 1)
 
         icons_start_x = text_x + 105
