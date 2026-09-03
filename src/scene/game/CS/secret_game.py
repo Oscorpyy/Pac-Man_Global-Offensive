@@ -3,7 +3,7 @@ import sdl2.sdlttf as sttf
 import sdl2.sdlimage as sdim
 import numpy as np
 import ctypes
-import time
+import random
 from src.game_state import GameConfig, GameState
 from src.drawing_methods import clear_background, draw_fps, draw_rect_full, draw_sprite_sheet, draw_sprites, draw_text
 from src.color import Color
@@ -15,6 +15,7 @@ from src.player import CsPlayer
 from src.transition import Transition
 from src.scene.game.CS.bot import CsBot
 from src.scene.game.CS.bot import ZoneMovement
+from src.scene.game.CS.cam import CameraProps
 
 
 class MouseVector2:
@@ -47,6 +48,7 @@ class SecretGame:
         self.enemy_sprite = Image(b"assets/terrorist/terrorist_sheet.png", self.renderer)
         self.bomba = Image(b"assets/3D_model/little_bomba.png", self.renderer)
         self.character_icons = Image(b"assets/character_icons.png", self.renderer)
+        self.camera = Image(b"assets/cam/cam_sheet.png", self.renderer)
         sttf.TTF_Init()
         self.font_size = 16
         self.font = sttf.TTF_OpenFont(b"assets/Press_Start_2P/PressStart2P-Regular.ttf", self.font_size)
@@ -59,6 +61,12 @@ class SecretGame:
                 CsBot(self.enemy_sprite, cam, ZoneMovement().zone_lst[2]),
                 CsBot(self.enemy_sprite, cam, ZoneMovement().zone_lst[3]),
                 CsBot(self.enemy_sprite, cam, ZoneMovement().zone_lst[4]),
+        ]
+        self.camera_lst: list[CameraProps] = [
+            CameraProps(current_frame=random.randint(0, 25)),
+            CameraProps(current_frame=random.randint(0, 25)),
+            CameraProps(current_frame=random.randint(0, 25)),
+            CameraProps(current_frame=random.randint(0, 25)),
         ]
         self.ennemy_number: int = 5
         self.default_player_pos_x = 32 * 2
@@ -108,7 +116,16 @@ class SecretGame:
                 if tile == 0:
                     pass
                 elif (screen_x > -tile_scaled and screen_x < self.width) and (screen_y > -tile_scaled and screen_y < self.height):
-                    draw_sprite_sheet(renderer, map_tiles, (x * scale) - cam_scaled_x, (y * scale) - cam_scaled_y, tile - 97, scale)
+                    if tile - 97 == 88:
+                        draw_sprite_sheet(renderer, self.camera, (x * scale) - cam_scaled_x, (y * scale) - cam_scaled_y, self.camera_lst[0].current_frame, scale)
+                    elif tile - 97 == 89:
+                        draw_sprite_sheet(renderer, self.camera, (x * scale) - cam_scaled_x, (y * scale) - cam_scaled_y, self.camera_lst[1].current_frame + 25, scale)
+                    elif tile - 97 == 90:
+                        draw_sprite_sheet(renderer, self.camera, (x * scale) - cam_scaled_x, (y * scale) - cam_scaled_y, self.camera_lst[2].current_frame + 50, scale)
+                    elif tile - 97 == 91:
+                        draw_sprite_sheet(renderer, self.camera, (x * scale) - cam_scaled_x, (y * scale) - cam_scaled_y, self.camera_lst[3].current_frame + 75, scale)
+                    else:
+                        draw_sprite_sheet(renderer, map_tiles, (x * scale) - cam_scaled_x, (y * scale) - cam_scaled_y, tile - 97, scale)
                 tile_count += 1
                 x += 32
                 if tile_count > 39:
@@ -272,6 +289,8 @@ class SecretGame:
             bot.detect_player()
             bot.move_bot()
             bot.update()
+        for cam in self.camera_lst:
+            cam.update()
         self.defuse_bomb()
         self.update_cam_mouse_move(2)
         self.update_timers()
