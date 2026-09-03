@@ -14,6 +14,7 @@ from src.camera import Camera
 from src.player import CsPlayer
 from src.transition import Transition
 from src.scene.game.CS.bot import CsBot
+from src.scene.game.CS.bot import ZoneMovement
 
 
 class MouseVector2:
@@ -53,13 +54,12 @@ class SecretGame:
             print_error(f"can't charge font {sttf.TTF_GetError()}")
         self.player = CsPlayer(self.player_sprite, cam)
         self.ennemy_lst: list = [
-                CsBot(self.enemy_sprite, cam),
-                CsBot(self.enemy_sprite, cam),
-                CsBot(self.enemy_sprite, cam),
-                CsBot(self.enemy_sprite, cam),
-                CsBot(self.enemy_sprite, cam),
+                CsBot(self.enemy_sprite, cam, ZoneMovement().zone_lst[0]),
+                CsBot(self.enemy_sprite, cam, ZoneMovement().zone_lst[1]),
+                CsBot(self.enemy_sprite, cam, ZoneMovement().zone_lst[2]),
+                CsBot(self.enemy_sprite, cam, ZoneMovement().zone_lst[3]),
+                CsBot(self.enemy_sprite, cam, ZoneMovement().zone_lst[4]),
         ]
-        self.ennemy = CsBot(self.enemy_sprite, cam)
         self.ennemy_number: int = 5
         self.default_player_pos_x = 32 * 2
         self.default_player_pos_y = 32 * 35

@@ -18,16 +18,16 @@ class ZoneMovement:
                     Vector2(x=320, y=736),
                 ],
                 [
-                    Vector2(x=32, y=128),
-                    Vector2(x=256, y=128),
+                    Vector2(x=640, y=160),
+                    Vector2(x=640, y=320),
                 ],
                 [
-                    Vector2(x=32, y=128),
-                    Vector2(x=256, y=128),
+                    Vector2(x=896, y=96),
+                    Vector2(x=896, y=544),
                 ],
                 [
-                    Vector2(x=32, y=128),
-                    Vector2(x=256, y=128),
+                    Vector2(x=64, y=480),
+                    Vector2(x=64, y=960),
                 ],
         ]
 
@@ -36,7 +36,7 @@ class ZoneMovement:
 
 
 class CsBot:
-    def __init__(self, sprite: Image, cam: Camera) -> None:
+    def __init__(self, sprite: Image, cam: Camera, possible_target: list[Vector2]) -> None:
         self.cam: Camera = cam
         self.can_move: bool = True
         self.can_collide: bool = True
@@ -47,7 +47,7 @@ class CsBot:
         self.animation_speed: int = 5
         self.tick_counter: int = 0
         self.zone = ZoneMovement()
-        self.possible_target: list[Vector2] = self.zone.get_random_zone()
+        self.possible_target: list[Vector2] = possible_target
         self.target_position: Vector2 = self.possible_target[1]
         self.pos_x: int = self.possible_target[0].x
         self.pos_y: int = self.possible_target[0].y
