@@ -21,23 +21,29 @@ class SdlEvent:
             if event.type == sdl2.SDL_QUIT:
                 game_state.is_running = False
             elif event.type == sdl2.SDL_KEYDOWN:
+                if game_state.scene == ScenePossible.INTRO:
+                    if key:
+                        transition.transition_on = False
+                        game_state.scene = ScenePossible.MAIN
+                    continue
+
                 if key == sdl2.SDLK_ESCAPE:
                     if game_state.scene == ScenePossible.MAIN:
                         game_state.is_running = False
                     elif game_state.scene == ScenePossible.GAME:
-                        transition.speed = 80
-                        transition.transition_on = True
-                        transition.scene_to_put = ScenePossible.MAIN
-                        transition.img = True
+                        if not transition.transition_on:
+                            transition.start_image_transition(
+                                ScenePossible.MAIN
+                            )
+                            if hasattr(scene, 'needs_reset'):
+                                scene.needs_reset = True
                     elif game_state.scene == ScenePossible.CSGO:
                         transition.speed = 80
                         transition.transition_on = True
                         transition.scene_to_put = ScenePossible.GAME
                         transition.img = True
-                if game_state.scene == ScenePossible.INTRO:
-                    if key:
-                        transition.transition_on = False
-                        game_state.scene = ScenePossible.MAIN
+                    continue
+
                 if game_state.scene == ScenePossible.GAME:
                     if hasattr(scene, 'handle_event'):
                         scene.handle_event(event)
@@ -62,6 +68,11 @@ class SdlEvent:
                         scene.handle_event(event)
                 elif game_state.scene == ScenePossible.CSGO:
                     scene.set_keystate(key, False)
+
+            elif event.type == sdl2.SDL_MOUSEBUTTONDOWN:
+                if game_state.scene == ScenePossible.GAME:
+                    if hasattr(scene, 'handle_event'):
+                        scene.handle_event(event)
 
             elif event.type == sdl2.SDL_WINDOWEVENT:
                 if event.window.event == sdl2.SDL_WINDOWEVENT_CLOSE:

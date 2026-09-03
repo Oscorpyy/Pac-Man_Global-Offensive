@@ -7,7 +7,7 @@ import sdl2.sdlttf as sttf
 
 
 def draw_fps(renderer, font, fps: int) -> None:
-    draw_text(renderer, font, f"FPS: {str(fps)}".encode(), 5, 5, Color.BLACK)
+    draw_text(renderer, font, f"FPS: {fps}", 5, 5, Color.BLACK)
 
 def put_pixels(pixels_array: ndarray, x: int, y: int, width: int, height: int, color: Color) -> None:
     if 0 <= x < width and 0 <= y < height:
@@ -85,8 +85,13 @@ def draw_sprite_sheet(renderer, img: Image, x: int, y: int, frame: int, scale: i
     sdl2.SDL_RenderCopy(renderer, img.texture, ctypes.byref(src_rect), ctypes.byref(dest_rect))
 
 
-def draw_text(renderer, font, text: str, x: int, y: int, color: Color, scale: int = 1) -> None:
-    text_split: list = text.split(b"\n")
+def draw_text(renderer, font, text: str | bytes, x: int, y: int, color: Color, scale: int = 1) -> None:
+    if isinstance(text, bytes):
+        text_bytes = text
+    else:
+        text_bytes = text.encode("utf-8")
+
+    text_split: list = text_bytes.split(b"\n")
     for i in range(len(text_split)):
         text_surface = sttf.TTF_RenderText_Solid(font, text_split[i], color_to_sdl_color(color))
         line_w = text_surface.contents.w
@@ -203,7 +208,12 @@ class Button:
                 self.hold_boutton_state = False
 
     def draw_text(self, color: Color) -> None:
-        text_split: list = self.text.split(b"\n")
+        if isinstance(self.text, bytes):
+            text_bytes = self.text
+        else:
+            text_bytes = self.text.encode("utf-8")
+
+        text_split: list = text_bytes.split(b"\n")
         for i in range(len(text_split)):
             text_surface = sttf.TTF_RenderText_Solid(self.font, text_split[i], color_to_sdl_color(color))
             line_w = text_surface.contents.w

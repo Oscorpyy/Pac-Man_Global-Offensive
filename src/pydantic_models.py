@@ -11,7 +11,6 @@ class Config(BaseModel):
     highscore_filename: str
     level_array_multiple_levels: list[LevelConfig]
     lives: int
-    pacgum: int
     points_per_pacgum: int
     points_per_super_pacgum: int
     points_per_ghost: int
