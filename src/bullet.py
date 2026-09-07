@@ -26,7 +26,6 @@ class Bullet:
             self.x += dir_x
             self.y += dir_y
         self.max_travel -= self.speed
-        print(self.max_travel)
 
 
     def set_direction(self, mouse_x, mouse_y, width: int, height: int) -> None:

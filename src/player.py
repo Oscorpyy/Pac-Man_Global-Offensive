@@ -87,12 +87,44 @@ class CsPlayer:
             bullet.draw_bullet(offset_x, offset_y)
             bullet.update_pos()
 
-    def kill_bullet(self) -> None:
+    def kill_bullet(self, tilemap) -> None:
         i = 0
         for bullet in self.bullet_lst:
             if bullet.max_travel < 0:
                 self.bullet_lst.pop(i)
+            if self.check_bullet_collide_wall(bullet.x + bullet.speed, bullet.y + bullet.speed, tilemap) is False:
+                self.bullet_lst.pop(i)
         i += 1
+
+    def check_bullet_collide_wall(self, pos_x: int, pos_y: int, tilemap) -> bool:
+        x = 0
+        y = 0
+        tile_count = 0
+        bullet_size: int = 32
+        for tile in tilemap:
+            if tile != 0:
+                if (pos_x + bullet_size > x and pos_x < x + 32 and
+                    pos_y + bullet_size > y and pos_y < y + 32):
+                    return False
+            tile_count += 1
+            x += 32
+            if tile_count > 39:
+                x = 0
+                tile_count = 0
+                y += 32
+        return True
+
+    def check_bullet_collide_ennemy(self, lst_ennemy, x: int, y: int) -> bool:
+        bullet_size: int = 32
+        i = 0
+        for ennemy in lst_ennemy:
+            if (ennemy.pos_x + bullet_size > x and ennemy.pos_x < x + 32 and
+                ennemy.pos_y + bullet_size > y and ennemy.pos_y < y + 32):
+                lst_ennemy.pop(i)
+                return True
+            i += 1
+        return False
+
 
 
 class PacPlayer:

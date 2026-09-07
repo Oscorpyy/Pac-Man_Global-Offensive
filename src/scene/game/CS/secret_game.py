@@ -240,8 +240,9 @@ class SecretGame:
     def draw_number_player(self) -> None:
         draw_sprite_sheet(self.renderer, self.character_icons, (self.width // 2) - 100, 10, self.current_icons_frame + 24, 2)
         draw_sprite_sheet(self.renderer, self.character_icons, (self.width // 2) + 50, 10, self.current_icons_frame, 2)
+        ennemy_number = f"{len(self.ennemy_lst)}"
         draw_text(self.renderer, self.font, b"1", (self.width // 2) - 100, 10, Color.WHITE)
-        draw_text(self.renderer, self.font, b"0", (self.width // 2) + 50, 10, Color.WHITE)
+        draw_text(self.renderer, self.font, ennemy_number.encode(), (self.width // 2) + 50, 10, Color.WHITE)
 
     def update_timers(self) -> None:
         self.round_timer -= self.game_state.dt
@@ -286,7 +287,12 @@ class SecretGame:
         self.player.update(self.game_state.dt)
         self.player.shoot(self.renderer)
         self.player.draw_bullet_lst(self.cam.offset_x, self.cam.offset_y)
-        self.player.kill_bullet()
+        self.player.kill_bullet(self.tilemap_data[3])
+        i = 0
+        for bullet in self.player.bullet_lst:
+            if self.player.check_bullet_collide_ennemy(self.ennemy_lst, bullet.x, bullet.y) is True:
+                self.player.bullet_lst.pop(i)
+            i += 1
         for bot in self.ennemy_lst:
             bot.get_next_location()
             bot.detect_player()
