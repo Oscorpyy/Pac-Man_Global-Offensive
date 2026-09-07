@@ -11,6 +11,7 @@ from src.scene.main_menu.main_menu import MainMenu
 from src.scene.game.game import Game
 from src.camera import Camera
 from src.transition import Transition
+from src.scene.end_screen.end import EndScreen
 
 
 class Window:
@@ -45,6 +46,10 @@ class Window:
                 self.game.clean_up()
             case ScenePossible.CSGO:
                 self.secret_game.clean_up()
+            case ScenePossible.WIN:
+                self.win_screen.clean_up()
+            case ScenePossible.LOOSE:
+                self.loose_screen.clean_up()
 
     def get_secret_map_data(self) -> list:
         map_tiles = []
@@ -82,8 +87,17 @@ class Window:
         self.intro = Introduction(renderer, game_state, self.config, transition)
         self.main = MainMenu(renderer, game_state, self.config, transition)
         self.game = Game(renderer, game_state, self.config, transition)
+        self.win_screen = EndScreen(
+            renderer, game_state, self.width, self.height,
+            "assets/win_picture.png", self.game.reset
+        )
+        self.loose_screen = EndScreen(
+            renderer, game_state, self.width, self.height,
+            "assets/loose_picture.png", self.game.reset
+        )
         self.cam = Camera()
         self.secret_game = SecretGame(renderer, game_state, self.config, de_office, self.cam, transition)
+        previous_scene = game_state.scene
         last_time = time.perf_counter()
         while(game_state.is_running):
             current_time = time.perf_counter()
@@ -99,6 +113,8 @@ class Window:
                     self.intro.draw_intro()
                     sdl_event.main_loop(event, game_state, self.main, transition)
                 case ScenePossible.MAIN:
+                    if previous_scene != ScenePossible.MAIN:
+                        self.main.refresh_scores()
                     self.main.draw_main_menu()
                     sdl_event.main_loop(event, game_state,
                                         self.main, transition)
@@ -110,6 +126,15 @@ class Window:
                     sdl_event.main_loop(event, game_state,
                                         self.secret_game, transition)
                     self.secret_game.draw_secret_game()
+                case ScenePossible.WIN:
+                    sdl_event.main_loop(event, game_state,
+                                        self.win_screen, transition)
+                    self.win_screen.draw()
+                case ScenePossible.LOOSE:
+                    sdl_event.main_loop(event, game_state,
+                                        self.loose_screen, transition)
+                    self.loose_screen.draw()
+            previous_scene = game_state.scene
             if transition.transition_on is True:
                 transition.draw_transition()
             sdl2.SDL_RenderPresent(renderer)

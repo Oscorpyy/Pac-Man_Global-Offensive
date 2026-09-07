@@ -1,5 +1,7 @@
 import math
 import random
+import json
+import re
 import sdl2
 import sdl2.sdlimage as sdim
 import time
@@ -19,6 +21,8 @@ from src.image import Image
 
 
 class Game:
+    MAX_SAVE_NAME_LENGTH = 23
+
     def __init__(self, renderer, game_state: GameState, config: GameConfig,
                  transition: Transition):
         self.transition = transition
@@ -37,6 +41,10 @@ class Game:
             print_error(f"can't charge font {sttf.TTF_GetError()}")
         self.cheat_button_img = Image("assets/cheat_menu.png", renderer)
         self.cheat_menu_open = False
+        self.paused = False
+        self.save_name = ""
+        self.save_error = ""
+        self.score_recorded = False
         self.pause_start_time: float = 0.0
         self.cheat_button_margin = 12
         self.cheat_button_size = 44
@@ -80,12 +88,17 @@ class Game:
 
     def reset(self) -> None:
         """Réinitialise complètement une nouvelle partie."""
+        sdl2.SDL_StopTextInput()
         self.current_level = 1
         self.remaining_life = (int(self.config.lives)
                                if self.config.lives is not None else 3)
         self.level_start_time = time.time()
         self.pause_start_time = 0.0
         self.cheat_menu_open = False
+        self.paused = False
+        self.save_name = ""
+        self.save_error = ""
+        self.score_recorded = False
         self.invincible = False
         self.ghosts_killed = False
         self.game_state.point = 0
@@ -131,12 +144,74 @@ class Game:
                 self.level_start_time += (time.time() - self.pause_start_time)
                 self.pause_start_time = 0.0
 
+    def toggle_pause(self) -> None:
+        """Pauses or resumes the game without changing the scene."""
+        if self.paused:
+            sdl2.SDL_StopTextInput()
+            if self.pause_start_time > 0.0:
+                self.level_start_time += (time.time() - self.pause_start_time)
+                self.pause_start_time = 0.0
+            self.paused = False
+        else:
+            self.paused = True
+            self.save_name = ""
+            self.save_error = ""
+            self.pause_start_time = time.time()
+            sdl2.SDL_StartTextInput()
+            self.transition.transition_on = False
+            self.transition.sens_transition = False
+            self.transition.img = False
+            self.transition.rect = False
+            self.player.key_w = False
+            self.player.key_s = False
+            self.player.key_a = False
+            self.player.key_d = False
+            self.player.next_direction = None
+
     def handle_escape(self) -> bool:
-        """Ferme le menu de cheat avec Échap sans quitter la partie."""
+        """Closes the cheat menu or toggles the pause menu."""
         if self.cheat_menu_open:
             self.toggle_cheat_menu()
             return True
-        return False
+        self.toggle_pause()
+        return True
+
+    def _quit_to_menu(self) -> None:
+        sdl2.SDL_StopTextInput()
+        self.paused = False
+        self.transition.start_image_transition(ScenePossible.MAIN)
+        self.needs_reset = True
+
+    def _save_and_quit(self) -> None:
+        if not re.fullmatch(r"[A-Za-z0-9_-]+", self.save_name):
+            self.save_error = "INVALID NAME"
+            return
+
+        if not self._record_score():
+            return
+        self._quit_to_menu()
+
+    def _record_score(self) -> bool:
+        if self.score_recorded:
+            return True
+
+        score_path = self.config.highscore_filename or "scores.json"
+        score_name = self.save_name or "PLAYER"
+        try:
+            with open(score_path, "r") as score_file:
+                score_data = json.load(score_file)
+            scores = score_data.get("scores", [])
+            scores.append({
+                "name": score_name,
+                "point": self.game_state.get_points(),
+            })
+            with open(score_path, "w") as score_file:
+                json.dump({"scores": scores}, score_file, indent=4)
+            self.score_recorded = True
+            return True
+        except (OSError, TypeError, ValueError):
+            self.save_error = "SCORE NOT SAVED"
+            return False
 
     def handle_event(self, event) -> None:
         """
@@ -147,6 +222,18 @@ class Game:
             if button == sdl2.SDL_BUTTON_LEFT:
                 mouse_x = getattr(event.button, "x", -1)
                 mouse_y = getattr(event.button, "y", -1)
+                if self.paused:
+                    for pause_button in self._get_pause_buttons():
+                        bx, by = pause_button["x"], pause_button["y"]
+                        bw, bh = pause_button["w"], pause_button["h"]
+                        if (bx <= mouse_x <= bx + bw
+                                and by <= mouse_y <= by + bh):
+                            if pause_button["id"] == "save":
+                                self._save_and_quit()
+                            else:
+                                self._quit_to_menu()
+                            return
+                    return
                 if self._is_cheat_button_hovered(mouse_x, mouse_y):
                     self.toggle_cheat_menu()
                     return
@@ -166,10 +253,32 @@ class Game:
                     return
             return
 
+        if event.type == sdl2.SDL_TEXTINPUT and self.paused:
+            text_bytes = bytes(event.text.text).split(b"\0", 1)[0]
+            text = text_bytes.decode("utf-8", errors="ignore")
+            if re.fullmatch(r"[A-Za-z0-9_-]+", text):
+                available = self.MAX_SAVE_NAME_LENGTH - len(self.save_name)
+                if available > 0:
+                    self.save_name += text[:available]
+                    self.save_error = ""
+                if len(text) > available:
+                    self.save_error = "NAME TOO LONG (23 MAX)"
+            else:
+                self.save_error = "INVALID CHARACTERS"
+            return
+
         if event.type == sdl2.SDL_KEYDOWN:
             key = event.key.keysym.sym
 
-            if key == sdl2.SDLK_c:
+            if self.paused:
+                if key == sdl2.SDLK_BACKSPACE:
+                    self.save_name = self.save_name[:-1]
+                    self.save_error = ""
+                elif key in (sdl2.SDLK_RETURN, sdl2.SDLK_KP_ENTER):
+                    self._save_and_quit()
+                return
+
+            if key == sdl2.SDLK_c and not self.paused:
                 self.toggle_cheat_menu()
                 return
 
@@ -287,7 +396,8 @@ class Game:
         self.draw_maze(current_maze, Color.RED, Color.BLACK, start_width,
                        start_height, cellsize)
 
-        if not self.transition.transition_on and not self.cheat_menu_open:
+        if (not self.transition.transition_on and not self.cheat_menu_open
+            and not self.paused):
             max_time = self._safe_int(self.config.level_max_time, 90)
             elapsed = time.time() - self.level_start_time
             time_left = max(0, int(max_time - elapsed))
@@ -318,8 +428,9 @@ class Game:
 
             if self.check_level_complete(current_items):
                 if self.current_level == len(levels):
-                    self.transition.start_image_transition(ScenePossible.MAIN)
-                    self.needs_reset = True
+                    self._record_score()
+                    self.transition.transition_on = False
+                    self.game_state.scene = ScenePossible.WIN
                 else:
                     self.next_level()
 
@@ -339,6 +450,7 @@ class Game:
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
         self.draw_info()
         self.draw_cheat()
+        self.draw_pause()
 
     def handle_ghost_collisions(self, maze_matrix: list[list[int]]) -> None:
         """Gère les collisions entre Pac-Man et les fantômes."""
@@ -383,11 +495,11 @@ class Game:
             break
 
     def on_player_death(self) -> None:
-        """Gère la mort du joueur : transition vers le menu principal."""
+        """Removes one life and respawns, or shows the loose screen."""
         if self.transition.transition_on:
             return
 
-        self.remaining_life = 0
+        self.remaining_life -= 1
         self.player.is_powered_up = False
         self.player.power_timer = 0
         self.player.key_w = False
@@ -395,8 +507,26 @@ class Game:
         self.player.key_a = False
         self.player.key_d = False
 
-        self.transition.start_image_transition(ScenePossible.MAIN)
-        self.needs_reset = True
+        if self.remaining_life <= 0:
+            self.remaining_life = 0
+            self._record_score()
+            self.transition.transition_on = False
+            self.game_state.scene = ScenePossible.LOOSE
+            return
+
+        self.level_start_time = time.time()
+        self.pause_start_time = 0.0
+        self.paused = False
+        self.maze_buffer = None
+        self.cached_maze_level = -1
+        self.cached_cellsize = -1
+        self.player.pos_y = len(
+            self.maze_levels[self.current_level - 1]) // 2
+        self.player.pos_x = len(
+            self.maze_levels[self.current_level - 1][0]) // 2
+        self.player.render_x = float(self.player.pos_x)
+        self.player.render_y = float(self.player.pos_y)
+        self.spawn_ghosts()
 
     def spawn_ghosts(self) -> None:
         """Positionne les 4 fantômes sur les emplacements des super-pacgums."""
@@ -711,6 +841,95 @@ class Game:
             hint_x, hint_y, Color.GRAY, 1
         )
 
+    def draw_pause(self) -> None:
+        if not self.paused:
+            return
+
+        menu_w = min(460, max(300, int(self.width * 0.72)))
+        menu_h = 260
+        menu_x = (self.width - menu_w) // 2
+        menu_y = (self.height - menu_h) // 2
+        menu_rect = sdl2.SDL_Rect(menu_x, menu_y, menu_w, menu_h)
+
+        sdl2.SDL_SetRenderDrawBlendMode(
+            self.renderer, sdl2.SDL_BLENDMODE_BLEND
+        )
+        sdl2.SDL_SetRenderDrawColor(self.renderer, 10, 10, 20, 235)
+        sdl2.SDL_RenderFillRect(self.renderer, ctypes.byref(menu_rect))
+        sdl2.SDL_SetRenderDrawColor(self.renderer, 255, 0, 0, 255)
+        sdl2.SDL_RenderDrawRect(self.renderer, ctypes.byref(menu_rect))
+
+        inner_rect = sdl2.SDL_Rect(menu_x + 2, menu_y + 2,
+                                   menu_w - 4, menu_h - 4)
+        sdl2.SDL_RenderDrawRect(self.renderer, ctypes.byref(inner_rect))
+
+        texts = [(b"GAME PAUSED", menu_y + 12, Color.RED),
+             (b"SAVE NAME", menu_y + 40, Color.WHITE)]
+        for text, text_y, color in texts:
+            w_val, h_val = ctypes.c_int(0), ctypes.c_int(0)
+            sttf.TTF_SizeUTF8(self.font, text,
+                              ctypes.byref(w_val), ctypes.byref(h_val))
+            text_x = menu_x + (menu_w - w_val.value) // 2
+            draw_text(self.renderer, self.font, text, text_x, text_y,
+                      color, 1)
+
+        input_rect = sdl2.SDL_Rect(menu_x + 24, menu_y + 62,
+                       menu_w - 48, 30)
+        sdl2.SDL_SetRenderDrawColor(self.renderer, 30, 30, 45, 255)
+        sdl2.SDL_RenderFillRect(self.renderer, ctypes.byref(input_rect))
+        sdl2.SDL_SetRenderDrawColor(self.renderer, 255, 255, 0, 255)
+        sdl2.SDL_RenderDrawRect(self.renderer, ctypes.byref(input_rect))
+        name_text = self.save_name.encode("ascii") or b"_"
+        draw_text(self.renderer, self.font, name_text,
+                  menu_x + 34, menu_y + 68,
+                  Color.WHITE if self.save_name else Color.GRAY, 1)
+
+        if self.save_error:
+            draw_text(self.renderer, self.font, self.save_error,
+                      menu_x + 24, menu_y + 98, Color.RED, 1)
+
+        for button in self._get_pause_buttons():
+            button_rect = sdl2.SDL_Rect(button["x"], button["y"],
+                                       button["w"], button["h"])
+            mouse_x, mouse_y = ctypes.c_int(0), ctypes.c_int(0)
+            sdl2.SDL_GetMouseState(ctypes.byref(mouse_x),
+                                   ctypes.byref(mouse_y))
+            hovered = (button["x"] <= mouse_x.value <= button["x"]
+                       + button["w"] and button["y"] <= mouse_y.value
+                       <= button["y"] + button["h"])
+            fill_color = (60, 15, 15, 255) if hovered else (25, 10, 10, 255)
+            border_color = (255, 220, 0, 255) if hovered else (200, 30, 30, 255)
+            sdl2.SDL_SetRenderDrawColor(self.renderer, *fill_color)
+            sdl2.SDL_RenderFillRect(self.renderer, ctypes.byref(button_rect))
+            sdl2.SDL_SetRenderDrawColor(self.renderer, *border_color)
+            sdl2.SDL_RenderDrawRect(self.renderer, ctypes.byref(button_rect))
+            label = button["label"].encode("ascii")
+            w_val, h_val = ctypes.c_int(0), ctypes.c_int(0)
+            sttf.TTF_SizeUTF8(self.font, label,
+                              ctypes.byref(w_val), ctypes.byref(h_val))
+            draw_text(self.renderer, self.font, label,
+                      button["x"] + (button["w"] - w_val.value) // 2,
+                      button["y"] + (button["h"] - h_val.value) // 2,
+                      Color.YELLOW if hovered else Color.WHITE, 1)
+
+        draw_text(self.renderer, self.font, b"ESC TO RESUME",
+              menu_x + 24, menu_y + 238, Color.GRAY, 1)
+
+    def _get_pause_buttons(self) -> list[dict]:
+        menu_w = min(460, max(300, int(self.width * 0.72)))
+        menu_h = 260
+        menu_x = (self.width - menu_w) // 2
+        menu_y = (self.height - menu_h) // 2
+        button_w = menu_w - 48
+        return [
+            {"id": "save", "label": "SAVE AND QUIT",
+             "x": menu_x + 24, "y": menu_y + 135,
+             "w": button_w, "h": 34},
+            {"id": "quit", "label": "QUIT TO MENU",
+             "x": menu_x + 24, "y": menu_y + 177,
+             "w": button_w, "h": 34},
+        ]
+
     def draw_maze(self, maze_matrix: list[list[int]], color_wall: int,
                   color_cel: int, start_x: int, start_y: int,
                   cellsize: int) -> None:
@@ -886,7 +1105,8 @@ class Game:
 
         max_time = self._safe_int(self.config.level_max_time, 90)
 
-        if self.cheat_menu_open and self.pause_start_time > 0.0:
+        if ((self.cheat_menu_open or self.paused)
+            and self.pause_start_time > 0.0):
             elapsed = self.pause_start_time - self.level_start_time
         else:
             elapsed = time.time() - self.level_start_time

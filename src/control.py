@@ -61,6 +61,16 @@ class SdlEvent:
                         transition.transition_on = True
                         transition.scene_to_put = ScenePossible.GAME
                         transition.img = True
+                    elif game_state.scene in (ScenePossible.WIN,
+                                              ScenePossible.LOOSE):
+                        if hasattr(scene, 'handle_event'):
+                            scene.handle_event(event)
+                    continue
+
+                if game_state.scene in (ScenePossible.WIN,
+                                        ScenePossible.LOOSE):
+                    if hasattr(scene, 'handle_event'):
+                        scene.handle_event(event)
                     continue
 
                 if game_state.scene == ScenePossible.MAIN:
@@ -84,6 +94,11 @@ class SdlEvent:
                         scene.handle_event(event)
                 elif game_state.scene == ScenePossible.CSGO:
                     scene.set_keystate(key, False)
+
+            elif event.type == sdl2.SDL_TEXTINPUT:
+                if game_state.scene == ScenePossible.GAME:
+                    if hasattr(scene, 'handle_event'):
+                        scene.handle_event(event)
 
             elif event.type == sdl2.SDL_MOUSEBUTTONDOWN:
                 if game_state.scene == ScenePossible.GAME:

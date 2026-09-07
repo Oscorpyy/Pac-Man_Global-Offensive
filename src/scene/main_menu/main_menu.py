@@ -102,6 +102,11 @@ class MainMenu:
             print_error(f"Caught error: {e}")
         return content
 
+    def refresh_scores(self) -> None:
+        self.top_score = self.get_highscore()
+        self.scores = self.top_score.get("scores", [])
+        self.scores.sort(key=lambda item: item.get('point', 0), reverse=True)
+
     def clean_up(self) -> None:
         sdim.IMG_Quit()
         sttf.TTF_CloseFont(self.font)
