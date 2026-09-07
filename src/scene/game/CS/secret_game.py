@@ -205,6 +205,13 @@ class SecretGame:
                     self.player.can_shoot = False
                     self.round_start_timer = 4
                     self.round_timer = 49.0
+                    self.ennemy_lst = [
+                        CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[0]),
+                        CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[1]),
+                        CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[2]),
+                        CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[3]),
+                        CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[4]),
+                    ]
             if self.player.key_e is False:
                 self.player_diffuse_time = 0
         else:
