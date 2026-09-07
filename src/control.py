@@ -29,6 +29,9 @@ class SdlEvent:
 
                 if key == sdl2.SDLK_ESCAPE:
                     if game_state.scene == ScenePossible.MAIN:
+                        if (hasattr(scene, 'handle_escape')
+                                and scene.handle_escape()):
+                            continue
                         game_state.is_running = False
                     elif game_state.scene == ScenePossible.GAME:
                         if not transition.transition_on:
@@ -43,6 +46,10 @@ class SdlEvent:
                         transition.scene_to_put = ScenePossible.GAME
                         transition.img = True
                     continue
+
+                if game_state.scene == ScenePossible.MAIN:
+                    if hasattr(scene, 'handle_event'):
+                        scene.handle_event(event)
 
                 if game_state.scene == ScenePossible.GAME:
                     if hasattr(scene, 'handle_event'):

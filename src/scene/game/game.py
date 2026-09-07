@@ -35,7 +35,7 @@ class Game:
             b"assets/Press_Start_2P/PressStart2P-Regular.ttf", self.font_size)
         if not self.font:
             print_error(f"can't charge font {sttf.TTF_GetError()}")
-        self.cheat_button_img = Image("assets/settings.png", renderer)
+        self.cheat_button_img = Image("assets/cheat_menu.png", renderer)
         self.cheat_menu_open = False
         self.cheat_button_margin = 12
         self.cheat_button_size = 44

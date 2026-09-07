@@ -135,6 +135,21 @@ class MainMenu:
 
     def set_can_draw_main(self) -> None:
         self.menu_state.current = self.menu_state.state_lst[0]
+        if hasattr(self, 'instruction_win') and hasattr(
+                self.instruction_win, 'reset'):
+            self.instruction_win.reset()
+
+    def handle_escape(self) -> bool:
+        if self.menu_state.current != self.menu_state.state_lst[0]:
+            self.set_can_draw_main()
+            return True
+        return False
+
+    def handle_event(self, event) -> bool:
+        if self.menu_state.current == self.menu_state.state_lst[1]:
+            if hasattr(self.instruction_win, 'handle_event'):
+                return self.instruction_win.handle_event(event)
+        return False
 
     def set_can_draw_settings(self) -> None:
         self.menu_state.current = self.menu_state.state_lst[2]
