@@ -46,6 +46,8 @@ class Game:
         self.save_error = ""
         self.score_recorded = False
         self.pause_start_time: float = 0.0
+        self.countdown_end_time: float | None = None
+        self.transition_was_active = False
         self.cheat_button_margin = 12
         self.cheat_button_size = 44
         self.cheat_menu_w = min(480, max(300, int(self.width * 0.8)))
@@ -94,6 +96,8 @@ class Game:
                                if self.config.lives is not None else 3)
         self.level_start_time = time.time()
         self.pause_start_time = 0.0
+        self.countdown_end_time = None
+        self.transition_was_active = False
         self.cheat_menu_open = False
         self.paused = False
         self.save_name = ""
@@ -141,7 +145,10 @@ class Game:
         else:
             self.cheat_menu_open = False
             if self.pause_start_time > 0.0:
-                self.level_start_time += (time.time() - self.pause_start_time)
+                paused_for = time.time() - self.pause_start_time
+                self.level_start_time += paused_for
+                if self.countdown_end_time is not None:
+                    self.countdown_end_time += paused_for
                 self.pause_start_time = 0.0
 
     def toggle_pause(self) -> None:
@@ -149,7 +156,10 @@ class Game:
         if self.paused:
             sdl2.SDL_StopTextInput()
             if self.pause_start_time > 0.0:
-                self.level_start_time += (time.time() - self.pause_start_time)
+                paused_for = time.time() - self.pause_start_time
+                self.level_start_time += paused_for
+                if self.countdown_end_time is not None:
+                    self.countdown_end_time += paused_for
                 self.pause_start_time = 0.0
             self.paused = False
         else:
@@ -396,6 +406,12 @@ class Game:
             self.reset()
             self.needs_reset = False
 
+        if self.transition.transition_on:
+            self.transition_was_active = True
+        elif self.transition_was_active:
+            self.transition_was_active = False
+            self._start_countdown()
+
         side = int(min(self.config.screen_width,
                        self.config.screen_height) * 0.9)
         start_height = (self.config.screen_height - side) // 4
@@ -410,8 +426,13 @@ class Game:
         self.draw_maze(current_maze, Color.RED, Color.BLACK, start_width,
                        start_height, cellsize)
 
-        if (not self.transition.transition_on and not self.cheat_menu_open
-            and not self.paused):
+        countdown_active = self._countdown_active()
+        if (
+            not self.transition.transition_on
+            and not self.cheat_menu_open
+            and not self.paused
+            and not countdown_active
+        ):
             max_time = self._safe_int(self.config.level_max_time, 90)
             elapsed = time.time() - self.level_start_time
             time_left = max(0, int(max_time - elapsed))
@@ -464,6 +485,40 @@ class Game:
         self.draw_info()
         self.draw_cheat()
         self.draw_pause()
+        self.draw_countdown()
+
+    def _start_countdown(self) -> None:
+        self.level_start_time = time.time()
+        self.countdown_end_time = self.level_start_time + 3.0
+
+    def _countdown_active(self) -> bool:
+        if self.countdown_end_time is None:
+            return False
+        if self.paused or self.cheat_menu_open:
+            return True
+        if time.time() >= self.countdown_end_time:
+            self.countdown_end_time = None
+            return False
+        return True
+
+    def draw_countdown(self) -> None:
+        countdown_end_time = self.countdown_end_time
+        if (countdown_end_time is None or self.paused
+                or self.cheat_menu_open):
+            return
+
+        remaining = int(math.ceil(countdown_end_time - time.time()))
+        countdown_text = str(max(1, remaining)).encode("ascii")
+        text_width = ctypes.c_int(0)
+        text_height = ctypes.c_int(0)
+        sttf.TTF_SizeUTF8(
+            self.font, countdown_text,
+            ctypes.byref(text_width), ctypes.byref(text_height)
+        )
+        draw_text(self.renderer, self.font, countdown_text,
+                  (self.width - text_width.value) // 2,
+                  (self.height - text_height.value) // 2,
+                  Color.YELLOW, 3)
 
     def handle_ghost_collisions(self, maze_matrix: list[list[int]]) -> None:
         """Gère les collisions entre Pac-Man et les fantômes."""
@@ -539,6 +594,7 @@ class Game:
         self.player.render_x = float(self.player.pos_x)
         self.player.render_y = float(self.player.pos_y)
         self.spawn_ghosts()
+        self._start_countdown()
 
     def spawn_ghosts(self) -> None:
         """Positionne les 4 fantômes sur les emplacements des super-pacgums."""
@@ -590,6 +646,7 @@ class Game:
             self.player.pos_x = len(
                 self.maze_levels[self.current_level - 1][0]) // 2
             self.spawn_ghosts()
+            self._start_countdown()
         self.player.key_w = False
         self.player.key_s = False
         self.player.key_a = False
@@ -611,6 +668,7 @@ class Game:
             self.player.pos_x = len(
                 self.maze_levels[self.current_level - 1][0]) // 2
             self.spawn_ghosts()
+            self._start_countdown()
         self.player.key_w = False
         self.player.key_s = False
         self.player.key_a = False
