@@ -1,4 +1,4 @@
-import sdl2 
+import sdl2
 import sdl2.sdlimage as sdim
 import sdl2.sdlttf as sttf
 import numpy as np
@@ -11,11 +11,11 @@ from src.drawing_methods import clear_background, draw_text
 from src.color import Color
 from src.transition import Transition
 from src.drawing_methods import draw_sprites
-from src.transition import Transition
 
 
 class Introduction:
-    def __init__(self, renderer, game_state: GameState, config: GameConfig, transition: Transition):
+    def __init__(self, renderer, game_state: GameState, config: GameConfig,
+                 transition: Transition):
         self.transition = transition
         self.width = config.screen_width
         self.height = config.screen_height
@@ -36,7 +36,8 @@ class Introduction:
         self.pitch_background = self.width * 4
         sttf.TTF_Init()
         self.font_size = 24
-        self.font = sttf.TTF_OpenFont(b"assets/Press_Start_2P/PressStart2P-Regular.ttf", self.font_size)
+        self.font = sttf.TTF_OpenFont(
+            b"assets/Press_Start_2P/PressStart2P-Regular.ttf", self.font_size)
         if not self.font:
             print_error(f"can't charge font {sttf.TTF_GetError()}")
         self.time_passed = time.perf_counter()
@@ -51,12 +52,25 @@ class Introduction:
     def draw_intro(self) -> None:
         clear_background(self.pixels, Color.BLACK)
         pixel_ptr = get_ptr(self.pixels)
-        sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
+        sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr,
+                               self.pitch_background)
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
-        draw_sprites(self.renderer, self.team_logo, int(self.width * 0.2) - int(self.sdl_logo.width * 0.2 * 0.5), int(self.height * 0.5) - int(self.sdl_logo.height * 0.5), 0.30)
-        draw_text(self.renderer, self.font, b"Made by:\n- Opernod\n- Lgoderne", int(self.width * 0.2) - int(self.sdl_logo.width * 0.2 * 0.5), int(self.height * 0.5) - int(self.sdl_logo.height * 0.2 * 0.5), Color.WHITE)
-        draw_sprites(self.renderer, self.sdl_logo, int(self.width * 0.8) - int(self.sdl_logo.width * 0.2 * 0.5), int(self.height * 0.5) - int(self.sdl_logo.height * 0.5), 0.2)
-        draw_text(self.renderer, self.font, b"Made with SDL2", int(self.width * 0.8) - int(self.sdl_logo.width * 0.2 * 0.5), int(self.height * 0.5) - int(self.sdl_logo.height * 0.2 * 0.5), Color.WHITE)
+        draw_sprites(self.renderer, self.team_logo,
+                     int(self.width * 0.2) - int(
+                        self.sdl_logo.width * 0.2 * 0.5),
+                     int(self.height * 0.5) - int(
+                           self.sdl_logo.height * 0.5), 0.30)
+        draw_text(self.renderer, self.font, b"Made by:\n- Opernod\n- Lgoderne",
+                  int(self.width * 0.2) - int(self.sdl_logo.width * 0.2 * 0.5),
+                  int(self.height * 0.5) - int(
+                    self.sdl_logo.height * 0.2 * 0.5), Color.WHITE)
+        draw_sprites(self.renderer, self.sdl_logo, int(self.width * 0.8) - int(
+            self.sdl_logo.width * 0.2 * 0.5), int(
+                self.height * 0.5) - int(self.sdl_logo.height * 0.5), 0.2)
+        draw_text(self.renderer, self.font, b"Made with SDL2",
+                  int(self.width * 0.8) - int(self.sdl_logo.width * 0.2 * 0.5),
+                  int(self.height * 0.5) - int(
+                    self.sdl_logo.height * 0.2 * 0.5), Color.WHITE)
         if (time.perf_counter() - self.time_passed > 3):
             self.transition.scene_to_put = ScenePossible.MAIN
             self.transition.transition_on = True

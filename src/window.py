@@ -1,10 +1,9 @@
 import sdl2
 import json
 import time
-from typing import Any
 from src.scene.intro.introduction import Introduction
 from src.scene.game.CS.secret_game import SecretGame
-from src.print_logs import print_error, print_info, print_warning
+from src.print_logs import print_error, print_info
 from src.control import SdlEvent
 from src.game_state import GameState, ScenePossible, GameConfig
 from src.scene.main_menu.main_menu import MainMenu
@@ -63,7 +62,8 @@ class Window:
                     for i in range(len(map_data)):
                         map_tiles.append(map_data[i].get("data", []))
                         if map_tiles is None:
-                            print_error("Something went wrong with de_office map data")
+                            print_error("Something went wrong with "
+                                        "de_office map data")
                             map_tiles = []
         except (FileNotFoundError, PermissionError, ValueError):
             print_error("can't find de_office.json")
@@ -78,13 +78,15 @@ class Window:
         if window == -1:
             return
         print_info("window creation successful")
-        renderer = sdl2.SDL_CreateRenderer(window, -1, sdl2.SDL_RENDERER_ACCELERATED)
+        renderer = sdl2.SDL_CreateRenderer(window, -1,
+                                           sdl2.SDL_RENDERER_ACCELERATED)
         game_state = GameState()
         event = sdl2.SDL_Event()
         transition = Transition(renderer, game_state, self.config)
         sdl_event = SdlEvent()
         de_office = self.get_secret_map_data()
-        self.intro = Introduction(renderer, game_state, self.config, transition)
+        self.intro = Introduction(renderer, game_state, self.config,
+                                  transition)
         self.main = MainMenu(renderer, game_state, self.config, transition)
         self.game = Game(renderer, game_state, self.config, transition)
         self.win_screen = EndScreen(
@@ -98,10 +100,11 @@ class Window:
             self.game.end_screen_quit
         )
         self.cam = Camera()
-        self.secret_game = SecretGame(renderer, game_state, self.config, de_office, self.cam, transition)
+        self.secret_game = SecretGame(renderer, game_state, self.config,
+                                      de_office, self.cam, transition)
         previous_scene = game_state.scene
         last_time = time.perf_counter()
-        while(game_state.is_running):
+        while (game_state.is_running):
             current_time = time.perf_counter()
             dt = current_time - last_time
             game_state.dt = dt
@@ -114,7 +117,8 @@ class Window:
             match game_state.scene:
                 case ScenePossible.INTRO:
                     self.intro.draw_intro()
-                    sdl_event.main_loop(event, game_state, self.main, transition)
+                    sdl_event.main_loop(event, game_state, self.main,
+                                        transition)
                 case ScenePossible.MAIN:
                     if previous_scene != ScenePossible.MAIN:
                         self.main.refresh_scores()

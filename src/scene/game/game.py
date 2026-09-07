@@ -934,7 +934,7 @@ class Game:
         sdl2.SDL_RenderDrawRect(self.renderer, ctypes.byref(inner_rect))
 
         texts = [(b"GAME PAUSED", menu_y + 12, Color.RED),
-             (b"SAVE NAME", menu_y + 40, Color.WHITE)]
+                 (b"SAVE NAME", menu_y + 40, Color.WHITE)]
         for text, text_y, color in texts:
             w_val, h_val = ctypes.c_int(0), ctypes.c_int(0)
             sttf.TTF_SizeUTF8(self.font, text,
@@ -944,7 +944,7 @@ class Game:
                       color, 1)
 
         input_rect = sdl2.SDL_Rect(menu_x + 24, menu_y + 62,
-                       menu_w - 48, 30)
+                                   menu_w - 48, 30)
         sdl2.SDL_SetRenderDrawColor(self.renderer, 30, 30, 45, 255)
         sdl2.SDL_RenderFillRect(self.renderer, ctypes.byref(input_rect))
         sdl2.SDL_SetRenderDrawColor(self.renderer, 255, 255, 0, 255)
@@ -960,7 +960,7 @@ class Game:
 
         for button in self._get_pause_buttons():
             button_rect = sdl2.SDL_Rect(button["x"], button["y"],
-                                       button["w"], button["h"])
+                                        button["w"], button["h"])
             mouse_x, mouse_y = ctypes.c_int(0), ctypes.c_int(0)
             sdl2.SDL_GetMouseState(ctypes.byref(mouse_x),
                                    ctypes.byref(mouse_y))
@@ -968,7 +968,8 @@ class Game:
                        + button["w"] and button["y"] <= mouse_y.value
                        <= button["y"] + button["h"])
             fill_color = (60, 15, 15, 255) if hovered else (25, 10, 10, 255)
-            border_color = (255, 220, 0, 255) if hovered else (200, 30, 30, 255)
+            border_color = (255, 220, 0, 255) if hovered else (
+                200, 30, 30, 255)
             sdl2.SDL_SetRenderDrawColor(self.renderer, *fill_color)
             sdl2.SDL_RenderFillRect(self.renderer, ctypes.byref(button_rect))
             sdl2.SDL_SetRenderDrawColor(self.renderer, *border_color)
@@ -983,7 +984,7 @@ class Game:
                       Color.YELLOW if hovered else Color.WHITE, 1)
 
         draw_text(self.renderer, self.font, b"ESC TO RESUME",
-              menu_x + 24, menu_y + 238, Color.GRAY, 1)
+                  menu_x + 24, menu_y + 238, Color.GRAY, 1)
 
     def _get_pause_buttons(self) -> list[dict]:
         menu_w = min(460, max(300, int(self.width * 0.72)))
@@ -1176,7 +1177,7 @@ class Game:
         max_time = self._safe_int(self.config.level_max_time, 90)
 
         if ((self.cheat_menu_open or self.paused)
-            and self.pause_start_time > 0.0):
+                and self.pause_start_time > 0.0):
             elapsed = self.pause_start_time - self.level_start_time
         else:
             elapsed = time.time() - self.level_start_time

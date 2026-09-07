@@ -4,10 +4,10 @@ import numpy as np
 import sdl2
 import sdl2.sdlimage as sdim
 
-VULNERABLE_DURATION: float = 7.0   # secondes
-RESPAWN_DURATION: float = 7.0      # secondes après avoir été tué
-BASE_GHOST_SPEED: float = 3.0      # cases par seconde (vitesse de base)
-VULNERABLE_SPEED_RATIO: float = 0.60  # Vitesse réduite quand vulnérable (40% plus lent)
+VULNERABLE_DURATION: float = 7.0
+RESPAWN_DURATION: float = 7.0
+BASE_GHOST_SPEED: float = 3.0
+VULNERABLE_SPEED_RATIO: float = 0.60
 
 
 def _load_argb_array(filepath: str) -> np.ndarray:
@@ -249,7 +249,8 @@ class Ghost:
 
     @property
     def current_speed(self) -> float:
-        """Vitesse actuelle (cases/sec), ralentie quand le fantôme est vulnérable."""
+        """Vitesse actuelle (cases/sec), ralentie quand le fantôme
+        est vulnérable."""
         if self.is_vulnerable:
             return self.base_speed * self.vulnerable_speed_ratio
         return self.base_speed
@@ -303,7 +304,8 @@ class Ghost:
 
         # Animation du sprite
         self.tick_counter += 1
-        anim_speed = self.animation_speed if not self.is_vulnerable else int(self.animation_speed * 1.5)
+        anim_speed = self.animation_speed if not self.is_vulnerable else int(
+                self.animation_speed * 1.5)
         if self.tick_counter >= anim_speed:
             self.tick_counter = 0
             self.current_frame = (self.current_frame + 1) % 2
@@ -367,7 +369,10 @@ class Ghost:
         maze_height = len(maze_matrix)
         maze_width = len(maze_matrix[0]) if maze_height > 0 else 0
 
-        if not (0 <= self._pos_y < maze_height and 0 <= self._pos_x < maze_width):
+        if not (
+                0 <= self._pos_y < maze_height
+                and 0 <= self._pos_x < maze_width
+                ):
             return None
 
         curr_cell = maze_matrix[self._pos_y][self._pos_x]
@@ -400,7 +405,8 @@ class Ghost:
 
         return random.choice(pool)
 
-    def move_step(self, maze_matrix: list[list[int]], dt: float | None = None) -> None:
+    def move_step(self, maze_matrix: list[list[int]],
+                  dt: float | None = None) -> None:
         """
         Effectue une étape de déplacement fluide continu entre cases.
         """
@@ -417,8 +423,12 @@ class Ghost:
         if self.is_moving:
             self.progress += step
             if self.progress < 1.0:
-                self.render_x = (1.0 - self.progress) * self._pos_x + self.progress * self.target_x
-                self.render_y = (1.0 - self.progress) * self._pos_y + self.progress * self.target_y
+                self.render_x = (
+                    1.0 - self.progress
+                    ) * self._pos_x + self.progress * self.target_x
+                self.render_y = (
+                    1.0 - self.progress
+                    ) * self._pos_y + self.progress * self.target_y
             else:
                 self._pos_x = self.target_x
                 self._pos_y = self.target_y
@@ -433,8 +443,12 @@ class Ghost:
                     self.target_y = ny
                     self.is_moving = True
                     self.progress = min(excess, 0.99)
-                    self.render_x = (1.0 - self.progress) * self._pos_x + self.progress * self.target_x
-                    self.render_y = (1.0 - self.progress) * self._pos_y + self.progress * self.target_y
+                    self.render_x = (
+                        1.0 - self.progress
+                        ) * self._pos_x + self.progress * self.target_x
+                    self.render_y = (
+                        1.0 - self.progress
+                        ) * self._pos_y + self.progress * self.target_y
                 else:
                     self.is_moving = False
                     self.render_x = float(self._pos_x)
@@ -448,17 +462,23 @@ class Ghost:
                 self.target_y = ny
                 self.is_moving = True
                 self.progress = min(step, 0.99)
-                self.render_x = (1.0 - self.progress) * self._pos_x + self.progress * self.target_x
-                self.render_y = (1.0 - self.progress) * self._pos_y + self.progress * self.target_y
+                self.render_x = (
+                    1.0 - self.progress
+                    ) * self._pos_x + self.progress * self.target_x
+                self.render_y = (
+                    1.0 - self.progress
+                    ) * self._pos_y + self.progress * self.target_y
             else:
                 self.render_x = float(self._pos_x)
                 self.render_y = float(self._pos_y)
 
-    def move_normal(self, maze_matrix: list[list[int]], dt: float | None = None) -> None:
+    def move_normal(self, maze_matrix: list[list[int]],
+                    dt: float | None = None) -> None:
         """Déplacement en mode normal (vitesse de base)."""
         self.move_step(maze_matrix, dt)
 
-    def move_vulnerable(self, maze_matrix: list[list[int]], dt: float | None = None) -> None:
+    def move_vulnerable(self, maze_matrix: list[list[int]],
+                        dt: float | None = None) -> None:
         """Déplacement en mode vulnérable (vitesse ralentie)."""
         self.move_step(maze_matrix, dt)
 

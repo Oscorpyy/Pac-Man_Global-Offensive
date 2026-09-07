@@ -58,7 +58,8 @@ class CsPlayer:
             self.current_frame += 1
             self.current_frame = self.current_frame % self.frame_number
 
-    def draw_player(self, renderer, scale: int, mouse_x: int, mouse_y: int) -> None:
+    def draw_player(self, renderer, scale: int, mouse_x: int,
+                    mouse_y: int) -> None:
         pos_x = (self.pos_x - self.cam.offset_x) * scale
         pos_y = (self.pos_y - self.cam.offset_y) * scale
         dx = mouse_x - pos_x
@@ -68,21 +69,29 @@ class CsPlayer:
         angle = (angle + 360) % 360
         direction_index = int(((angle + 22.5) % 360) // 45)
         if direction_index == 5:
-            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y, self.current_frame + 125, scale)
+            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y,
+                              self.current_frame + 125, scale)
         elif direction_index == 3:
-            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y, self.current_frame + 101, scale)
+            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y,
+                              self.current_frame + 101, scale)
         elif direction_index == 1:
-            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y, self.current_frame + 150, scale)
+            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y,
+                              self.current_frame + 150, scale)
         elif direction_index == 7:
-            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y, self.current_frame + 175, scale)
+            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y,
+                              self.current_frame + 175, scale)
         elif direction_index == 6:
-            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y, self.current_frame + 75, scale)
+            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y,
+                              self.current_frame + 75, scale)
         elif direction_index == 4:
-            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y, self.current_frame + 50, scale)
+            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y,
+                              self.current_frame + 50, scale)
         elif direction_index == 0:
-            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y, self.current_frame + 26, scale)
+            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y,
+                              self.current_frame + 26, scale)
         elif direction_index == 2:
-            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y, self.current_frame, scale)
+            draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y,
+                              self.current_frame, scale)
 
 
 class PacPlayer:
@@ -175,7 +184,8 @@ class PacPlayer:
         self.is_moving = False
 
     def get_desired_direction(self) -> int | None:
-        """Retourne la direction souhaitée selon les touches maintenues ou bufférisées."""
+        """Retourne la direction souhaitée selon les touches
+        maintenues ou bufférisées."""
         if self.key_w:
             return 2
         if self.key_s:
@@ -187,13 +197,15 @@ class PacPlayer:
         return self.next_direction
 
     def update(self, dt: float = 1.0 / 60.0) -> None:
-        """Met à jour le compteur d'animation du sprite et le timer de vulnérabilité."""
+        """Met à jour le compteur d'animation du sprite et
+        le timer de vulnérabilité."""
         dt = min(max(dt, 0.0), 0.1)
         if self.is_moving:
             self.tick_counter += 1
             if self.tick_counter >= self.animation_speed:
                 self.tick_counter = 0
-                self.current_frame = (self.current_frame + 1) % self.frame_number
+                self.current_frame = (
+                    self.current_frame + 1) % self.frame_number
         else:
             self.current_frame = 0
 
@@ -235,7 +247,8 @@ class PacPlayer:
                         game_state=None, config=None,
                         ghosts=None, dt: float = 1.0 / 60.0) -> None:
         """
-        Déplace Pac-Man de façon fluide et continue (vitesse calquée sur les fantômes normaux).
+        Déplace Pac-Man de façon fluide et continue (vitesse calquée sur
+        les fantômes normaux).
         Gère le demi-tour immédiat et l'input buffering aux virages.
         """
         if not self.can_move:
@@ -258,8 +271,12 @@ class PacPlayer:
             # 2. Avance
             self.progress += step
             if self.progress < 1.0:
-                self.render_x = (1.0 - self.progress) * self._pos_x + self.progress * self.target_x
-                self.render_y = (1.0 - self.progress) * self._pos_y + self.progress * self.target_y
+                self.render_x = (
+                    1.0 - self.progress
+                    ) * self._pos_x + self.progress * self.target_x
+                self.render_y = (
+                    1.0 - self.progress
+                    ) * self._pos_y + self.progress * self.target_y
             else:
                 # Arrivé à la case cible
                 self._pos_x = self.target_x
@@ -270,7 +287,9 @@ class PacPlayer:
                 self._consume_item(items_matrix, game_state, config, ghosts)
 
                 desired = self.get_desired_direction()
-                if desired is not None and _can_move(self._pos_x, self._pos_y, desired, maze_matrix, self.noclip):
+                if desired is not None and _can_move(self._pos_x, self._pos_y,
+                                                     desired, maze_matrix,
+                                                     self.noclip):
                     self.direction = desired
                     self.next_direction = None
                     dx, dy, _ = DIR_MAP[self.direction]
@@ -278,16 +297,25 @@ class PacPlayer:
                     self.target_y = self._pos_y + dy
                     self.is_moving = True
                     self.progress = min(excess, 0.99)
-                    self.render_x = (1.0 - self.progress) * self._pos_x + self.progress * self.target_x
-                    self.render_y = (1.0 - self.progress) * self._pos_y + self.progress * self.target_y
-                elif _can_move(self._pos_x, self._pos_y, self.direction, maze_matrix, self.noclip):
+                    self.render_x = (
+                        1.0 - self.progress
+                        ) * self._pos_x + self.progress * self.target_x
+                    self.render_y = (
+                        1.0 - self.progress
+                        ) * self._pos_y + self.progress * self.target_y
+                elif _can_move(self._pos_x, self._pos_y, self.direction,
+                               maze_matrix, self.noclip):
                     dx, dy, _ = DIR_MAP[self.direction]
                     self.target_x = self._pos_x + dx
                     self.target_y = self._pos_y + dy
                     self.is_moving = True
                     self.progress = min(excess, 0.99)
-                    self.render_x = (1.0 - self.progress) * self._pos_x + self.progress * self.target_x
-                    self.render_y = (1.0 - self.progress) * self._pos_y + self.progress * self.target_y
+                    self.render_x = (
+                        1.0 - self.progress
+                        ) * self._pos_x + self.progress * self.target_x
+                    self.render_y = (
+                        1.0 - self.progress
+                        ) * self._pos_y + self.progress * self.target_y
                 else:
                     self.is_moving = False
                     self.target_x = self._pos_x
@@ -301,7 +329,9 @@ class PacPlayer:
             self.render_y = float(self._pos_y)
             self._consume_item(items_matrix, game_state, config, ghosts)
 
-            if desired is not None and _can_move(self._pos_x, self._pos_y, desired, maze_matrix, self.noclip):
+            if desired is not None and _can_move(self._pos_x, self._pos_y,
+                                                 desired, maze_matrix,
+                                                 self.noclip):
                 self.direction = desired
                 self.next_direction = None
                 dx, dy, _ = DIR_MAP[self.direction]
@@ -309,16 +339,26 @@ class PacPlayer:
                 self.target_y = self._pos_y + dy
                 self.is_moving = True
                 self.progress = min(step, 0.99)
-                self.render_x = (1.0 - self.progress) * self._pos_x + self.progress * self.target_x
-                self.render_y = (1.0 - self.progress) * self._pos_y + self.progress * self.target_y
-            elif (self.key_w or self.key_s or self.key_a or self.key_d) and _can_move(self._pos_x, self._pos_y, self.direction, maze_matrix, self.noclip):
+                self.render_x = (
+                    1.0 - self.progress
+                    ) * self._pos_x + self.progress * self.target_x
+                self.render_y = (
+                    1.0 - self.progress
+                    ) * self._pos_y + self.progress * self.target_y
+            elif (self.key_w or self.key_s or self.key_a or self.key_d
+                  ) and _can_move(self._pos_x, self._pos_y, self.direction,
+                                  maze_matrix, self.noclip):
                 dx, dy, _ = DIR_MAP[self.direction]
                 self.target_x = self._pos_x + dx
                 self.target_y = self._pos_y + dy
                 self.is_moving = True
                 self.progress = min(step, 0.99)
-                self.render_x = (1.0 - self.progress) * self._pos_x + self.progress * self.target_x
-                self.render_y = (1.0 - self.progress) * self._pos_y + self.progress * self.target_y
+                self.render_x = (
+                    1.0 - self.progress
+                    ) * self._pos_x + self.progress * self.target_x
+                self.render_y = (
+                    1.0 - self.progress
+                    ) * self._pos_y + self.progress * self.target_y
 
     def draw_player_pixels(self, pixels: np.ndarray, start_x: int,
                            start_y: int, cellsize: int, color: int) -> None:
@@ -361,9 +401,11 @@ class PacPlayer:
 
                 sub_tile = scaled_tile[src_y1:src_y2, src_x1:src_x2]
 
-                if self.is_powered_up and (int(self.power_timer * 10) % 2 == 0):
+                if self.is_powered_up and (int(
+                        self.power_timer * 10) % 2 == 0):
                     # Clignotement cyan pendant le super-pouvoir
-                    sub_tile = np.where(sub_tile & 0xFF000000 != 0, 0xFF00FFFF, sub_tile)
+                    sub_tile = np.where(sub_tile & 0xFF000000 != 0,
+                                        0xFF00FFFF, sub_tile)
 
                 alpha = (sub_tile >> 24) & 0xFF
 
@@ -389,7 +431,8 @@ class PacPlayer:
                     r_fin = (r_fg * a_val + r_bg * inv_a) // 255
                     g_fin = (g_fg * a_val + g_bg * inv_a) // 255
                     b_fin = (b_fg * a_val + b_bg * inv_a) // 255
-                    dst_slice[mask_blend] = (0xFF << 24) | (r_fin << 16) | (g_fin << 8) | b_fin
+                    dst_slice[mask_blend] = (0xFF << 24) | (
+                        r_fin << 16) | (g_fin << 8) | b_fin
         else:
             radius = max(3, int(cellsize * 0.45))
             h_scr, w_scr = pixels.shape
