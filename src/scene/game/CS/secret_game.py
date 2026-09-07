@@ -54,7 +54,7 @@ class SecretGame:
         self.font = sttf.TTF_OpenFont(b"assets/Press_Start_2P/PressStart2P-Regular.ttf", self.font_size)
         if not self.font:
             print_error(f"can't charge font {sttf.TTF_GetError()}")
-        self.player = CsPlayer(self.player_sprite, cam)
+        self.player = CsPlayer(self.player_sprite, cam, config)
         self.ennemy_lst: list = [
                 CsBot(self.enemy_sprite, cam, ZoneMovement().zone_lst[0]),
                 CsBot(self.enemy_sprite, cam, ZoneMovement().zone_lst[1]),
@@ -283,7 +283,10 @@ class SecretGame:
         self.draw_number_player()
         if self.player.can_move is True:
             self.update_player_pos()
-        self.player.update()
+        self.player.update(self.game_state.dt)
+        self.player.shoot(self.renderer)
+        self.player.draw_bullet_lst(self.cam.offset_x, self.cam.offset_y)
+        self.player.kill_bullet()
         for bot in self.ennemy_lst:
             bot.get_next_location()
             bot.detect_player()
