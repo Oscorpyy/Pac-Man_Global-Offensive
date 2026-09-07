@@ -15,15 +15,17 @@ OPPOSITE_DIR = {0: 1, 1: 0, 2: 3, 3: 2}
 
 
 def _can_move(x: int, y: int, direction: int,
-              maze_matrix: list[list[int]]) -> bool:
+              maze_matrix: list[list[int]],
+              ignore_walls: bool = False) -> bool:
     maze_h = len(maze_matrix)
     maze_w = len(maze_matrix[0]) if maze_h > 0 else 0
     if not (0 <= y < maze_h and 0 <= x < maze_w):
         return False
     dx, dy, wall_bit = DIR_MAP[direction]
-    curr_cell = maze_matrix[y][x]
-    if (curr_cell & wall_bit) != 0:
-        return False
+    if not ignore_walls:
+        curr_cell = maze_matrix[y][x]
+        if (curr_cell & wall_bit) != 0:
+            return False
     nx, ny = x + dx, y + dy
     if not (0 <= ny < maze_h and 0 <= nx < maze_w):
         return False
@@ -121,6 +123,7 @@ class PacPlayer:
         self.next_direction: int | None = None
         self.is_powered_up: bool = False
         self.power_timer: float = 0.0
+        self.noclip: bool = False
 
         if PacPlayer._cached_texture_argb is None:
             try:
@@ -267,7 +270,7 @@ class PacPlayer:
                 self._consume_item(items_matrix, game_state, config, ghosts)
 
                 desired = self.get_desired_direction()
-                if desired is not None and _can_move(self._pos_x, self._pos_y, desired, maze_matrix):
+                if desired is not None and _can_move(self._pos_x, self._pos_y, desired, maze_matrix, self.noclip):
                     self.direction = desired
                     self.next_direction = None
                     dx, dy, _ = DIR_MAP[self.direction]
@@ -277,7 +280,7 @@ class PacPlayer:
                     self.progress = min(excess, 0.99)
                     self.render_x = (1.0 - self.progress) * self._pos_x + self.progress * self.target_x
                     self.render_y = (1.0 - self.progress) * self._pos_y + self.progress * self.target_y
-                elif _can_move(self._pos_x, self._pos_y, self.direction, maze_matrix):
+                elif _can_move(self._pos_x, self._pos_y, self.direction, maze_matrix, self.noclip):
                     dx, dy, _ = DIR_MAP[self.direction]
                     self.target_x = self._pos_x + dx
                     self.target_y = self._pos_y + dy
@@ -298,7 +301,7 @@ class PacPlayer:
             self.render_y = float(self._pos_y)
             self._consume_item(items_matrix, game_state, config, ghosts)
 
-            if desired is not None and _can_move(self._pos_x, self._pos_y, desired, maze_matrix):
+            if desired is not None and _can_move(self._pos_x, self._pos_y, desired, maze_matrix, self.noclip):
                 self.direction = desired
                 self.next_direction = None
                 dx, dy, _ = DIR_MAP[self.direction]
@@ -308,7 +311,7 @@ class PacPlayer:
                 self.progress = min(step, 0.99)
                 self.render_x = (1.0 - self.progress) * self._pos_x + self.progress * self.target_x
                 self.render_y = (1.0 - self.progress) * self._pos_y + self.progress * self.target_y
-            elif (self.key_w or self.key_s or self.key_a or self.key_d) and _can_move(self._pos_x, self._pos_y, self.direction, maze_matrix):
+            elif (self.key_w or self.key_s or self.key_a or self.key_d) and _can_move(self._pos_x, self._pos_y, self.direction, maze_matrix, self.noclip):
                 dx, dy, _ = DIR_MAP[self.direction]
                 self.target_x = self._pos_x + dx
                 self.target_y = self._pos_y + dy

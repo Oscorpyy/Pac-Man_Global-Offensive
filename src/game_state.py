@@ -31,7 +31,24 @@ class GameState:
         self.cs_round_win: int = 0
         self.cs_round_loose: int = 0
         self.dt: float = 0.0
-        self.point:int = 0
+        self._point: int = 0
+
+    @property
+    def point(self) -> int:
+        if self._point > 2147483647:
+            self._point = 2147483647
+        return self._point
+
+    def get_points(self) -> int:
+        """Retourne le nombre de points du joueur."""
+        return self.point
+
+    @point.setter
+    def point(self, value: int) -> None:
+        if value > 2147483647:
+            self._point = 2147483647
+        else:
+            self._point = value
 
     def check_cs_finished(self) -> None:
         if self.cs_round_win >= 5:

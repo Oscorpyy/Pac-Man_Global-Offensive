@@ -14,6 +14,19 @@ class SdlEvent:
     def player_control(self) -> None:
         pass
 
+    @staticmethod
+    def _check_konami_code(game_state: GameState, key: int) -> bool:
+        game_state.konami_code_entered.append(key)
+        expected = game_state.konami_code_excepted
+        if game_state.konami_code_entered == expected:
+            game_state.konami_code_entered.clear()
+            return True
+        if expected[:len(game_state.konami_code_entered)] != (
+                game_state.konami_code_entered):
+            game_state.konami_code_entered = (
+                [key] if key == expected[0] else [])
+        return False
+
     def main_loop(self, event: SDL_Event, game_state: GameState, scene: Any,
                   transition: Transition) -> None:
         while sdl2.SDL_PollEvent(ctypes.byref(event)) != 0:
@@ -34,6 +47,9 @@ class SdlEvent:
                             continue
                         game_state.is_running = False
                     elif game_state.scene == ScenePossible.GAME:
+                        if (hasattr(scene, 'handle_escape')
+                                and scene.handle_escape()):
+                            continue
                         if not transition.transition_on:
                             transition.start_image_transition(
                                 ScenePossible.MAIN
@@ -55,15 +71,8 @@ class SdlEvent:
                     if hasattr(scene, 'handle_event'):
                         scene.handle_event(event)
 
-                    game_state.konami_code_entered.append(key)
-                    if len(game_state.konami_code_entered) > len(
-                            game_state.konami_code_excepted):
-                        game_state.konami_code_entered = []
-                    if game_state.konami_code_entered == (
-                            game_state.konami_code_excepted):
-                        transition.transition_on = True
-                        transition.scene_to_put = ScenePossible.CSGO
-                        transition.img = True
+                    if self._check_konami_code(game_state, key):
+                        transition.start_image_transition(ScenePossible.CSGO)
                         print_info("CS MOD ENTERED")
                         continue
                 if game_state.scene == ScenePossible.CSGO:

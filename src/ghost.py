@@ -218,6 +218,7 @@ class Ghost:
         self.is_vulnerable: bool = False
         self.vulnerable_timer: float = 0.0
         self.is_dead: bool = False
+        self.is_permanently_dead: bool = False
         self.respawn_timer: float = 0.0
         self.corners_to_respawn: list[tuple[int, int]] = []
         self.last_dt: float = 1.0 / 60.0
@@ -267,6 +268,8 @@ class Ghost:
 
         # Timer de réapparition
         if self.is_dead:
+            if self.is_permanently_dead:
+                return
             self.respawn_timer -= dt
             if self.respawn_timer <= 0.0:
                 self.is_dead = False
@@ -317,10 +320,27 @@ class Ghost:
         puis réapparaît dans un coin aléatoire de la map.
         """
         self.is_dead = True
+        self.is_permanently_dead = False
         self.is_vulnerable = False
         self.vulnerable_timer = 0.0
         self.respawn_timer = RESPAWN_DURATION
         self.corners_to_respawn = list(corners) if corners else [(0, 0)]
+        self._pos_x = -1
+        self._pos_y = -1
+        self.target_x = -1
+        self.target_y = -1
+        self.render_x = -100.0
+        self.render_y = -100.0
+        self.progress = 0.0
+        self.is_moving = False
+
+    def kill_permanently(self) -> None:
+        """Tue définitivement le fantôme pour le niveau en cours."""
+        self.is_dead = True
+        self.is_permanently_dead = True
+        self.is_vulnerable = False
+        self.vulnerable_timer = 0.0
+        self.respawn_timer = 0.0
         self._pos_x = -1
         self._pos_y = -1
         self.target_x = -1
