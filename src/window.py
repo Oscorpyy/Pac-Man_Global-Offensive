@@ -89,11 +89,13 @@ class Window:
         self.game = Game(renderer, game_state, self.config, transition)
         self.win_screen = EndScreen(
             renderer, game_state, self.width, self.height,
-            "assets/win_picture.png", self.game.reset
+            "assets/win_picture.png", self.game.end_screen_save_and_quit,
+            self.game.end_screen_quit
         )
         self.loose_screen = EndScreen(
             renderer, game_state, self.width, self.height,
-            "assets/loose_picture.png", self.game.reset
+            "assets/loose_picture.png", self.game.end_screen_save_and_quit,
+            self.game.end_screen_quit
         )
         self.cam = Camera()
         self.secret_game = SecretGame(renderer, game_state, self.config, de_office, self.cam, transition)
@@ -104,6 +106,7 @@ class Window:
             dt = current_time - last_time
             game_state.dt = dt
             last_time = current_time
+            rendered_scene = game_state.scene
             if dt > 0:
                 game_state.fps_lst.append(1.0 / dt)
                 game_state.fps = int(sum(game_state.fps_lst) / len(
@@ -134,7 +137,7 @@ class Window:
                     sdl_event.main_loop(event, game_state,
                                         self.loose_screen, transition)
                     self.loose_screen.draw()
-            previous_scene = game_state.scene
+            previous_scene = rendered_scene
             if transition.transition_on is True:
                 transition.draw_transition()
             sdl2.SDL_RenderPresent(renderer)

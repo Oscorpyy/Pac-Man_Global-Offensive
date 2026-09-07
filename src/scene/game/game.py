@@ -191,12 +191,26 @@ class Game:
             return
         self._quit_to_menu()
 
+    def end_screen_save_and_quit(self, save_name: str) -> bool:
+        self.save_name = save_name
+        if not re.fullmatch(r"[A-Za-z0-9_-]+", self.save_name):
+            return False
+        if not self._record_score():
+            return False
+        self.reset()
+        self.game_state.scene = ScenePossible.MAIN
+        return True
+
+    def end_screen_quit(self) -> None:
+        self.reset()
+        self.game_state.scene = ScenePossible.MAIN
+
     def _record_score(self) -> bool:
         if self.score_recorded:
             return True
 
         score_path = self.config.highscore_filename or "scores.json"
-        score_name = self.save_name or "PLAYER"
+        score_name = self.save_name
         try:
             with open(score_path, "r") as score_file:
                 score_data = json.load(score_file)
@@ -428,7 +442,6 @@ class Game:
 
             if self.check_level_complete(current_items):
                 if self.current_level == len(levels):
-                    self._record_score()
                     self.transition.transition_on = False
                     self.game_state.scene = ScenePossible.WIN
                 else:
@@ -509,7 +522,6 @@ class Game:
 
         if self.remaining_life <= 0:
             self.remaining_life = 0
-            self._record_score()
             self.transition.transition_on = False
             self.game_state.scene = ScenePossible.LOOSE
             return
@@ -664,7 +676,7 @@ class Game:
             if self.game_state.get_points() >= 2147483647:
                 pass
             else:
-                self.game_state.point += 2147483646
+                self.game_state.point += 500
         elif cheat_id == "prev":
             self.prev_level()
         elif cheat_id == "next":

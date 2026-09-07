@@ -96,12 +96,20 @@ class SdlEvent:
                     scene.set_keystate(key, False)
 
             elif event.type == sdl2.SDL_TEXTINPUT:
-                if game_state.scene == ScenePossible.GAME:
+                if game_state.scene in (ScenePossible.WIN,
+                                        ScenePossible.LOOSE):
+                    if hasattr(scene, 'handle_event'):
+                        scene.handle_event(event)
+                elif game_state.scene == ScenePossible.GAME:
                     if hasattr(scene, 'handle_event'):
                         scene.handle_event(event)
 
             elif event.type == sdl2.SDL_MOUSEBUTTONDOWN:
                 if game_state.scene == ScenePossible.GAME:
+                    if hasattr(scene, 'handle_event'):
+                        scene.handle_event(event)
+                elif game_state.scene in (ScenePossible.WIN,
+                                          ScenePossible.LOOSE):
                     if hasattr(scene, 'handle_event'):
                         scene.handle_event(event)
 
