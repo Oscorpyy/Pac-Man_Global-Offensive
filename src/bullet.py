@@ -20,9 +20,9 @@ class Bullet:
 
     def update_pos(self) -> None:
         dist = math.hypot(self.dx, self.dy)
-        dir_x = (self.dx / dist) * self.speed
-        dir_y = (self.dy / dist) * self.speed
         if dist != 0:
+            dir_x = (self.dx / dist) * self.speed
+            dir_y = (self.dy / dist) * self.speed
             self.x += dir_x
             self.y += dir_y
         self.max_travel -= self.speed
@@ -31,3 +31,7 @@ class Bullet:
     def set_direction(self, mouse_x, mouse_y, width: int, height: int) -> None:
         self.dx = mouse_x.value - (width // 2)
         self.dy = mouse_y.value - (height // 2)
+
+    def set_direction_target(self, target_x, target_y, bot_x: int, bot_y: int) -> None:
+        self.dx = target_x - bot_x
+        self.dy = target_y - bot_y
