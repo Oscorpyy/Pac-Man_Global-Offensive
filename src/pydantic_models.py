@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class LevelConfig(BaseModel):
@@ -10,7 +10,7 @@ class LevelConfig(BaseModel):
 class Config(BaseModel):
     highscore_filename: str
     level_array_multiple_levels: list[LevelConfig]
-    lives: int
+    lives: int = Field(ge=1, le=105)
     points_per_pacgum: int
     points_per_super_pacgum: int
     points_per_ghost: int

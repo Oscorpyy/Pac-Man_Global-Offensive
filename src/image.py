@@ -19,4 +19,3 @@ class Image:
             renderer, self.img_surface
         )
         sdl2.SDL_FreeSurface(self.img_surface)
-
