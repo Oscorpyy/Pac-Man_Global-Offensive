@@ -75,10 +75,7 @@ class Game:
         self.create_maze_levels()
         self.create_items_levels()
         self.player = PacPlayer()
-        mid_y = len(self.maze_levels[0]) // 2
-        mid_x = len(self.maze_levels[0][0]) // 2
-        self.player.pos_x = mid_x
-        self.player.pos_y = mid_y
+        self._place_player_at_spawn()
 
         self.ghosts = [
             Ghost("red", "assets/red_ghost.png"),
@@ -113,10 +110,7 @@ class Game:
         self.create_items_levels()
         self.player = PacPlayer()
         if self.maze_levels and len(self.maze_levels) > 0:
-            mid_y = len(self.maze_levels[0]) // 2
-            mid_x = len(self.maze_levels[0][0]) // 2
-            self.player.pos_x = mid_x
-            self.player.pos_y = mid_y
+            self._place_player_at_spawn()
         self.ghosts = [
             Ghost("red", "assets/red_ghost.png"),
             Ghost("pink", "assets/pink_ghost.png"),
@@ -131,6 +125,25 @@ class Game:
             return int(value)
         except (TypeError, ValueError):
             return default
+
+    def _place_player_at_spawn(self) -> None:
+        maze = self.maze_levels[self.current_level - 1]
+        maze_height = len(maze)
+        maze_width = len(maze[0]) if maze_height > 0 else 0
+        if maze_width == 0:
+            return
+
+        center_x = maze_width // 2
+        center_y = maze_height // 2
+        candidates = sorted(
+            ((x, y) for y in range(maze_height) for x in range(maze_width)
+             if maze[y][x] != 15),
+            key=lambda position: (abs(position[0] - center_x)
+                                  + abs(position[1] - center_y),
+                                  position[1], position[0])
+        )
+        if candidates:
+            self.player.pos_x, self.player.pos_y = candidates[0]
 
     def toggle_cheat_menu(self) -> None:
         """Ouvre ou ferme le menu de cheat et gère la pause du jeu."""
@@ -219,7 +232,7 @@ class Game:
         if self.score_recorded:
             return True
 
-        score_path = self.config.highscore_filename or "scores.json"
+        score_path = self.config.highscore_filename
         score_name = self.save_name
         try:
             with open(score_path, "r") as score_file:
@@ -587,10 +600,7 @@ class Game:
         self.maze_buffer = None
         self.cached_maze_level = -1
         self.cached_cellsize = -1
-        self.player.pos_y = len(
-            self.maze_levels[self.current_level - 1]) // 2
-        self.player.pos_x = len(
-            self.maze_levels[self.current_level - 1][0]) // 2
+        self._place_player_at_spawn()
         self.player.render_x = float(self.player.pos_x)
         self.player.render_y = float(self.player.pos_y)
         self.spawn_ghosts()
@@ -641,10 +651,7 @@ class Game:
             self.maze_buffer = None
             self.cached_maze_level = -1
             self.cached_cellsize = -1
-            self.player.pos_y = len(
-                self.maze_levels[self.current_level - 1]) // 2
-            self.player.pos_x = len(
-                self.maze_levels[self.current_level - 1][0]) // 2
+            self._place_player_at_spawn()
             self.spawn_ghosts()
             self._start_countdown()
         self.player.key_w = False
@@ -663,10 +670,7 @@ class Game:
             self.maze_buffer = None
             self.cached_maze_level = -1
             self.cached_cellsize = -1
-            self.player.pos_y = len(
-                self.maze_levels[self.current_level - 1]) // 2
-            self.player.pos_x = len(
-                self.maze_levels[self.current_level - 1][0]) // 2
+            self._place_player_at_spawn()
             self.spawn_ghosts()
             self._start_countdown()
         self.player.key_w = False
@@ -1176,7 +1180,9 @@ class Game:
 
         max_time = self._safe_int(self.config.level_max_time, 90)
 
-        if ((self.cheat_menu_open or self.paused)
+        if self._countdown_active():
+            elapsed = 0.0
+        elif ((self.cheat_menu_open or self.paused)
                 and self.pause_start_time > 0.0):
             elapsed = self.pause_start_time - self.level_start_time
         else:
