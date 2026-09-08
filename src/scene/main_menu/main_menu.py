@@ -1,4 +1,3 @@
-import os
 import math
 import json
 import sdl2
@@ -30,7 +29,8 @@ class MenuDrawingState:
 
 
 class MainMenu:
-    def __init__(self, renderer, game_state: GameState, game_config: GameConfig, transition: Transition) -> None:
+    def __init__(self, renderer, game_state: GameState,
+                 game_config: GameConfig, transition: Transition) -> None:
         self.game_state = game_state
         self.menu_state = MenuDrawingState()
         self.game_config = game_config
@@ -41,11 +41,12 @@ class MainMenu:
             self.scores.sort(key=lambda item: item['point'], reverse=True)
         # img loading
         sdim.IMG_Init(sdim.IMG_INIT_PNG)
-        self.logo =  Image(b"assets/game_logo.png", renderer)
+        self.logo = Image(b"assets/game_logo.png", renderer)
         # Font loading
         sttf.TTF_Init()
         self.font_size: int = 16
-        self.font = sttf.TTF_OpenFont(b"assets/Press_Start_2P/PressStart2P-Regular.ttf", self.font_size)
+        self.font = sttf.TTF_OpenFont(
+            b"assets/Press_Start_2P/PressStart2P-Regular.ttf", self.font_size)
         if not self.font:
             print_error(f"can't charge font {sttf.TTF_GetError()}")
         self.width: int = self.game_config.screen_width
@@ -102,6 +103,11 @@ class MainMenu:
             print_error(f"Caught error: {e}")
         return content
 
+    def refresh_scores(self) -> None:
+        self.top_score = self.get_highscore()
+        self.scores = self.top_score.get("scores", [])
+        self.scores.sort(key=lambda item: item.get('point', 0), reverse=True)
+
     def clean_up(self) -> None:
         sdim.IMG_Quit()
         sttf.TTF_CloseFont(self.font)
@@ -111,32 +117,50 @@ class MainMenu:
         self.settings_win.clean_up()
         self.instruction_win.clean_up()
 
-
     def next_scene(self) -> None:
-        self.transition.scene_to_put = ScenePossible.GAME
-        self.transition.transition_on = True
-        self.transition.img = True
-
+        self.transition.start_image_transition(ScenePossible.GAME)
 
     def draw_scores(self) -> None:
         scores = self.scores
-        draw_text(self.renderer, self.font, b"HIGHSCORE", self.width // 2 - (len("HIGHSCORE") * 16 // 2), self.height // 2, Color.WHITE)
+        draw_text(self.renderer, self.font, b"HIGHSCORE",
+                  self.width // 2 - (len("HIGHSCORE") * 16 // 2),
+                  self.height // 2, Color.WHITE)
         y_offset: int = self.height // 2 + 30
         if scores is not None:
             if len(scores) == 0:
-                draw_text(self.renderer, self.font, b"HIGHSCORE", self.width // 2 - (len("HIGHSCORE") * 16 // 2), self.height // 2, Color.WHITE)
+                draw_text(self.renderer, self.font, b"HIGHSCORE",
+                          self.width // 2 - (len("HIGHSCORE") * 16 // 2),
+                          self.height // 2, Color.WHITE)
             else:
                 i = 0
                 for stat in scores:
                     if i > 9:
                         continue
-                    txt: str = f"{stat.get("name")}: {stat.get("point")}".encode("utf-8")
-                    draw_text(self.renderer, self.font, txt, self.width // 2 - (len(txt) * 16 // 2), y_offset, Color.WHITE)
+                    txt: str = f"{stat.get('name')}: {stat.get('point')}"
+                    txt = txt.encode("utf-8")
+                    draw_text(self.renderer, self.font, txt,
+                              self.width // 2 - (len(txt) * 16 // 2),
+                              y_offset, Color.WHITE)
                     y_offset += 30
                     i += 1
 
     def set_can_draw_main(self) -> None:
         self.menu_state.current = self.menu_state.state_lst[0]
+        if hasattr(self, 'instruction_win') and hasattr(
+                self.instruction_win, 'reset'):
+            self.instruction_win.reset()
+
+    def handle_escape(self) -> bool:
+        if self.menu_state.current != self.menu_state.state_lst[0]:
+            self.set_can_draw_main()
+            return True
+        return False
+
+    def handle_event(self, event) -> bool:
+        if self.menu_state.current == self.menu_state.state_lst[1]:
+            if hasattr(self.instruction_win, 'handle_event'):
+                return self.instruction_win.handle_event(event)
+        return False
 
     def set_can_draw_settings(self) -> None:
         self.menu_state.current = self.menu_state.state_lst[2]
@@ -149,14 +173,20 @@ class MainMenu:
 
     def draw_background(self) -> None:
         clear_background(self.pixels, self.get_rainbow_color(self.time * 0.2))
-        draw_sin_a(self.pixels, self.width, self.height, int(self.height * 0.5), 50, 0.01, 100, Color.ST_WHITE, self.time)
-        draw_sin_a(self.pixels, self.width, self.height, int(self.height * 0.5), 50, -0.02, 60, Color.ST_WHITE, self.time)
+        draw_sin_a(self.pixels, self.width, self.height,
+                   int(self.height * 0.5), 50, 0.01, 100,
+                   Color.ST_WHITE, self.time)
+        draw_sin_a(self.pixels, self.width, self.height,
+                   int(self.height * 0.5), 50, -0.02, 60,
+                   Color.ST_WHITE, self.time)
         for btn in self.btn_list:
             btn.draw_background()
         pixel_ptr = get_ptr(self.pixels)
-        sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
+        sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr,
+                               self.pitch_background)
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
-        draw_sprites(self.renderer, self.logo, ((self.width // 2) - (self.logo.width * 5 // 2)), 0, 5)
+        draw_sprites(self.renderer, self.logo, ((
+            self.width // 2) - (self.logo.width * 5 // 2)), 0, 5)
         for btn in self.btn_list:
             btn.draw_text(Color.BLACK)
         self.draw_scores()
@@ -171,9 +201,11 @@ class MainMenu:
 
     def draw_main_menu(self) -> None:
         if self.menu_state.current == self.menu_state.state_lst[2]:
-            self.settings_win.draw_settings(self.time, self.get_rainbow_color(self.time * 0.2))
+            self.settings_win.draw_settings(
+                self.time, self.get_rainbow_color(self.time * 0.2))
         elif self.menu_state.current == self.menu_state.state_lst[1]:
-            self.instruction_win.draw_instructions(self.time, self.get_rainbow_color(self.time * 0.2))
+            self.instruction_win.draw_instructions(
+                self.time, self.get_rainbow_color(self.time * 0.2))
         elif self.menu_state.current == self.menu_state.state_lst[0]:
             self.draw_background()
         draw_fps(self.renderer, self.font, self.game_state.fps)

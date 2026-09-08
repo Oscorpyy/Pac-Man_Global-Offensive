@@ -68,7 +68,7 @@ class MazeGenerator:
                     [0, 0, 1, 0, 1, 1, 1]
                     ]
         if len(ft_small)*2 > self._height or len(ft_small[0])*2 > self._width:
-            print("MazeGenerator Warning: maze is too small to add '42' in it")
+            # print("MazeGenerator Warning: maze is too small to add '42' in it")
             return
         posy = int((self._height - len(ft_small)) / 2)
         posx = int((self._width - len(ft_small[0])) / 2)

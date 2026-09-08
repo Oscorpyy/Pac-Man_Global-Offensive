@@ -3,7 +3,9 @@ import sdl2
 import sdl2.sdlimage as sdim
 from src.color import Color
 from src.game_state import GameConfig, GameState, ScenePossible
-from src.drawing_methods import clear_background, draw_rect_full, draw_sprites, draw_sprites_fullscreen
+from src.drawing_methods import (clear_background,
+                                 draw_rect_full,
+                                 draw_sprites_fullscreen)
 from src.scene.helper import get_ptr
 from src.image import Image
 
@@ -25,7 +27,7 @@ class Transition:
             self.height
         )
         sdim.IMG_Init(sdim.IMG_INIT_PNG)
-        self.img_transition =  Image(b"assets/img_transition.png", renderer)
+        self.img_transition = Image(b"assets/img_transition.png", renderer)
         self.img_x = -self.width
         sdl2.SDL_SetTextureBlendMode(self.background, sdl2.SDL_BLENDMODE_BLEND)
         self.pitch_background = self.width * 4
@@ -78,7 +80,8 @@ class Transition:
             self.transition_on = False
             self.sens_transition = False
             self.img = False
-        draw_sprites_fullscreen(self.renderer, self.img_transition, self.img_x, 0, 1, self.width, self.height)
+        draw_sprites_fullscreen(self.renderer, self.img_transition,
+                                self.img_x, 0, 1, self.width, self.height)
 
     def intro_transition(self) -> None:
         if not self.sens_transition:
@@ -97,11 +100,21 @@ class Transition:
         final_color = (self.intro_fade_color << 24) | 0x000000
         clear_background(self.pixels, final_color)
         pixel_ptr = get_ptr(self.pixels)
-        sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr, self.pitch_background)
+        sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr,
+                               self.pitch_background)
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
 
     def set_scene_to_put(self, scene: ScenePossible) -> None:
         self.scene_to_put = scene
+
+    def start_image_transition(self, target_scene: ScenePossible) -> None:
+        self.img_x = -self.width
+        self.sens_transition = False
+        self.scene_to_put = target_scene
+        self.img = True
+        self.rect = False
+        self.intro = False
+        self.transition_on = True
 
     def draw_transition(self) -> None:
         if self.rect is True:
