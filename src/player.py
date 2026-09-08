@@ -1,4 +1,13 @@
 import math
+import ctypes
+import sdl2
+from src.camera import Camera
+from src.image import Image
+from src.drawing_methods import draw_sprite_sheet
+from src.color import Color
+from src.bullet import Bullet
+from src.game_state import GameConfig
+import numpy as np
 import numpy as np
 from src.camera import Camera
 from src.image import Image
@@ -33,7 +42,8 @@ def _can_move(x: int, y: int, direction: int,
 
 
 class CsPlayer:
-    def __init__(self, sprite: Image, cam: Camera) -> None:
+    def __init__(self, sprite: Image, cam: Camera, config: GameConfig) -> None:
+        self.config = config
         self.pos_x: int = 0
         self.pos_y: int = 0
         self.can_move: bool = True
@@ -50,13 +60,22 @@ class CsPlayer:
         self.key_a: bool = False
         self.key_d: bool = False
         self.key_e: bool = False
+        self.left_mouse_click: int
+        self.bullet_lst: list = []
+        self.can_shoot: bool = False
+        self.shoot_timer: float = 4
 
-    def update(self) -> None:
+    def update(self, dt: float) -> None:
         self.tick_counter += 1
         if self.tick_counter >= self.animation_speed:
             self.tick_counter = 0
             self.current_frame += 1
             self.current_frame = self.current_frame % self.frame_number
+        if self.shoot_timer > 0:
+            self.shoot_timer -= dt
+            self.can_shoot = False
+        elif self.shoot_timer < 0:
+            self.can_shoot = True
 
     def draw_player(self, renderer, scale: int, mouse_x: int,
                     mouse_y: int) -> None:
@@ -92,6 +111,60 @@ class CsPlayer:
         elif direction_index == 2:
             draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y,
                               self.current_frame, scale)
+
+    def shoot(self, renderer) -> None:
+        mouse_x, mouse_y = ctypes.c_int(0), ctypes.c_int(0)
+        left_mouse_click = sdl2.mouse.SDL_GetMouseState(ctypes.byref(mouse_x), ctypes.byref(mouse_y))
+        if left_mouse_click == 1 and self.can_shoot is True:
+            self.shoot_timer = 0.3
+            self.can_shoot = False
+            new_bullet = Bullet(renderer, x=self.pos_x, y=self.pos_y)
+            new_bullet.set_direction(mouse_x, mouse_y, self.config.screen_width, self.config.screen_height)
+            self.bullet_lst.append(new_bullet)
+
+    def draw_bullet_lst(self, offset_x, offset_y) -> None:
+        for bullet in self.bullet_lst:
+            bullet.draw_bullet(offset_x, offset_y)
+            bullet.update_pos()
+
+    def kill_bullet(self, tilemap) -> None:
+        i = 0
+        for bullet in self.bullet_lst:
+            if bullet.max_travel < 0:
+                self.bullet_lst.pop(i)
+            if self.check_bullet_collide_wall(bullet.x + bullet.speed, bullet.y + bullet.speed, tilemap) is False:
+                self.bullet_lst.pop(i)
+        i += 1
+
+    def check_bullet_collide_wall(self, pos_x: int, pos_y: int, tilemap) -> bool:
+        x = 0
+        y = 0
+        tile_count = 0
+        bullet_size: int = 32
+        for tile in tilemap:
+            if tile != 0:
+                if (pos_x + bullet_size > x and pos_x < x + 32 and
+                    pos_y + bullet_size > y and pos_y < y + 32):
+                    return False
+            tile_count += 1
+            x += 32
+            if tile_count > 39:
+                x = 0
+                tile_count = 0
+                y += 32
+        return True
+
+    def check_bullet_collide_ennemy(self, lst_ennemy, x: int, y: int) -> bool:
+        bullet_size: int = 32
+        i = 0
+        for ennemy in lst_ennemy:
+            if (ennemy.pos_x + bullet_size > x and ennemy.pos_x < x + 32 and
+                ennemy.pos_y + bullet_size > y and ennemy.pos_y < y + 32):
+                lst_ennemy.pop(i)
+                return True
+            i += 1
+        return False
+
 
 
 class PacPlayer:

@@ -3,7 +3,7 @@ import sdl2.sdlttf as sttf
 import sdl2.sdlimage as sdim
 import numpy as np
 import ctypes
-import time
+import random
 from src.game_state import GameConfig, GameState
 from src.drawing_methods import clear_background, draw_fps, draw_rect_full, draw_sprite_sheet, draw_sprites, draw_text
 from src.color import Color
@@ -14,6 +14,8 @@ from src.camera import Camera
 from src.player import CsPlayer
 from src.transition import Transition
 from src.scene.game.CS.bot import CsBot
+from src.scene.game.CS.bot import ZoneMovement
+from src.scene.game.CS.cam import CameraProps
 
 
 class MouseVector2:
@@ -46,20 +48,26 @@ class SecretGame:
         self.enemy_sprite = Image(b"assets/terrorist/terrorist_sheet.png", self.renderer)
         self.bomba = Image(b"assets/3D_model/little_bomba.png", self.renderer)
         self.character_icons = Image(b"assets/character_icons.png", self.renderer)
+        self.camera = Image(b"assets/cam/cam_sheet.png", self.renderer)
         sttf.TTF_Init()
         self.font_size = 16
         self.font = sttf.TTF_OpenFont(b"assets/Press_Start_2P/PressStart2P-Regular.ttf", self.font_size)
         if not self.font:
             print_error(f"can't charge font {sttf.TTF_GetError()}")
-        self.player = CsPlayer(self.player_sprite, cam)
+        self.player = CsPlayer(self.player_sprite, cam, config)
         self.ennemy_lst: list = [
-                CsBot(self.enemy_sprite, cam),
-                CsBot(self.enemy_sprite, cam),
-                CsBot(self.enemy_sprite, cam),
-                CsBot(self.enemy_sprite, cam),
-                CsBot(self.enemy_sprite, cam),
+                CsBot(self.enemy_sprite, cam, ZoneMovement().zone_lst[0]),
+                CsBot(self.enemy_sprite, cam, ZoneMovement().zone_lst[1]),
+                CsBot(self.enemy_sprite, cam, ZoneMovement().zone_lst[2]),
+                CsBot(self.enemy_sprite, cam, ZoneMovement().zone_lst[3]),
+                CsBot(self.enemy_sprite, cam, ZoneMovement().zone_lst[4]),
         ]
-        self.ennemy = CsBot(self.enemy_sprite, cam)
+        self.camera_lst: list[CameraProps] = [
+            CameraProps(current_frame=random.randint(0, 25)),
+            CameraProps(current_frame=random.randint(0, 25)),
+            CameraProps(current_frame=random.randint(0, 25)),
+            CameraProps(current_frame=random.randint(0, 25)),
+        ]
         self.ennemy_number: int = 5
         self.default_player_pos_x = 32 * 2
         self.default_player_pos_y = 32 * 35
@@ -108,7 +116,16 @@ class SecretGame:
                 if tile == 0:
                     pass
                 elif (screen_x > -tile_scaled and screen_x < self.width) and (screen_y > -tile_scaled and screen_y < self.height):
-                    draw_sprite_sheet(renderer, map_tiles, (x * scale) - cam_scaled_x, (y * scale) - cam_scaled_y, tile - 97, scale)
+                    if tile - 97 == 88:
+                        draw_sprite_sheet(renderer, self.camera, (x * scale) - cam_scaled_x, (y * scale) - cam_scaled_y, self.camera_lst[0].current_frame, scale)
+                    elif tile - 97 == 89:
+                        draw_sprite_sheet(renderer, self.camera, (x * scale) - cam_scaled_x, (y * scale) - cam_scaled_y, self.camera_lst[1].current_frame + 25, scale)
+                    elif tile - 97 == 90:
+                        draw_sprite_sheet(renderer, self.camera, (x * scale) - cam_scaled_x, (y * scale) - cam_scaled_y, self.camera_lst[2].current_frame + 50, scale)
+                    elif tile - 97 == 91:
+                        draw_sprite_sheet(renderer, self.camera, (x * scale) - cam_scaled_x, (y * scale) - cam_scaled_y, self.camera_lst[3].current_frame + 75, scale)
+                    else:
+                        draw_sprite_sheet(renderer, map_tiles, (x * scale) - cam_scaled_x, (y * scale) - cam_scaled_y, tile - 97, scale)
                 tile_count += 1
                 x += 32
                 if tile_count > 39:
@@ -188,6 +205,13 @@ class SecretGame:
                     self.player.can_shoot = False
                     self.round_start_timer = 4
                     self.round_timer = 49.0
+                    self.ennemy_lst = [
+                        CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[0]),
+                        CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[1]),
+                        CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[2]),
+                        CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[3]),
+                        CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[4]),
+                    ]
             if self.player.key_e is False:
                 self.player_diffuse_time = 0
         else:
@@ -223,8 +247,9 @@ class SecretGame:
     def draw_number_player(self) -> None:
         draw_sprite_sheet(self.renderer, self.character_icons, (self.width // 2) - 100, 10, self.current_icons_frame + 24, 2)
         draw_sprite_sheet(self.renderer, self.character_icons, (self.width // 2) + 50, 10, self.current_icons_frame, 2)
+        ennemy_number = f"{len(self.ennemy_lst)}"
         draw_text(self.renderer, self.font, b"1", (self.width // 2) - 100, 10, Color.WHITE)
-        draw_text(self.renderer, self.font, b"0", (self.width // 2) + 50, 10, Color.WHITE)
+        draw_text(self.renderer, self.font, ennemy_number.encode(), (self.width // 2) + 50, 10, Color.WHITE)
 
     def update_timers(self) -> None:
         self.round_timer -= self.game_state.dt
@@ -240,6 +265,13 @@ class SecretGame:
             self.player.pos_x = self.default_player_pos_x
             self.player.pos_y = self.default_player_pos_y
             self.game_state.cs_round_loose += 1
+            self.ennemy_lst = [
+                CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[0]),
+                CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[1]),
+                CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[2]),
+                CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[3]),
+                CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[4]),
+            ]
 
     def update_character_icons(self) -> None:
         frame_number = 24
@@ -266,12 +298,44 @@ class SecretGame:
         self.draw_number_player()
         if self.player.can_move is True:
             self.update_player_pos()
-        self.player.update()
+        self.player.update(self.game_state.dt)
+        self.player.shoot(self.renderer)
+        self.player.draw_bullet_lst(self.cam.offset_x, self.cam.offset_y)
+        self.player.kill_bullet(self.tilemap_data[3])
+        i = 0
+        for bullet in self.player.bullet_lst:
+            if self.player.check_bullet_collide_ennemy(self.ennemy_lst, bullet.x, bullet.y) is True:
+                self.player.bullet_lst.pop(i)
+            i += 1
         for bot in self.ennemy_lst:
             bot.get_next_location()
-            bot.detect_player()
+            bot.detect_player(self.player.pos_x, self.player.pos_y, self.renderer)
             bot.move_bot()
-            bot.update()
+            i = 0
+            for bullet in bot.bullet_lst:
+                if bot.kill_bullet(self.tilemap_data[3]) is True:
+                    bot.bullet_lst.pop(i)
+                if bot.check_bullet_collide_ennemy(bullet.x, bullet.y, self.player.pos_x, self.player.pos_y) is True:
+                    self.game_state.cs_round_loose += 1
+                    self.player_diffuse_time = 0.0
+                    self.player.pos_x = self.default_player_pos_x
+                    self.player.pos_y = self.default_player_pos_y
+                    self.player.can_move = False
+                    self.player.can_shoot = False
+                    self.round_start_timer = 4
+                    self.round_timer = 49.0
+                    self.ennemy_lst = [
+                        CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[0]),
+                        CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[1]),
+                        CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[2]),
+                        CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[3]),
+                        CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[4]),
+                    ]
+                i += 1
+            bot.draw_bullet(self.cam.offset_x, self.cam.offset_y)
+            bot.update(self.game_state)
+        for cam in self.camera_lst:
+            cam.update()
         self.defuse_bomb()
         self.update_cam_mouse_move(2)
         self.update_timers()
