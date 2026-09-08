@@ -91,7 +91,7 @@ class Game:
         self.current_level = 1
         self.remaining_life = (int(self.config.lives)
                                if self.config.lives is not None else 3)
-        self.level_start_time = time.time()
+        self.level_start_time = time.time() + 3.0
         self.pause_start_time = 0.0
         self.countdown_end_time = None
         self.transition_was_active = False
@@ -464,7 +464,7 @@ class Game:
 
             player_pos = (self.player.pos_x, self.player.pos_y)
             for ghost in self.ghosts:
-                ghost.update(dt, player_pos)
+                ghost.update(dt, player_pos, time_left, max_time)
                 if ghost.is_dead:
                     continue
                 if ghost.is_vulnerable:
@@ -501,8 +501,8 @@ class Game:
         self.draw_countdown()
 
     def _start_countdown(self) -> None:
-        self.level_start_time = time.time()
-        self.countdown_end_time = self.level_start_time + 3.0
+        self.countdown_end_time = time.time() + 3.0
+        self.level_start_time = self.countdown_end_time
 
     def _countdown_active(self) -> bool:
         if self.countdown_end_time is None:
