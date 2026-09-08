@@ -35,7 +35,7 @@ class GameState:
 
     @property
     def point(self) -> int:
-        if self._point > 2147483647:
+        if self._point > 2147483648:
             self._point = 2147483647
         return self._point
 
@@ -45,7 +45,7 @@ class GameState:
 
     @point.setter
     def point(self, value: int) -> None:
-        if value > 2147483647:
+        if value > 2147483648:
             self._point = 2147483647
         else:
             self._point = value

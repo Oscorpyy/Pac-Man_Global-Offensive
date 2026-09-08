@@ -731,7 +731,7 @@ class Game:
         if cheat_id == "life":
             self.remaining_life += 1
         elif cheat_id == "score":
-            if self.game_state.get_points() >= 2147483647:
+            if self.game_state.get_points() >= 2147483648:
                 pass
             else:
                 self.game_state.point += 500

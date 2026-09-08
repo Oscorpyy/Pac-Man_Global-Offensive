@@ -10,7 +10,7 @@
         },
         {
             "name": "LeDaronChauveDeCobussie",
-            "point": 2147483646
+            "point": 2147483647
         },
         {
             "name": "neuillle",
@@ -23,6 +23,10 @@
         {
             "name": "niquezebi",
             "point": 50
+        },
+        {
+            "name": "opernod",
+            "point": 1800
         }
     ]
 }
