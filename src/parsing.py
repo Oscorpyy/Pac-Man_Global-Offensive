@@ -76,7 +76,7 @@ def check_file_content(path: str) -> bool | Any:
             return False
         highscore_path = validate_content.highscore_filename
         if (not os.path.isfile(highscore_path)
-            or not os.access(highscore_path, os.R_OK)):
+                or not os.access(highscore_path, os.R_OK)):
             print_error("Highscore file can't be found or read")
             return False
         return validate_content

@@ -4,14 +4,9 @@ import sdl2
 from src.camera import Camera
 from src.image import Image
 from src.drawing_methods import draw_sprite_sheet
-from src.color import Color
 from src.bullet import Bullet
 from src.game_state import GameConfig
 import numpy as np
-import numpy as np
-from src.camera import Camera
-from src.image import Image
-from src.drawing_methods import draw_sprite_sheet
 from src.ghost import BASE_GHOST_SPEED, VULNERABLE_DURATION
 
 DIR_MAP = {
@@ -114,12 +109,15 @@ class CsPlayer:
 
     def shoot(self, renderer) -> None:
         mouse_x, mouse_y = ctypes.c_int(0), ctypes.c_int(0)
-        left_mouse_click = sdl2.mouse.SDL_GetMouseState(ctypes.byref(mouse_x), ctypes.byref(mouse_y))
+        left_mouse_click = sdl2.mouse.SDL_GetMouseState(ctypes.byref(mouse_x),
+                                                        ctypes.byref(mouse_y))
         if left_mouse_click == 1 and self.can_shoot is True:
             self.shoot_timer = 0.3
             self.can_shoot = False
             new_bullet = Bullet(renderer, x=self.pos_x, y=self.pos_y)
-            new_bullet.set_direction(mouse_x, mouse_y, self.config.screen_width, self.config.screen_height)
+            new_bullet.set_direction(mouse_x, mouse_y,
+                                     self.config.screen_width,
+                                     self.config.screen_height)
             self.bullet_lst.append(new_bullet)
 
     def draw_bullet_lst(self, offset_x, offset_y) -> None:
@@ -132,11 +130,14 @@ class CsPlayer:
         for bullet in self.bullet_lst:
             if bullet.max_travel < 0:
                 self.bullet_lst.pop(i)
-            if self.check_bullet_collide_wall(bullet.x + bullet.speed, bullet.y + bullet.speed, tilemap) is False:
+            if self.check_bullet_collide_wall(bullet.x + bullet.speed,
+                                              bullet.y + bullet.speed,
+                                              tilemap) is False:
                 self.bullet_lst.pop(i)
         i += 1
 
-    def check_bullet_collide_wall(self, pos_x: int, pos_y: int, tilemap) -> bool:
+    def check_bullet_collide_wall(self, pos_x: int, pos_y: int,
+                                  tilemap) -> bool:
         x = 0
         y = 0
         tile_count = 0
@@ -144,7 +145,7 @@ class CsPlayer:
         for tile in tilemap:
             if tile != 0:
                 if (pos_x + bullet_size > x and pos_x < x + 32 and
-                    pos_y + bullet_size > y and pos_y < y + 32):
+                        pos_y + bullet_size > y and pos_y < y + 32):
                     return False
             tile_count += 1
             x += 32
@@ -159,12 +160,11 @@ class CsPlayer:
         i = 0
         for ennemy in lst_ennemy:
             if (ennemy.pos_x + bullet_size > x and ennemy.pos_x < x + 32 and
-                ennemy.pos_y + bullet_size > y and ennemy.pos_y < y + 32):
+                    ennemy.pos_y + bullet_size > y and ennemy.pos_y < y + 32):
                 lst_ennemy.pop(i)
                 return True
             i += 1
         return False
-
 
 
 class PacPlayer:
@@ -334,7 +334,8 @@ class PacPlayer:
 
         if self.is_moving:
             # 1. Demi-tour immédiat à 180° au milieu du couloir
-            if desired is not None and desired == OPPOSITE_DIR.get(self.direction, -1):
+            if desired is not None and desired == OPPOSITE_DIR.get(
+                    self.direction, -1):
                 self._pos_x, self.target_x = self.target_x, self._pos_x
                 self._pos_y, self.target_y = self.target_y, self._pos_y
                 self.progress = max(0.0, 1.0 - self.progress)

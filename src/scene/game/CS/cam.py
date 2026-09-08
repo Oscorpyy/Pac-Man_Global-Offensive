@@ -11,4 +11,3 @@ class CameraProps:
             self.tick_counter = 0
             self.current_frame += 1
             self.current_frame = self.current_frame % self.frame_number
-
