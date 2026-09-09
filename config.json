@@ -3,8 +3,8 @@
     "level_array_multiple_levels": [
         {
             "name": "level1",
-            "width": 30,
-            "height": 30
+            "width": 10,
+            "height": 10
         },
         {
             "name": "level2",

@@ -1,6 +1,7 @@
 import sdl2
 import sdl2.sdlimage as sdim
 import ctypes
+import json
 import re
 import sdl2.sdlttf as sttf
 
@@ -12,13 +13,13 @@ from src.image import Image
 
 class EndScreen:
     def __init__(self, renderer, game_state: GameState, width: int,
-                 height: int, image_path: str, save_callback,
+                 height: int, image_path: str, highscore_filename: str,
                  quit_callback) -> None:
         self.renderer = renderer
         self.game_state = game_state
         self.width = width
         self.height = height
-        self.save_callback = save_callback
+        self.highscore_filename = highscore_filename
         self.quit_callback = quit_callback
         self.image = Image(image_path, renderer)
         self.font = sttf.TTF_OpenFont(
@@ -26,8 +27,35 @@ class EndScreen:
         self.save_popup_open = False
         self.save_name = ""
         self.save_error = ""
-        self.max_save_name_length = 23
+        self.max_save_name_length = 10
         self.ignore_next_text_input = False
+
+    @staticmethod
+    def is_valid_save_name(save_name: str) -> bool:
+        return bool(re.fullmatch(r"[A-Za-z0-9 ]+", save_name))
+
+    def save_and_quit(self, save_name: str, on_success=None) -> bool:
+        """Save the current score and run the navigation callback."""
+        if not self.is_valid_save_name(save_name):
+            self.save_error = "INVALID NAME"
+            return False
+        try:
+            with open(self.highscore_filename, "r") as score_file:
+                score_data = json.load(score_file)
+            scores = score_data.get("scores", [])
+            scores.append({
+                "name": save_name,
+                "point": self.game_state.get_points(),
+            })
+            with open(self.highscore_filename, "w") as score_file:
+                json.dump({"scores": scores}, score_file, indent=4)
+        except (OSError, TypeError, ValueError):
+            self.save_error = "SCORE NOT SAVED"
+            return False
+        if on_success is None:
+            on_success = self.quit_callback
+        on_success()
+        return True
 
     def _get_buttons(self) -> list[dict]:
         button_w = min(700, self.width - 120)
@@ -72,28 +100,23 @@ class EndScreen:
         if not save_name:
             self.save_error = "NAME REQUIRED"
             return
-        if not re.fullmatch(r"[A-Za-z0-9_-]+", save_name):
-            self.save_error = "INVALID NAME"
-            return
-        if self.save_callback(save_name):
+        if self.save_and_quit(save_name):
             self._close_popup()
-        else:
-            self.save_error = "SCORE NOT SAVED"
 
     def _append_name(self, text: str) -> None:
         available = self.max_save_name_length - len(self.save_name)
         valid_text = "".join(
             char for char in text
-            if re.fullmatch(r"[A-Za-z0-9_-]", char)
+            if re.fullmatch(r"[A-Za-z0-9 ]", char)
         )
         invalid_count = len(text) - len(valid_text)
         if invalid_count > 0:
             self.save_error = "INVALID CHARACTER"
         if available <= 0:
-            self.save_error = "NAME TOO LONG (23 MAX)"
+            self.save_error = "NAME TOO LONG (10 MAX)"
             return
         if len(valid_text) > available:
-            self.save_error = "NAME TOO LONG (23 MAX)"
+            self.save_error = "NAME TOO LONG (10 MAX)"
         elif invalid_count == 0:
             self.save_error = ""
         self.save_name += valid_text[:available]
@@ -136,9 +159,6 @@ class EndScreen:
                     self.ignore_next_text_input = True
                 elif sdl2.SDLK_0 <= key <= sdl2.SDLK_9:
                     self._append_name(chr(key))
-                    self.ignore_next_text_input = True
-                elif key == sdl2.SDLK_MINUS:
-                    self._append_name("-")
                     self.ignore_next_text_input = True
                 return
             if event.type == sdl2.SDL_MOUSEBUTTONDOWN:
