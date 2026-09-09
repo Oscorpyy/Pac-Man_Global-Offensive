@@ -91,14 +91,15 @@ class Window:
         self.game = Game(renderer, game_state, self.config, transition)
         self.win_screen = EndScreen(
             renderer, game_state, self.width, self.height,
-            "assets/win_picture.png", self.game.end_screen_save_and_quit,
+            "assets/win_picture.png", self.config.highscore_filename,
             self.game.end_screen_quit
         )
         self.loose_screen = EndScreen(
             renderer, game_state, self.width, self.height,
-            "assets/loose_picture.png", self.game.end_screen_save_and_quit,
+            "assets/loose_picture.png", self.config.highscore_filename,
             self.game.end_screen_quit
         )
+        self.game.save_handler = self.win_screen
         self.cam = Camera()
         self.secret_game = SecretGame(renderer, game_state, self.config,
                                       de_office, self.cam, transition)

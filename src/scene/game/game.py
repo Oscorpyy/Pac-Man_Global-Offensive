@@ -1,7 +1,5 @@
 import math
 import random
-import json
-import re
 import sdl2
 import sdl2.sdlimage as sdim
 import time
@@ -44,7 +42,7 @@ class Game:
         self.paused = False
         self.save_name = ""
         self.save_error = ""
-        self.score_recorded = False
+        self.save_handler = None
         self.pause_start_time: float = 0.0
         self.countdown_end_time: float | None = None
         self.transition_was_active = False
@@ -99,7 +97,6 @@ class Game:
         self.paused = False
         self.save_name = ""
         self.save_error = ""
-        self.score_recorded = False
         self.invincible = False
         self.ghosts_killed = False
         self.game_state.point = 0
@@ -206,49 +203,16 @@ class Game:
         self.needs_reset = True
 
     def _save_and_quit(self) -> None:
-        if not re.fullmatch(r"[A-Za-z0-9_-]+", self.save_name):
-            self.save_error = "INVALID NAME"
+        if self.save_handler is None:
+            self.save_error = "SCORE NOT SAVED"
             return
-
-        if not self._record_score():
-            return
-        self._quit_to_menu()
-
-    def end_screen_save_and_quit(self, save_name: str) -> bool:
-        self.save_name = save_name
-        if not re.fullmatch(r"[A-Za-z0-9_-]+", self.save_name):
-            return False
-        if not self._record_score():
-            return False
-        self.reset()
-        self.game_state.scene = ScenePossible.MAIN
-        return True
+        if not self.save_handler.save_and_quit(self.save_name,
+                                               self._quit_to_menu):
+            self.save_error = self.save_handler.save_error
 
     def end_screen_quit(self) -> None:
         self.reset()
         self.game_state.scene = ScenePossible.MAIN
-
-    def _record_score(self) -> bool:
-        if self.score_recorded:
-            return True
-
-        score_path = self.config.highscore_filename
-        score_name = self.save_name
-        try:
-            with open(score_path, "r") as score_file:
-                score_data = json.load(score_file)
-            scores = score_data.get("scores", [])
-            scores.append({
-                "name": score_name,
-                "point": self.game_state.get_points(),
-            })
-            with open(score_path, "w") as score_file:
-                json.dump({"scores": scores}, score_file, indent=4)
-            self.score_recorded = True
-            return True
-        except (OSError, TypeError, ValueError):
-            self.save_error = "SCORE NOT SAVED"
-            return False
 
     def handle_event(self, event) -> None:
         """
@@ -293,7 +257,8 @@ class Game:
         if event.type == sdl2.SDL_TEXTINPUT and self.paused:
             text_bytes = bytes(event.text.text).split(b"\0", 1)[0]
             text = text_bytes.decode("utf-8", errors="ignore")
-            if re.fullmatch(r"[A-Za-z0-9_-]+", text):
+            if (self.save_handler is not None
+                    and self.save_handler.is_valid_save_name(text)):
                 available = self.MAX_SAVE_NAME_LENGTH - len(self.save_name)
                 if available > 0:
                     self.save_name += text[:available]
