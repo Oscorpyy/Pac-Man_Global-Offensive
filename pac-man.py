@@ -6,6 +6,7 @@ from src.game_state import GameConfig
 
 
 def main() -> None:
+    """Validate configuration file and run the game main loop."""
     if check_config_file(sys.argv) is False:
         print_error("Config file invalid")
         return

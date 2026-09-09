@@ -15,17 +15,32 @@ from src.scene.end_screen.end import EndScreen
 
 class Window:
     def __init__(self, config: GameConfig) -> None:
+        """Initialize Window manager with configuration parameters.
+
+        Args:
+            config: The game configuration object.
+        """
         self.config = config
         self.width = self.config.screen_width
         self.height = self.config.screen_height
 
     def init_window(self) -> int:
+        """Initialize the SDL2 video subsystem.
+
+        Returns:
+            0 on success, or -1 on error.
+        """
         if sdl2.SDL_Init(sdl2.SDL_INIT_VIDEO) != 0:
             print_error(f"initialisation error with SDL {sdl2.SDL_GetError()}")
             return -1
         return 0
 
     def create_window(self) -> sdl2.SDL_Window | int:
+        """Create and display the primary SDL window.
+
+        Returns:
+            SDL_Window instance on success, or -1 on error.
+        """
         window = sdl2.SDL_CreateWindow(
                 b"Pac-Man",
                 sdl2.SDL_WINDOWPOS_CENTERED, sdl2.SDL_WINDOWPOS_CENTERED,
@@ -38,6 +53,11 @@ class Window:
         return window
 
     def scene_to_free(self, game_state: GameState) -> None:
+        """Free resources for the currently active scene upon exit.
+
+        Args:
+            game_state: Current game state indicating active scene.
+        """
         match game_state.scene:
             case ScenePossible.MAIN:
                 self.main.clean_up()
@@ -51,6 +71,11 @@ class Window:
                 self.loose_screen.clean_up()
 
     def get_secret_map_data(self) -> list:
+        """Load and parse the secret CS map tile layers from JSON.
+
+        Returns:
+            A list of layer tile matrices.
+        """
         map_tiles = []
         try:
             with open("assets/de_office.json") as f:
@@ -71,6 +96,7 @@ class Window:
         return map_tiles
 
     def main_loop(self) -> None:
+        """Run the main application loop, dispatching scenes and events."""
         if self.init_window() == -1:
             return
         print_info("window init successful")

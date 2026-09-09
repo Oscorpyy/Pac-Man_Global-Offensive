@@ -14,6 +14,13 @@ class Transition:
     def __init__(self, renderer: sdl2.render.SDL_Renderer,
                  game_state: GameState,
                  config: GameConfig) -> None:
+        """Initialize the scene transition manager and textures.
+
+        Args:
+            renderer: SDL renderer used for drawing transitions.
+            game_state: The shared global game state.
+            config: Game configuration containing screen dimensions.
+        """
         self.transition_on = False
         self.game_state = game_state
         self.scene_to_put: ScenePossible
@@ -42,10 +49,12 @@ class Transition:
         self.img: bool = False
 
     def clean_up(self) -> None:
+        """Release allocated transition textures."""
         sdl2.SDL_DestroyTexture(self.background)
         sdl2.SDL_DestroyTexture(self.img_transition.texture)
 
     def rect_transition(self) -> None:
+        """Update and render a sliding blue rectangle transition."""
         rect_height = self.height
         clear_background(self.pixels, 0x00000000)
         draw_rect_full(self.pixels, self.rect_width, rect_height, Color.BLUE)
@@ -67,6 +76,7 @@ class Transition:
                 self.rect = False
 
     def image_transition(self) -> None:
+        """Update and render a sliding image overlay transition."""
         dynamic_speed = int(max(5, abs(self.img_x) * 0.09))
         if not self.sens_transition:
             self.img_x += dynamic_speed
@@ -85,6 +95,7 @@ class Transition:
                                 self.img_x, 0, 1, self.width, self.height)
 
     def intro_transition(self) -> None:
+        """Update and render a fading black intro overlay transition."""
         if not self.sens_transition:
             self.intro_fade_color += 5
             if self.intro_fade_color >= 255:
@@ -106,9 +117,19 @@ class Transition:
         sdl2.SDL_RenderCopy(self.renderer, self.background, None, None)
 
     def set_scene_to_put(self, scene: ScenePossible) -> None:
+        """Set the target scene to switch to at transition peak.
+
+        Args:
+            scene: Target scene enum value.
+        """
         self.scene_to_put = scene
 
     def start_image_transition(self, target_scene: ScenePossible) -> None:
+        """Begin an image transition targeting a new scene.
+
+        Args:
+            target_scene: Target scene enum value to activate.
+        """
         self.img_x = -self.width
         self.sens_transition = False
         self.scene_to_put = target_scene
@@ -118,6 +139,7 @@ class Transition:
         self.transition_on = True
 
     def draw_transition(self) -> None:
+        """Render the active transition effect if one is running."""
         if self.rect is True:
             self.rect_transition()
         if self.intro is True:

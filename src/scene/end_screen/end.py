@@ -5,6 +5,7 @@ import json
 import re
 import sdl2.sdlttf as sttf
 
+from typing import Any
 from src.color import Color
 from src.drawing_methods import draw_sprites_fullscreen, draw_text
 from src.game_state import GameState, ScenePossible
@@ -12,9 +13,21 @@ from src.image import Image
 
 
 class EndScreen:
-    def __init__(self, renderer, game_state: GameState, width: int,
+    def __init__(self, renderer: sdl2.render.SDL_Renderer,
+                 game_state: GameState, width: int,
                  height: int, image_path: str, highscore_filename: str,
-                 quit_callback) -> None:
+                 quit_callback: Any) -> None:
+        """Initialize the end game screen (win/loss) with UI elements.
+
+        Args:
+            renderer: SDL renderer instance.
+            game_state: Global game state.
+            width: Screen width in pixels.
+            height: Screen height in pixels.
+            image_path: Path to background outcome image.
+            highscore_filename: Path to high score JSON file.
+            quit_callback: Callback function invoked when quitting to menu.
+        """
         self.renderer = renderer
         self.game_state = game_state
         self.width = width
@@ -32,9 +45,17 @@ class EndScreen:
 
     @staticmethod
     def is_valid_save_name(save_name: str) -> bool:
+        """Check whether candidate player name contains valid characters.
+
+        Args:
+            save_name: Player name string.
+
+        Returns:
+            True if name contains only alphanumeric and space characters.
+        """
         return bool(re.fullmatch(r"[A-Za-z0-9 ]+", save_name))
 
-    def save_and_quit(self, save_name: str, on_success=None) -> bool:
+    def save_and_quit(self, save_name: str, on_success: Any = None) -> bool:
         """Save the current score and run the navigation callback."""
         if not self.is_valid_save_name(save_name):
             self.save_error = "INVALID NAME"
@@ -58,6 +79,11 @@ class EndScreen:
         return True
 
     def _get_buttons(self) -> list[dict]:
+        """Compute layout rectangles and metadata for main end buttons.
+
+        Returns:
+            List of dictionaries containing button properties.
+        """
         button_w = min(700, self.width - 120)
         button_x = (self.width - button_w) // 2
         button_y = self.height // 2 + 170
@@ -69,6 +95,11 @@ class EndScreen:
         ]
 
     def _select(self, button_id: str) -> None:
+        """Trigger action associated with selected button ID.
+
+        Args:
+            button_id: Identifier of button clicked ('save' or 'quit').
+        """
         if button_id == "save":
             self.save_popup_open = True
             self.save_name = ""
@@ -79,6 +110,11 @@ class EndScreen:
             self.quit_callback()
 
     def _get_popup_buttons(self) -> list[dict]:
+        """Compute layout rectangles for save popup confirm/cancel buttons.
+
+        Returns:
+            List of dictionaries containing popup button specifications.
+        """
         popup_w = min(700, self.width - 120)
         popup_x = (self.width - popup_w) // 2
         popup_y = (self.height - 280) // 2
@@ -91,11 +127,13 @@ class EndScreen:
         ]
 
     def _close_popup(self) -> None:
+        """Close the save score popup and stop SDL text input mode."""
         self.save_popup_open = False
         self.save_error = ""
         sdl2.SDL_StopTextInput()
 
     def _confirm_save(self) -> None:
+        """Validate input name and persist score to highscores file."""
         save_name = self.save_name
         if not save_name:
             self.save_error = "NAME REQUIRED"
@@ -104,6 +142,11 @@ class EndScreen:
             self._close_popup()
 
     def _append_name(self, text: str) -> None:
+        """Append filtered characters to the active save name buffer.
+
+        Args:
+            text: Raw character text entered by player.
+        """
         available = self.max_save_name_length - len(self.save_name)
         valid_text = "".join(
             char for char in text
@@ -124,6 +167,12 @@ class EndScreen:
         self.save_name += valid_text[:available]
 
     def _handle_popup_click(self, mouse_x: int, mouse_y: int) -> None:
+        """Process mouse clicks inside the save popup dialog.
+
+        Args:
+            mouse_x: Click horizontal coordinate.
+            mouse_y: Click vertical coordinate.
+        """
         for button in self._get_popup_buttons():
             if (button["x"] <= mouse_x <= button["x"] + button["w"]
                     and button["y"] <= mouse_y
@@ -134,7 +183,12 @@ class EndScreen:
                     self._close_popup()
                 return
 
-    def handle_event(self, event) -> None:
+    def handle_event(self, event: sdl2.events.SDL_Event) -> None:
+        """Handle keyboard and mouse events on the end game screen.
+
+        Args:
+            event: Incoming SDL event to process.
+        """
         if self.game_state.scene not in (ScenePossible.WIN,
                                          ScenePossible.LOOSE):
             return
@@ -186,6 +240,7 @@ class EndScreen:
                     return
 
     def draw(self) -> None:
+        """Render the end screen background, score, and UI buttons."""
         draw_sprites_fullscreen(
             self.renderer, self.image, 0, 0, 1, self.width, self.height
         )
@@ -226,6 +281,7 @@ class EndScreen:
                   Color.WHITE, 1)
 
     def _draw_save_popup(self) -> None:
+        """Render modal save score dialog with text field and buttons."""
         popup_w = min(700, self.width - 120)
         popup_h = 280
         popup_x = (self.width - popup_w) // 2
@@ -282,6 +338,7 @@ class EndScreen:
                       Color.YELLOW, 1)
 
     def clean_up(self) -> None:
+        """Free loaded textures, fonts, and clean up SDL subsystems."""
         sdl2.SDL_DestroyTexture(self.image.texture)
         sttf.TTF_CloseFont(self.font)
         sdim.IMG_Quit()

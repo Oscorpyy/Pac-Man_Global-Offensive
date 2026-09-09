@@ -7,6 +7,17 @@ from typing import Any
 
 
 def load_json_file(path: str) -> Any:
+    """Load and parse a JSON file while stripping comments.
+
+    Args:
+        path: The file path to the JSON file to parse.
+
+    Returns:
+        The deserialized JSON data.
+
+    Raises:
+        ValueError: If an unterminated block comment is encountered.
+    """
     with open(path, "r") as file:
         content = file.read()
 
@@ -50,6 +61,14 @@ def load_json_file(path: str) -> Any:
 
 
 def file_is_good(path: str) -> bool:
+    """Check if a file exists and has a .json extension.
+
+    Args:
+        path: Path to the candidate file.
+
+    Returns:
+        True if the file exists and ends with .json, False otherwise.
+    """
     if os.path.exists(path) is False:
         print_error("File can't be find")
         return False
@@ -60,6 +79,14 @@ def file_is_good(path: str) -> bool:
 
 
 def check_file_content(path: str) -> bool | Any:
+    """Validate JSON content against the Config schema.
+
+    Args:
+        path: Path to the JSON configuration file.
+
+    Returns:
+        Validated Config model instance, or False if invalid.
+    """
     try:
         content = load_json_file(path)
     except (
@@ -88,6 +115,14 @@ def check_file_content(path: str) -> bool | Any:
 
 
 def check_config_file(argv: list) -> bool:
+    """Validate CLI arguments and configuration file suitability.
+
+    Args:
+        argv: Command-line arguments list.
+
+    Returns:
+        True if arguments and configuration file are valid, False otherwise.
+    """
     if len(argv) != 2:
         print_error("with the number of args given")
         return False

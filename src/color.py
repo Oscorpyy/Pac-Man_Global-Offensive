@@ -52,6 +52,14 @@ class Color(IntEnum):
 
 
 def color_to_sdl_color(color: Color) -> SDL_Color:
+    """Convert an ARGB Color enum value into an SDL_Color structure.
+
+    Args:
+        color: ARGB formatted color integer enum value.
+
+    Returns:
+        SDL_Color: Corresponding SDL color structure with r, g, b, a channels.
+    """
     b = color & 0xFF
     g = (color >> 8) & 0xFF
     r = (color >> 16) & 0xFF

@@ -6,6 +6,7 @@ import time
 import ctypes
 from sdl2 import sdlttf as sttf
 import numpy as np
+from typing import Any
 from src.scene.helper import get_ptr
 from src.game_state import GameConfig, GameState, ScenePossible
 from src.drawing_methods import draw_text, draw_sprites
@@ -21,8 +22,17 @@ from src.image import Image
 class Game:
     MAX_SAVE_NAME_LENGTH = 10
 
-    def __init__(self, renderer, game_state: GameState, config: GameConfig,
-                 transition: Transition):
+    def __init__(self, renderer: sdl2.render.SDL_Renderer,
+                 game_state: GameState, config: GameConfig,
+                 transition: Transition) -> None:
+        """Initialize the primary gameplay scene, maze, actors, and UI.
+
+        Args:
+            renderer: SDL renderer instance.
+            game_state: Global game state.
+            config: Game configuration options.
+            transition: Scene transition manager.
+        """
         self.transition = transition
         self.width = config.screen_width
         self.height = config.screen_height
@@ -42,7 +52,7 @@ class Game:
         self.paused = False
         self.save_name = ""
         self.save_error = ""
-        self.save_handler = None
+        self.save_handler: Any | None = None
         self.pause_start_time: float = 0.0
         self.countdown_end_time: float | None = None
         self.transition_was_active = False
@@ -84,7 +94,7 @@ class Game:
         self.spawn_ghosts()
 
     def reset(self) -> None:
-        """Réinitialise complètement une nouvelle partie."""
+        """Reset a completely new game session."""
         sdl2.SDL_StopTextInput()
         self.current_level = 1
         self.remaining_life = (int(self.config.lives)
@@ -117,13 +127,23 @@ class Game:
         self.spawn_ghosts()
 
     @staticmethod
-    def _safe_int(value, default: int) -> int:
+    def _safe_int(value: Any, default: int) -> int:
+        """Safely cast value to int or return default on error.
+
+        Args:
+            value: Value to cast to integer.
+            default: Default integer fallback value.
+
+        Returns:
+            Integer representation of value, or default on error.
+        """
         try:
             return int(value)
         except (TypeError, ValueError):
             return default
 
     def _place_player_at_spawn(self) -> None:
+        """Position player at the nearest open corridor tile to maze center."""
         maze = self.maze_levels[self.current_level - 1]
         maze_height = len(maze)
         maze_width = len(maze[0]) if maze_height > 0 else 0
@@ -143,7 +163,7 @@ class Game:
             self.player.pos_x, self.player.pos_y = candidates[0]
 
     def toggle_cheat_menu(self) -> None:
-        """Ouvre ou ferme le menu de cheat et gère la pause du jeu."""
+        """Toggle the cheat menu and update game pause state."""
         if not self.cheat_menu_open:
             self.cheat_menu_open = True
             self.pause_start_time = time.time()
@@ -162,7 +182,7 @@ class Game:
                 self.pause_start_time = 0.0
 
     def toggle_pause(self) -> None:
-        """Pauses or resumes the game without changing the scene."""
+        """Pause or resume the game without changing the scene."""
         if self.paused:
             sdl2.SDL_StopTextInput()
             if self.pause_start_time > 0.0:
@@ -189,7 +209,11 @@ class Game:
             self.player.next_direction = None
 
     def handle_escape(self) -> bool:
-        """Closes the cheat menu or toggles the pause menu."""
+        """Close the cheat menu or toggle the pause menu.
+
+        Returns:
+            bool: Always True indicating the event was handled.
+        """
         if self.cheat_menu_open:
             self.toggle_cheat_menu()
             return True
@@ -197,12 +221,14 @@ class Game:
         return True
 
     def _quit_to_menu(self) -> None:
+        """Stop text input, unpause, and transition back to main menu."""
         sdl2.SDL_StopTextInput()
         self.paused = False
         self.transition.start_image_transition(ScenePossible.MAIN)
         self.needs_reset = True
 
     def _save_and_quit(self) -> None:
+        """Persist score via save handler and return to main menu."""
         if self.save_handler is None:
             self.save_error = "SCORE NOT SAVED"
             return
@@ -211,12 +237,15 @@ class Game:
             self.save_error = self.save_handler.save_error
 
     def end_screen_quit(self) -> None:
+        """Reset game state and return to main menu from end screen."""
         self.reset()
         self.game_state.scene = ScenePossible.MAIN
 
-    def handle_event(self, event) -> None:
-        """
-        Gère les événements propres à la scène de jeu (clavier, etc.).
+    def handle_event(self, event: sdl2.events.SDL_Event) -> None:
+        """Handle game scene specific events such as keyboard and mouse.
+
+        Args:
+            event: SDL2 event instance to process.
         """
         if event.type == sdl2.SDL_MOUSEBUTTONDOWN:
             button = getattr(event.button, "button", 0)
@@ -348,6 +377,7 @@ class Game:
                 self.player.key_d = False
 
     def clean_up(self) -> None:
+        """Free textures and fonts allocated for the game scene."""
         sttf.TTF_CloseFont(self.font)
         sttf.TTF_Quit()
         sdim.IMG_Quit()
@@ -355,6 +385,15 @@ class Game:
         sdl2.SDL_DestroyTexture(self.cheat_button_img.texture)
 
     def _is_cheat_button_hovered(self, mouse_x: int, mouse_y: int) -> bool:
+        """Check if mouse cursor is within cheat menu icon bounding box.
+
+        Args:
+            mouse_x: Mouse horizontal coordinate.
+            mouse_y: Mouse vertical coordinate.
+
+        Returns:
+            True if hovered, False otherwise.
+        """
         button_x = (
             self.width - self.cheat_button_margin - self.cheat_button_size
         )
@@ -365,6 +404,7 @@ class Game:
         )
 
     def create_maze_levels(self) -> None:
+        """Generate all maze levels defined in the game configuration."""
         self.maze_levels = []
         levels = self.config.level_array_multiple_levels or []
         for level in levels:
@@ -381,6 +421,7 @@ class Game:
             self.maze_levels.append(maze.maze)
 
     def draw_game(self) -> None:
+        """Execute the gameplay tick and render maze, actors, and overlays."""
         if self.needs_reset:
             self.reset()
             self.needs_reset = False
@@ -467,10 +508,16 @@ class Game:
         self.draw_countdown()
 
     def _start_countdown(self) -> None:
+        """Start the 3-second level start countdown timer."""
         self.countdown_end_time = time.time() + 3.0
         self.level_start_time = self.countdown_end_time
 
     def _countdown_active(self) -> bool:
+        """Check whether the start level countdown is actively running.
+
+        Returns:
+            True if countdown is running or game is paused, False otherwise.
+        """
         if self.countdown_end_time is None:
             return False
         if self.paused or self.cheat_menu_open:
@@ -481,6 +528,7 @@ class Game:
         return True
 
     def draw_countdown(self) -> None:
+        """Render countdown overlay numbers (3, 2, 1) to screen."""
         countdown_end_time = self.countdown_end_time
         if (countdown_end_time is None or self.paused
                 or self.cheat_menu_open):
@@ -500,7 +548,11 @@ class Game:
                   Color.YELLOW, 3)
 
     def handle_ghost_collisions(self, maze_matrix: list[list[int]]) -> None:
-        """Gère les collisions entre Pac-Man et les fantômes."""
+        """Handle collisions between Pac-Man and ghosts.
+
+        Args:
+            maze_matrix: 2D matrix of current maze layout.
+        """
         px = getattr(self.player, 'render_x', float(self.player.pos_x))
         py = getattr(self.player, 'render_y', float(self.player.pos_y))
         player_pos = (self.player.pos_x, self.player.pos_y)
@@ -542,7 +594,7 @@ class Game:
             break
 
     def on_player_death(self) -> None:
-        """Removes one life and respawns, or shows the loose screen."""
+        """Remove one life and respawn, or show the game over screen."""
         if self.transition.transition_on:
             return
 
@@ -573,7 +625,7 @@ class Game:
         self._start_countdown()
 
     def spawn_ghosts(self) -> None:
-        """Positionne les 4 fantômes sur les emplacements des super-pacgums."""
+        """Position the four ghosts onto energizer spawn locations."""
         current_items = self.items_levels[self.current_level - 1]
         super_pacgum_positions = []
         maze_height = len(current_items)
@@ -609,6 +661,7 @@ class Game:
                 ghost.kill_permanently()
 
     def prev_level(self) -> None:
+        """Navigate to the previous level if not on level 1."""
         if self.current_level > 1:
             self.current_level -= 1
             self.level_start_time = time.time()
@@ -627,6 +680,7 @@ class Game:
         self.player.next_direction = None
 
     def next_level(self) -> None:
+        """Advance to the next level if not on final level."""
         max_levels = len(self.config.level_array_multiple_levels or [])
         if self.current_level < max_levels:
             self.current_level += 1
@@ -648,6 +702,11 @@ class Game:
         self.player.power_timer = 0.0
 
     def _get_cheat_menu_rect(self) -> tuple[int, int, int, int]:
+        """Compute (x, y, w, h) bounding rectangle for cheat modal.
+
+        Returns:
+            Tuple of (x, y, width, height) in pixels.
+        """
         menu_w = min(480, max(300, int(self.width * 0.8)))
         menu_h = min(360, max(260, int(self.height * 0.8)))
         menu_x = (self.width - menu_w) // 2
@@ -655,10 +714,20 @@ class Game:
         return (menu_x, menu_y, menu_w, menu_h)
 
     def _get_cheat_close_rect(self) -> tuple[int, int, int, int]:
+        """Compute (x, y, w, h) bounding box for cheat close button.
+
+        Returns:
+            Tuple of (x, y, width, height) in pixels.
+        """
         menu_x, menu_y, menu_w, _ = self._get_cheat_menu_rect()
         return (menu_x + menu_w - 30, menu_y + 10, 20, 20)
 
     def _get_cheat_buttons(self) -> list[dict]:
+        """Compute layout and properties for all cheat menu buttons.
+
+        Returns:
+            List of button configuration dictionaries.
+        """
         menu_x, menu_y, menu_w, _ = self._get_cheat_menu_rect()
 
         btn_w = min(210, (menu_w - 60) // 2)
@@ -698,6 +767,11 @@ class Game:
         ]
 
     def _apply_cheat(self, cheat_id: str) -> None:
+        """Apply requested cheat action by identifier.
+
+        Args:
+            cheat_id: Identifier of the cheat triggered.
+        """
         if cheat_id == "life":
             self.remaining_life += 1
         elif cheat_id == "score":
@@ -730,6 +804,7 @@ class Game:
             self.toggle_cheat_menu()
 
     def draw_cheat(self) -> None:
+        """Render cheat button icon and modal cheat menu if active."""
         button_x = (
             self.width - self.cheat_button_margin - self.cheat_button_size
         )
@@ -882,6 +957,7 @@ class Game:
         )
 
     def draw_pause(self) -> None:
+        """Render pause menu modal with save name input and buttons."""
         if not self.paused:
             return
 
@@ -957,6 +1033,11 @@ class Game:
                   menu_x + 24, menu_y + 238, Color.GRAY, 1)
 
     def _get_pause_buttons(self) -> list[dict]:
+        """Compute layout and properties for pause menu buttons.
+
+        Returns:
+            List of button specification dictionaries.
+        """
         menu_w = min(460, max(300, int(self.width * 0.72)))
         menu_h = 260
         menu_x = (self.width - menu_w) // 2
@@ -974,9 +1055,15 @@ class Game:
     def draw_maze(self, maze_matrix: list[list[int]], color_wall: int,
                   color_cel: int, start_x: int, start_y: int,
                   cellsize: int) -> None:
-        """
-        Dessine le labyrinthe directement depuis la matrice 2D sur le buffer.
-        Mis en cache par niveau pour des performances maximales à 60 FPS.
+        """Draw the maze directly from the 2D matrix into the pixel buffer.
+
+        Args:
+            maze_matrix: 2D matrix representing wall bitmasks.
+            color_wall: Color value for maze walls.
+            color_cel: Color value for corridors and empty cells.
+            start_x: Pixel X offset for the top-left of the maze.
+            start_y: Pixel Y offset for the top-left of the maze.
+            cellsize: Size of a single maze cell in pixels.
         """
         if (self.maze_buffer is None or
                 self.cached_maze_level != self.current_level or
@@ -1034,13 +1121,7 @@ class Game:
             np.copyto(self.pixels, self.maze_buffer)
 
     def create_items_levels(self) -> None:
-        """
-        Génère les emplacements des pacgums et super-pacgums pour chaque
-        niveau.
-        0 = Vide (centre ou case inaccessible)
-        1 = Pacgum (couloirs)
-        2 = Super-pacgum (4 coins)
-        """
+        """Generate pac-dot and energizer positions for each level."""
         self.items_levels = []
         for maze in self.maze_levels:
             maze_height = len(maze)
@@ -1069,9 +1150,15 @@ class Game:
     def draw_items(self, items_matrix: list[list[int]], color_pacgum: int,
                    color_super: int,
                    start_x: int, start_y: int, cellsize: int) -> None:
-        """
-        Dessine les pacgums (1) et super-pacgums (2) au centre exact des
-        couloirs.
+        """Draw pac-dots and energizers at corridor centers.
+
+        Args:
+            items_matrix: 2D matrix of items.
+            color_pacgum: Color value for regular dots.
+            color_super: Color value for energizers.
+            start_x: Pixel X offset for the top-left of the maze.
+            start_y: Pixel Y offset for the top-left of the maze.
+            cellsize: Size of a single maze cell in pixels.
         """
         maze_height = len(items_matrix)
         maze_width = len(items_matrix[0]) if maze_height > 0 else 0
@@ -1097,9 +1184,13 @@ class Game:
                     self.pixels[y1:y2, x1:x2] = color
 
     def check_level_complete(self, items_matrix: list[list[int]]) -> bool:
-        """
-        Vérifie si toutes les pac-gommes (1) et super pac-gommes (2)
-        ont été mangées dans la matrice actuelle.
+        """Check whether all pac-dots and energizers have been eaten.
+
+        Args:
+            items_matrix: 2D matrix of items for the current level.
+
+        Returns:
+            bool: True if no pac-dots or energizers remain, False otherwise.
         """
         for row in items_matrix:
             if 1 in row or 2 in row:
@@ -1107,8 +1198,12 @@ class Game:
         return True
 
     def draw_pacman_icon(self, cx: int, cy: int, radius: int = 7) -> None:
-        """
-        Dessine une icône Pac-Man jaune avec la bouche ouverte.
+        """Draw a yellow Pac-Man icon with an open mouth.
+
+        Args:
+            cx: Center X coordinate in pixels.
+            cy: Center Y coordinate in pixels.
+            radius: Radius of the icon circle in pixels.
         """
         sdl2.SDL_SetRenderDrawColor(self.renderer, 255, 255, 0, 255)
         for dy in range(-radius, radius + 1):
@@ -1121,13 +1216,7 @@ class Game:
         sdl2.SDL_RenderDrawPoint(self.renderer, cx + 1, cy - radius // 2)
 
     def draw_info(self) -> None:
-        """
-        Dessine un petit rectangle avec les infos suivantes :
-        - current_level
-        - current_score
-        - time_left
-        - remaining_life (affiché via des icônes de pacman)
-        """
+        """Draw HUD overlay with level, score, time left, and lives."""
         rect_x, rect_y = 20, 20
         rect_w, rect_h = 300, ((130 + (self.remaining_life // 7) * 20))
 
@@ -1189,7 +1278,5 @@ class Game:
             old_i = i
 
     def draw_infos(self) -> None:
-        """
-        Dessine les informations du jeu (niveau, score, etc.) sur l'écran.
-        """
+        """Draw game information overlay on screen."""
         self.draw_info()

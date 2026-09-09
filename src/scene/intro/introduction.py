@@ -14,8 +14,17 @@ from src.drawing_methods import draw_sprites
 
 
 class Introduction:
-    def __init__(self, renderer, game_state: GameState, config: GameConfig,
-                 transition: Transition):
+    def __init__(self, renderer: sdl2.render.SDL_Renderer,
+                 game_state: GameState, config: GameConfig,
+                 transition: Transition) -> None:
+        """Initialize the Introduction scene with logos and textures.
+
+        Args:
+            renderer: SDL renderer instance.
+            game_state: Global game state.
+            config: Game configuration options.
+            transition: Scene transition manager.
+        """
         self.transition = transition
         self.width = config.screen_width
         self.height = config.screen_height
@@ -43,6 +52,7 @@ class Introduction:
         self.time_passed = time.perf_counter()
 
     def clean_up(self) -> None:
+        """Free allocated intro textures and close loaded fonts."""
         sdim.IMG_Quit()
         sttf.TTF_CloseFont(self.font)
         sttf.TTF_Quit()
@@ -50,6 +60,7 @@ class Introduction:
         sdl2.SDL_DestroyTexture(self.background)
 
     def draw_intro(self) -> None:
+        """Render intro splash screen credits and manage timed transition."""
         clear_background(self.pixels, Color.BLACK)
         pixel_ptr = get_ptr(self.pixels)
         sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr,

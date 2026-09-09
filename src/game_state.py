@@ -16,6 +16,7 @@ class ScenePossible(Enum):
 
 class GameState:
     def __init__(self) -> None:
+        """Initialize the global game state attributes."""
         self.is_running: bool = True
         self.scene = ScenePossible.INTRO
         self.frame: int = 1
@@ -35,22 +36,37 @@ class GameState:
 
     @property
     def point(self) -> int:
+        """Get the current point score clamped to 32-bit signed max integer.
+
+        Returns:
+            The current point total.
+        """
         if self._point > 2147483648:
             self._point = 2147483647
         return self._point
 
     @point.setter
     def point(self, value: int) -> None:
+        """Set the current point score clamped to 32-bit signed max integer.
+
+        Args:
+            value: The new point value to set.
+        """
         if value > 2147483648:
             self._point = 2147483647
         else:
             self._point = value
 
     def get_points(self) -> int:
-        """Retourne le nombre de points du joueur."""
+        """Return the current player score.
+
+        Returns:
+            int: The player's total accumulated points.
+        """
         return self.point
 
     def check_cs_finished(self) -> None:
+        """Check if Counter-Strike game mode has ended and set scene."""
         if self.scene != ScenePossible.CSGO:
             return
         self.point += ((2147483647 // 6) * self.cs_round_win - (
@@ -65,8 +81,15 @@ class GameState:
 
 class GameConfig:
     def __init__(self, config_content: dict) -> None:
+        """Initialize game configuration from a parsed dictionary.
+
+        Args:
+            config_content: Dictionary of loaded configuration options.
+        """
         self.config_content = config_content
-        self.highscore_filename = config_content.get("highscore_filename")
+        self.highscore_filename: str = str(
+            config_content.get("highscore_filename", "scores.json")
+        )
         self.level_array_multiple_levels = config_content.get(
             "level_array_multiple_levels", None)
         self.lives = config_content.get("lives", None)

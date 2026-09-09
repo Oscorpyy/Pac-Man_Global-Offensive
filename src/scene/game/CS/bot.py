@@ -5,10 +5,12 @@ from src.drawing_methods import draw_sprite_sheet
 from src.bullet import Bullet
 from src.game_state import GameState
 import math
+import sdl2
 
 
 class ZoneMovement:
     def __init__(self) -> None:
+        """Initialize predefined movement waypoint zones for bots."""
         self.zone_lst: list = [
                 [
                     Vector2(x=32, y=128),
@@ -36,6 +38,13 @@ class ZoneMovement:
 class CsBot:
     def __init__(self, sprite: Image, cam: Camera,
                  possible_target: list[Vector2]) -> None:
+        """Initialize a Counter-Strike enemy bot with waypoints.
+
+        Args:
+            sprite: Bot sprite sheet image.
+            cam: Camera instance for coordinate transformation.
+            possible_target: List of Vector2 waypoint patrol targets.
+        """
         self.cam: Camera = cam
         self.can_move: bool = True
         self.can_collide: bool = True
@@ -57,6 +66,11 @@ class CsBot:
         self.cooldown: float = 0.6
 
     def update(self, config: GameState) -> None:
+        """Update animation frame counter and shooting cooldown timer.
+
+        Args:
+            config: Game state containing delta time dt.
+        """
         self.tick_counter += 1
         if self.tick_counter >= self.animation_speed:
             self.tick_counter = 0
@@ -65,6 +79,7 @@ class CsBot:
         self.cooldown -= config.dt
 
     def get_next_location(self) -> None:
+        """Switch target patrol waypoint when destination is reached."""
         if (
             self.pos_x == self.target_position.x
             and self.pos_y == self.target_position.y
@@ -75,6 +90,7 @@ class CsBot:
                 self.target_position = self.possible_target[1]
 
     def move_bot(self) -> None:
+        """Advance bot position towards its current target waypoint."""
         self.dx = self.target_position.x - self.pos_x
         self.dy = self.target_position.y - self.pos_y
         dist = math.hypot(self.dx, self.dy)
@@ -86,7 +102,15 @@ class CsBot:
                 self.pos_x += int((self.dx / dist) * self.speed)
                 self.pos_y += int((self.dy / dist) * self.speed)
 
-    def detect_player(self, player_x: int, player_y: int, renderer) -> None:
+    def detect_player(self, player_x: int, player_y: int,
+                      renderer: sdl2.render.SDL_Renderer) -> None:
+        """Detect player in range and fire bullet if cooldown expired.
+
+        Args:
+            player_x: Player X coordinate.
+            player_y: Player Y coordinate.
+            renderer: SDL renderer instance for bullet texture.
+        """
         detection_size: int = 128
         if (
             self.pos_x + detection_size > player_x
@@ -101,12 +125,23 @@ class CsBot:
                 self.bullet_lst.append(new_bullet)
                 self.cooldown = 0.6
 
-    def draw_bullet(self, offset_x, offset_y) -> None:
+    def draw_bullet(self, offset_x: int, offset_y: int) -> None:
+        """Render and advance all active bullets fired by the bot.
+
+        Args:
+            offset_x: Camera horizontal offset.
+            offset_y: Camera vertical offset.
+        """
         for bullet in self.bullet_lst:
             bullet.draw_bullet(offset_x, offset_y)
             bullet.update_pos()
 
-    def kill_bullet(self, tilemap) -> None:
+    def kill_bullet(self, tilemap: list) -> None:
+        """Remove bullets that exceeded max range or hit walls.
+
+        Args:
+            tilemap: Map tile layer data for wall collision checks.
+        """
         i = 0
         for bullet in self.bullet_lst:
             if bullet.max_travel < 0:
@@ -118,7 +153,17 @@ class CsBot:
         i += 1
 
     def check_bullet_collide_wall(self, pos_x: int, pos_y: int,
-                                  tilemap) -> bool:
+                                  tilemap: list) -> bool:
+        """Check if bullet at coordinates collides with any solid wall tile.
+
+        Args:
+            pos_x: Bullet X position.
+            pos_y: Bullet Y position.
+            tilemap: Map tile array.
+
+        Returns:
+            False if colliding with a wall tile, True otherwise.
+        """
         x = 0
         y = 0
         tile_count = 0
@@ -139,6 +184,17 @@ class CsBot:
     def check_bullet_collide_ennemy(self, bullet_pos_x: int,
                                     bullet_pos_y: int, player_x: int,
                                     player_y: int) -> bool:
+        """Check if bullet collides with player bounding box.
+
+        Args:
+            bullet_pos_x: Bullet X position.
+            bullet_pos_y: Bullet Y position.
+            player_x: Player X position.
+            player_y: Player Y position.
+
+        Returns:
+            True if colliding with player, False otherwise.
+        """
         bullet_size: int = 32
         if (
             bullet_pos_x + bullet_size > player_x
@@ -149,7 +205,13 @@ class CsBot:
             return True
         return False
 
-    def draw_bot(self, renderer,  scale: int) -> None:
+    def draw_bot(self, renderer: sdl2.render.SDL_Renderer, scale: int) -> None:
+        """Render bot sprite oriented according to movement vector.
+
+        Args:
+            renderer: SDL renderer instance.
+            scale: Drawing scale factor.
+        """
         pos_x = (self.pos_x - self.cam.offset_x) * scale
         pos_y = (self.pos_y - self.cam.offset_y) * scale
         dx = self.dx

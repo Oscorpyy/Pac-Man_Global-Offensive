@@ -1,5 +1,6 @@
 import math
 import ctypes
+from typing import Any
 import sdl2
 from src.camera import Camera
 from src.image import Image
@@ -21,6 +22,18 @@ OPPOSITE_DIR = {0: 1, 1: 0, 2: 3, 3: 2}
 def _can_move(x: int, y: int, direction: int,
               maze_matrix: list[list[int]],
               ignore_walls: bool = False) -> bool:
+    """Check if movement in a given direction is valid from current cell.
+
+    Args:
+        x: Current cell X coordinate.
+        y: Current cell Y coordinate.
+        direction: Movement direction (0=East, 1=West, 2=North, 3=South).
+        maze_matrix: 2D grid matrix with bitmask wall information.
+        ignore_walls: If True, walls are ignored (for noclip mode).
+
+    Returns:
+        True if movement is within bounds and unobstructed, False otherwise.
+    """
     maze_h = len(maze_matrix)
     maze_w = len(maze_matrix[0]) if maze_h > 0 else 0
     if not (0 <= y < maze_h and 0 <= x < maze_w):
@@ -38,12 +51,18 @@ def _can_move(x: int, y: int, direction: int,
 
 class CsPlayer:
     def __init__(self, sprite: Image, cam: Camera, config: GameConfig) -> None:
+        """Initialize the Counter-Strike player state and controls.
+
+        Args:
+            sprite: Player sprite sheet image.
+            cam: Camera instance tracking player position.
+            config: Game configuration options.
+        """
         self.config = config
         self.pos_x: int = 0
         self.pos_y: int = 0
         self.can_move: bool = True
         self.can_collide: bool = True
-        self.can_shoot: bool = True
         self.sprite: Image = sprite
         self.cam = cam
         self.current_frame: int = 0
@@ -61,6 +80,11 @@ class CsPlayer:
         self.shoot_timer: float = 4
 
     def update(self, dt: float) -> None:
+        """Update animation frame and shooting cooldown timer.
+
+        Args:
+            dt: Delta time elapsed since last frame.
+        """
         self.tick_counter += 1
         if self.tick_counter >= self.animation_speed:
             self.tick_counter = 0
@@ -72,8 +96,17 @@ class CsPlayer:
         elif self.shoot_timer < 0:
             self.can_shoot = True
 
-    def draw_player(self, renderer, scale: int, mouse_x: int,
+    def draw_player(self, renderer: sdl2.render.SDL_Renderer,
+                    scale: int, mouse_x: int,
                     mouse_y: int) -> None:
+        """Draw player sprite oriented toward the mouse cursor position.
+
+        Args:
+            renderer: SDL renderer instance.
+            scale: Drawing scale factor.
+            mouse_x: Screen X coordinate of the mouse cursor.
+            mouse_y: Screen Y coordinate of the mouse cursor.
+        """
         pos_x = (self.pos_x - self.cam.offset_x) * scale
         pos_y = (self.pos_y - self.cam.offset_y) * scale
         dx = mouse_x - pos_x
@@ -107,7 +140,12 @@ class CsPlayer:
             draw_sprite_sheet(renderer, self.sprite, pos_x, pos_y,
                               self.current_frame, scale)
 
-    def shoot(self, renderer) -> None:
+    def shoot(self, renderer: sdl2.render.SDL_Renderer) -> None:
+        """Spawn a bullet traveling toward mouse position if cooldown permits.
+
+        Args:
+            renderer: SDL renderer used for bullet textures.
+        """
         mouse_x, mouse_y = ctypes.c_int(0), ctypes.c_int(0)
         left_mouse_click = sdl2.mouse.SDL_GetMouseState(ctypes.byref(mouse_x),
                                                         ctypes.byref(mouse_y))
@@ -120,12 +158,23 @@ class CsPlayer:
                                      self.config.screen_height)
             self.bullet_lst.append(new_bullet)
 
-    def draw_bullet_lst(self, offset_x, offset_y) -> None:
+    def draw_bullet_lst(self, offset_x: int, offset_y: int) -> None:
+        """Render and advance all active bullets fired by the player.
+
+        Args:
+            offset_x: Camera horizontal offset.
+            offset_y: Camera vertical offset.
+        """
         for bullet in self.bullet_lst:
             bullet.draw_bullet(offset_x, offset_y)
             bullet.update_pos()
 
-    def kill_bullet(self, tilemap) -> None:
+    def kill_bullet(self, tilemap: list) -> None:
+        """Remove bullets that exceeded range or collided with walls.
+
+        Args:
+            tilemap: Map tile layer data for wall collision checks.
+        """
         i = 0
         for bullet in self.bullet_lst:
             if bullet.max_travel < 0:
@@ -137,7 +186,17 @@ class CsPlayer:
         i += 1
 
     def check_bullet_collide_wall(self, pos_x: int, pos_y: int,
-                                  tilemap) -> bool:
+                                  tilemap: list) -> bool:
+        """Check if a bullet at given coordinates collides with any wall tile.
+
+        Args:
+            pos_x: Bullet X position.
+            pos_y: Bullet Y position.
+            tilemap: Map tile array.
+
+        Returns:
+            False if colliding with a solid tile, True otherwise.
+        """
         x = 0
         y = 0
         tile_count = 0
@@ -155,7 +214,18 @@ class CsPlayer:
                 y += 32
         return True
 
-    def check_bullet_collide_ennemy(self, lst_ennemy, x: int, y: int) -> bool:
+    def check_bullet_collide_ennemy(self, lst_ennemy: list,
+                                    x: int, y: int) -> bool:
+        """Check and resolve collision between bullet position and enemies.
+
+        Args:
+            lst_ennemy: List of active enemy objects.
+            x: Bullet X position.
+            y: Bullet Y position.
+
+        Returns:
+            True if an enemy was hit and removed, False otherwise.
+        """
         bullet_size: int = 32
         i = 0
         for ennemy in lst_ennemy:
@@ -171,7 +241,14 @@ class PacPlayer:
     _cached_texture_argb = None
     BASE_SPEED: float = BASE_GHOST_SPEED
 
-    def __init__(self, sprite=None, cam=None) -> None:
+    def __init__(self, sprite: Image | Any = None,
+                 cam: Camera | Any = None) -> None:
+        """Initialize the Pac-Man player with state and textures.
+
+        Args:
+            sprite: Optional player sprite image.
+            cam: Optional camera instance.
+        """
         self._pos_x: int = 0
         self._pos_y: int = 0
         self.target_x: int = 0
@@ -234,10 +311,20 @@ class PacPlayer:
 
     @property
     def pos_x(self) -> int:
+        """Get player grid X coordinate.
+
+        Returns:
+            Current grid X position.
+        """
         return self._pos_x
 
     @pos_x.setter
     def pos_x(self, value: int) -> None:
+        """Set player grid X coordinate and synchronize render position.
+
+        Args:
+            value: New grid X coordinate.
+        """
         self._pos_x = int(value)
         self.target_x = self._pos_x
         self.render_x = float(self._pos_x)
@@ -246,10 +333,20 @@ class PacPlayer:
 
     @property
     def pos_y(self) -> int:
+        """Get player grid Y coordinate.
+
+        Returns:
+            Current grid Y position.
+        """
         return self._pos_y
 
     @pos_y.setter
     def pos_y(self, value: int) -> None:
+        """Set player grid Y coordinate and synchronize render position.
+
+        Args:
+            value: New grid Y coordinate.
+        """
         self._pos_y = int(value)
         self.target_y = self._pos_y
         self.render_y = float(self._pos_y)
@@ -257,8 +354,12 @@ class PacPlayer:
         self.is_moving = False
 
     def get_desired_direction(self) -> int | None:
-        """Retourne la direction souhaitée selon les touches
-        maintenues ou bufférisées."""
+        """Return the desired move direction from keys or buffered input.
+
+        Returns:
+            int | None: Direction index (0=Right, 1=Left, 2=Up, 3=Down) or
+                None if no direction is requested.
+        """
         if self.key_w:
             return 2
         if self.key_s:
@@ -270,8 +371,11 @@ class PacPlayer:
         return self.next_direction
 
     def update(self, dt: float = 1.0 / 60.0) -> None:
-        """Met à jour le compteur d'animation du sprite et
-        le timer de vulnérabilité."""
+        """Update sprite animation frame and power-up timer.
+
+        Args:
+            dt: Delta time elapsed since last frame in seconds.
+        """
         dt = min(max(dt, 0.0), 0.1)
         if self.is_moving:
             self.tick_counter += 1
@@ -289,9 +393,16 @@ class PacPlayer:
                 self.power_timer = 0.0
 
     def _consume_item(self, items_matrix: list[list[int]],
-                      game_state=None, config=None,
-                      ghosts=None) -> None:
-        """Consomme la pac-gomme ou super-pacgomme sur la case courante."""
+                      game_state: Any = None, config: Any = None,
+                      ghosts: Any = None) -> None:
+        """Consume the pac-dot or energizer on the current tile.
+
+        Args:
+            items_matrix: 2D matrix containing tile items.
+            game_state: Current game state to update score.
+            config: Game configuration for scoring values.
+            ghosts: List of ghost instances to make vulnerable.
+        """
         maze_h = len(items_matrix)
         maze_w = len(items_matrix[0]) if maze_h > 0 else 0
         if 0 <= self._pos_y < maze_h and 0 <= self._pos_x < maze_w:
@@ -317,12 +428,18 @@ class PacPlayer:
 
     def handle_movement(self, maze_matrix: list[list[int]],
                         items_matrix: list[list[int]],
-                        game_state=None, config=None,
-                        ghosts=None, dt: float = 1.0 / 60.0) -> None:
-        """
-        Déplace Pac-Man de façon fluide et continue (vitesse calquée sur
-        les fantômes normaux).
-        Gère le demi-tour immédiat et l'input buffering aux virages.
+                        game_state: Any = None, config: Any = None,
+                        ghosts: Any = None,
+                        dt: float = 1.0 / 60.0) -> None:
+        """Move Pac-Man continuously with direction buffering and turn logic.
+
+        Args:
+            maze_matrix: 2D matrix of maze walls and open paths.
+            items_matrix: 2D matrix of dots and energizers.
+            game_state: Current game state.
+            config: Configuration dictionary or object.
+            ghosts: List of ghost instances.
+            dt: Delta time elapsed since last update.
         """
         if not self.can_move:
             return
@@ -436,9 +553,14 @@ class PacPlayer:
 
     def draw_player_pixels(self, pixels: np.ndarray, start_x: int,
                            start_y: int, cellsize: int, color: int) -> None:
-        """
-        Dessine Pac-Man à sa position interpolée avec sa texture orientée
-        et la bouche animée.
+        """Draw Pac-Man at interpolated coordinates with animated mouth.
+
+        Args:
+            pixels: ARGB pixel buffer array to render into.
+            start_x: Screen X pixel offset for maze origin.
+            start_y: Screen Y pixel offset for maze origin.
+            cellsize: Size of a single maze cell in pixels.
+            color: Fallback color for drawing.
         """
         cx = int(start_x + (self.render_x * cellsize) + (cellsize // 2))
         cy = int(start_y + (self.render_y * cellsize) + (cellsize // 2))
@@ -518,8 +640,14 @@ class PacPlayer:
                         if 0 <= px < w_scr and 0 <= py < h_scr:
                             pixels[py, px] = draw_col
 
-    def draw_player(self, renderer, scale: int) -> None:
-        """Affiche le sprite SDL2 (si vous utilisez une feuille de sprites)."""
+    def draw_player(self, renderer: sdl2.render.SDL_Renderer,
+                    scale: int) -> None:
+        """Render the player sprite using SDL2 sprite sheet rendering.
+
+        Args:
+            renderer: SDL2 renderer context.
+            scale: Pixel scaling factor.
+        """
         screen_x = (self.pos_x - self.cam.offset_x) * scale
         screen_y = (self.pos_y - self.cam.offset_y) * scale
 

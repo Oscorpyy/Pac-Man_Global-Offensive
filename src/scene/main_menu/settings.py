@@ -19,6 +19,16 @@ class SettingsWindow:
                  renderer: sdl2.render.SDL_Renderer,
                  pixels: np.ndarray, font: ctypes.c_int,
                  on_close: Any = None | Any) -> None:
+        """Initialize the settings modal window and resources.
+
+        Args:
+            main_widow_width: Width of parent window in pixels.
+            main_widow_height: Height of parent window in pixels.
+            renderer: SDL renderer instance.
+            pixels: 2D numpy pixel buffer.
+            font: Font pointer for UI text rendering.
+            on_close: Optional callback invoked when modal is closed.
+        """
         self.m_width = main_widow_width
         self.m_height = main_widow_height
         self.pitch_background = self.m_width * 4
@@ -37,11 +47,18 @@ class SettingsWindow:
         self.hold_button_state = False
 
     def clean_up(self) -> None:
+        """Free modal textures and image assets."""
         sdl2.SDL_DestroyTexture(self.background)
         if hasattr(self, 'settings_img') and self.settings_img:
             sdl2.SDL_DestroyTexture(self.settings_img.texture)
 
     def draw_settings(self, time: float, bg: int) -> None:
+        """Render settings popup, background sine animation, and close button.
+
+        Args:
+            time: Elapsed animation timestamp.
+            bg: Base background color integer.
+        """
         clear_background(self.pixels, bg)
         draw_sin_a(self.pixels, self.m_width, self.m_height, int(
             self.m_height * 0.5), 50, 0.01, 100, Color.ST_WHITE, time)
