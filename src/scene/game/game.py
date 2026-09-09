@@ -1,9 +1,12 @@
+# mypy: disable-error-code=import-untyped
+
 import math
 import random
 import sdl2
 import sdl2.sdlimage as sdim
 import time
 import ctypes
+from typing import TypedDict
 from sdl2 import sdlttf as sttf
 import numpy as np
 from typing import Any
@@ -12,11 +15,22 @@ from src.game_state import GameConfig, GameState, ScenePossible
 from src.drawing_methods import draw_text, draw_sprites
 from src.color import Color
 from src.transition import Transition
-from mazegenerator.mazegenerator import MazeGenerator
+from mazegenerator.mazegenerator import (
+    MazeGenerator,
+)
 from src.player import PacPlayer
 from src.ghost import Ghost
 from src.print_logs import print_error
 from src.image import Image
+
+
+class GameButton(TypedDict):
+    id: str
+    label: str
+    x: int
+    y: int
+    w: int
+    h: int
 
 
 class Game:
@@ -722,7 +736,7 @@ class Game:
         menu_x, menu_y, menu_w, _ = self._get_cheat_menu_rect()
         return (menu_x + menu_w - 30, menu_y + 10, 20, 20)
 
-    def _get_cheat_buttons(self) -> list[dict]:
+    def _get_cheat_buttons(self) -> list[GameButton]:
         """Compute layout and properties for all cheat menu buttons.
 
         Returns:
@@ -1032,7 +1046,7 @@ class Game:
         draw_text(self.renderer, self.font, b"ESC TO RESUME",
                   menu_x + 24, menu_y + 238, Color.GRAY, 1)
 
-    def _get_pause_buttons(self) -> list[dict]:
+    def _get_pause_buttons(self) -> list[GameButton]:
         """Compute layout and properties for pause menu buttons.
 
         Returns:

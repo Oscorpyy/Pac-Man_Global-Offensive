@@ -30,7 +30,7 @@ class MouseVector2:
 class SecretGame:
     def __init__(self, renderer: sdl2.render.SDL_Renderer,
                  game_state: GameState, config: GameConfig,
-                 game: Game, tilemap: list, cam: Camera,
+                 game: Game, tilemap: list[list[int]], cam: Camera,
                  transition: Transition) -> None:
         """Initialize the secret Counter-Strike game mode scene.
 
@@ -77,7 +77,7 @@ class SecretGame:
         if not self.font:
             print_error(f"can't charge font {sttf.TTF_GetError()}")
         self.player = CsPlayer(self.player_sprite, cam, config)
-        self.ennemy_lst: list = [
+        self.ennemy_lst: list[CsBot] = [
                 CsBot(self.enemy_sprite, cam, ZoneMovement().zone_lst[0]),
                 CsBot(self.enemy_sprite, cam, ZoneMovement().zone_lst[1]),
                 CsBot(self.enemy_sprite, cam, ZoneMovement().zone_lst[2]),

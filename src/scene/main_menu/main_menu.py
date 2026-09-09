@@ -25,7 +25,7 @@ from src.transition import Transition
 class MenuDrawingState:
     def __init__(self) -> None:
         """Initialize menu sub-view state tracker."""
-        self.state_lst: list = ["main", "instruction", "settings"]
+        self.state_lst: list[str] = ["main", "instruction", "settings"]
         self.current = self.state_lst[0]
 
 
@@ -46,7 +46,7 @@ class MainMenu:
         self.game_config = game_config
         self.renderer = renderer
         self.top_score = self.get_highscore()
-        self.scores = self.top_score.get("scores", None)
+        self.scores: list[dict[str, int]] = self.top_score.get("scores", [])
         if self.scores is not None:
             self.scores.sort(key=lambda item: item['point'], reverse=True)
         # img loading
@@ -79,7 +79,7 @@ class MainMenu:
             self.height
         )
         btn_width = 200
-        self.btn_list: list = [
+        self.btn_list: list[Button] = [
             Button(self.renderer, self.pixels,
                    self.font, (self.width // 2 - (btn_width // 2)),
                    self.height // 3, btn_width, 50, Color.GRAY, Color.WHITE,
@@ -104,13 +104,13 @@ class MainMenu:
         self.time: float = 0.0
         self.background_color = 0xFF0000FF
 
-    def get_highscore(self) -> dict:
+    def get_highscore(self) -> dict[str, list[dict[str, int]]]:
         """Read and parse the high score JSON file.
 
         Returns:
             Dictionary containing score records.
         """
-        content: dict = {}
+        content: dict[str, list[dict[str, int]]] = {}
         try:
             with open(self.game_config.highscore_filename, "r") as f:
                 content = json.load(f)

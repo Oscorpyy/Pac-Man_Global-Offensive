@@ -38,6 +38,7 @@ clean:
 	@rm -f output.txt
 	@rm -rf .venv
 	@rm -fr package
+	@rm -rf test
 	@printf "$(COLOR_GREEN)✓ Cleanup completed$(COLOR_RESET)\n"
 
 lint:
@@ -80,17 +81,6 @@ init_test:
 	@printf "$(COLOR_CYAN)Initializing test json...$(COLOR_RESET)\n"
 	@python3 tester.py
 	@printf "$(COLOR_GREEN)✓ Test environment initialized$(COLOR_RESET)\n"
-test:
-	@printf "$(COLOR_CYAN)Running parsing tests...$(COLOR_RESET)\n\n"
-	@for file in $$(ls test/*.json 2>/dev/null | sort -V 2>/dev/null || ls test/*.json); do \
-		test_name=$$(basename "$$file" .json); \
-		if uv run python pac-man.py "$$file" > /dev/null 2>&1; then \
-			printf "$(COLOR_RED)✗ $$test_name : c'est une erreur (le jeu s'est lancé)$(COLOR_RESET)\n"; \
-		else \
-			printf "$(COLOR_GREEN)✓ $$test_name : on est bon$(COLOR_RESET)\n"; \
-		fi; \
-	done
-	@printf "\n$(COLOR_CYAN)Tests finished.$(COLOR_RESET)
 
 test:
 	@printf "$(COLOR_CYAN)Running parsing tests...$(COLOR_RESET)\n\n"

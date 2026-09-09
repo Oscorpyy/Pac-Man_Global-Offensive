@@ -114,7 +114,7 @@ def check_file_content(path: str) -> bool | Any:
         return False
 
 
-def check_config_file(argv: list) -> bool:
+def check_config_file(argv: list[str]) -> bool:
     """Validate CLI arguments and configuration file suitability.
 
     Args:

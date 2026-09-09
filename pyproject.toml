@@ -1,7 +1,7 @@
 [project]
 name = "pacman"
 version = "0.1.0"
-description = "Add your description here"
+description = "A simple Pacman game implemented in Python With SDL2 and a little surprise."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -17,3 +17,7 @@ dependencies = [
 
 [tool.uv.sources]
 mazegenerator = { path = "mazegenerator-00001/mazegenerator-2.1.0-py3-none-any.whl" }
+
+[[tool.mypy.overrides]]
+module = ["sdl2", "sdl2.*"]
+ignore_missing_imports = true

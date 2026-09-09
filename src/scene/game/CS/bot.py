@@ -11,7 +11,7 @@ import sdl2
 class ZoneMovement:
     def __init__(self) -> None:
         """Initialize predefined movement waypoint zones for bots."""
-        self.zone_lst: list = [
+        self.zone_lst: list[list[Vector2]] = [
                 [
                     Vector2(x=32, y=128),
                     Vector2(x=256, y=128),
@@ -62,7 +62,7 @@ class CsBot:
         self.speed: int = 3
         self.dx = 0
         self.dy = 0
-        self.bullet_lst: list = []
+        self.bullet_lst: list[Bullet] = []
         self.cooldown: float = 0.6
 
     def update(self, config: GameState) -> None:
@@ -136,7 +136,7 @@ class CsBot:
             bullet.draw_bullet(offset_x, offset_y)
             bullet.update_pos()
 
-    def kill_bullet(self, tilemap: list) -> None:
+    def kill_bullet(self, tilemap: list[int]) -> bool:
         """Remove bullets that exceeded max range or hit walls.
 
         Args:
@@ -146,14 +146,20 @@ class CsBot:
         for bullet in self.bullet_lst:
             if bullet.max_travel < 0:
                 self.bullet_lst.pop(i)
-            if self.check_bullet_collide_wall(bullet.x + bullet.speed,
-                                              bullet.y + bullet.speed,
-                                              tilemap) is False:
+                return True
+            if self.check_bullet_collide_wall(
+                                              int(bullet.x + bullet.speed),
+                                              int(bullet.y + bullet.speed),
+                                              tilemap
+                                              ) is False:
+
                 self.bullet_lst.pop(i)
-        i += 1
+                return True
+            i += 1
+        return False
 
     def check_bullet_collide_wall(self, pos_x: int, pos_y: int,
-                                  tilemap: list) -> bool:
+                                  tilemap: list[int]) -> bool:
         """Check if bullet at coordinates collides with any solid wall tile.
 
         Args:
@@ -181,8 +187,8 @@ class CsBot:
                 y += 32
         return True
 
-    def check_bullet_collide_ennemy(self, bullet_pos_x: int,
-                                    bullet_pos_y: int, player_x: int,
+    def check_bullet_collide_ennemy(self, bullet_pos_x: float,
+                                    bullet_pos_y: float, player_x: int,
                                     player_y: int) -> bool:
         """Check if bullet collides with player bounding box.
 

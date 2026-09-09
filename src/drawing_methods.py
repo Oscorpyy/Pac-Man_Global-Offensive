@@ -5,6 +5,7 @@ from collections.abc import Callable
 import sdl2
 import ctypes
 import sdl2.sdlttf as sttf
+from typing import Any
 
 
 def draw_fps(renderer: sdl2.render.SDL_Renderer,
@@ -206,7 +207,7 @@ def draw_text(renderer: sdl2.render.SDL_Renderer,
     else:
         text_bytes = text.encode("utf-8")
 
-    text_split: list = text_bytes.split(b"\n")
+    text_split: list[bytes] = text_bytes.split(b"\n")
     for i in range(len(text_split)):
         text_surface = sttf.TTF_RenderText_Solid(font,
                                                  text_split[i],
@@ -340,7 +341,7 @@ class Button:
                  pixels: ndarray, font: ctypes.c_void_p,
                  x: int, y: int, w: int,
                  h: int, color_rect: Color, color_hover: Color,
-                 function: Callable,
+                 function: Callable[..., Any],
                  text: str | bytes, scale: int = 1) -> None:
         """Initialize an interactive UI button with label and click handler.
 
@@ -403,7 +404,7 @@ class Button:
         else:
             text_bytes = self.text.encode("utf-8")
 
-        text_split: list = text_bytes.split(b"\n")
+        text_split: list[bytes] = text_bytes.split(b"\n")
         for i in range(len(text_split)):
             text_surface = sttf.TTF_RenderText_Solid(self.font, text_split[i],
                                                      color_to_sdl_color(color))

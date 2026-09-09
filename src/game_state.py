@@ -3,6 +3,7 @@ from sdl2 import (
     SDLK_LEFT, SDLK_RIGHT, SDLK_UP, SDLK_DOWN, SDLK_b, SDLK_a
 )
 from collections import deque
+from typing import Any
 
 
 class ScenePossible(Enum):
@@ -20,14 +21,14 @@ class GameState:
         self.is_running: bool = True
         self.scene = ScenePossible.INTRO
         self.frame: int = 1
-        self.konami_code_excepted: list = [
+        self.konami_code_excepted: list[int] = [
             SDLK_UP, SDLK_UP, SDLK_DOWN,
             SDLK_DOWN, SDLK_LEFT, SDLK_RIGHT,
             SDLK_LEFT, SDLK_RIGHT,
             SDLK_b, SDLK_a
         ]
-        self.konami_code_entered: list = []
-        self.fps_lst: deque = deque(maxlen=30)
+        self.konami_code_entered: list[int] = []
+        self.fps_lst: deque[float] = deque(maxlen=30)
         self.fps: int = 0
         self.cs_round_win: int = 0
         self.cs_round_loose: int = 0
@@ -80,7 +81,7 @@ class GameState:
 
 
 class GameConfig:
-    def __init__(self, config_content: dict) -> None:
+    def __init__(self, config_content: dict[str, Any]) -> None:
         """Initialize game configuration from a parsed dictionary.
 
         Args:

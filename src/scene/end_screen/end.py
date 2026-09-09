@@ -78,7 +78,7 @@ class EndScreen:
         on_success()
         return True
 
-    def _get_buttons(self) -> list[dict]:
+    def _get_buttons(self) -> list[dict[str, Any]]:
         """Compute layout rectangles and metadata for main end buttons.
 
         Returns:
@@ -109,7 +109,7 @@ class EndScreen:
         else:
             self.quit_callback()
 
-    def _get_popup_buttons(self) -> list[dict]:
+    def _get_popup_buttons(self) -> list[dict[str, Any]]:
         """Compute layout rectangles for save popup confirm/cancel buttons.
 
         Returns:

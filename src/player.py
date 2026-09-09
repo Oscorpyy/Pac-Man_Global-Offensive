@@ -75,7 +75,7 @@ class CsPlayer:
         self.key_d: bool = False
         self.key_e: bool = False
         self.left_mouse_click: int
-        self.bullet_lst: list = []
+        self.bullet_lst: list[Bullet] = []
         self.can_shoot: bool = False
         self.shoot_timer: float = 4
 
@@ -169,7 +169,7 @@ class CsPlayer:
             bullet.draw_bullet(offset_x, offset_y)
             bullet.update_pos()
 
-    def kill_bullet(self, tilemap: list) -> None:
+    def kill_bullet(self, tilemap: list[int]) -> None:
         """Remove bullets that exceeded range or collided with walls.
 
         Args:
@@ -179,14 +179,17 @@ class CsPlayer:
         for bullet in self.bullet_lst:
             if bullet.max_travel < 0:
                 self.bullet_lst.pop(i)
-            if self.check_bullet_collide_wall(bullet.x + bullet.speed,
-                                              bullet.y + bullet.speed,
-                                              tilemap) is False:
+            if self.check_bullet_collide_wall(
+                                              int(bullet.x + bullet.speed),
+                                              int(bullet.y + bullet.speed),
+                                              tilemap
+                                              ) is False:
+
                 self.bullet_lst.pop(i)
         i += 1
 
     def check_bullet_collide_wall(self, pos_x: int, pos_y: int,
-                                  tilemap: list) -> bool:
+                                  tilemap: list[int]) -> bool:
         """Check if a bullet at given coordinates collides with any wall tile.
 
         Args:
@@ -214,8 +217,8 @@ class CsPlayer:
                 y += 32
         return True
 
-    def check_bullet_collide_ennemy(self, lst_ennemy: list,
-                                    x: int, y: int) -> bool:
+    def check_bullet_collide_ennemy(self, lst_ennemy: list[Any],
+                                    x: float, y: float) -> bool:
         """Check and resolve collision between bullet position and enemies.
 
         Args:

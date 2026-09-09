@@ -70,13 +70,13 @@ class Window:
             case ScenePossible.LOOSE:
                 self.loose_screen.clean_up()
 
-    def get_secret_map_data(self) -> list:
+    def get_secret_map_data(self) -> list[list[int]]:
         """Load and parse the secret CS map tile layers from JSON.
 
         Returns:
             A list of layer tile matrices.
         """
-        map_tiles = []
+        map_tiles: list[list[int]] = []
         try:
             with open("assets/de_office.json") as f:
                 content = json.load(f)

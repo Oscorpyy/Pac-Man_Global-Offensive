@@ -62,7 +62,7 @@ class InstructionWindow:
         self.hold_button_state = False
 
         self.show_cs: bool = False
-        self.konami_code_entered: list = []
+        self.konami_code_entered: list[str] = []
 
         font_path = b"assets/Press_Start_2P/PressStart2P-Regular.ttf"
         self.body_font_size = max(9, min(20, int(self.m_height * 0.019)))
