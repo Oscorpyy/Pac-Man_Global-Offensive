@@ -51,9 +51,15 @@ class GameState:
         return self.point
 
     def check_cs_finished(self) -> None:
+        if self.scene != ScenePossible.CSGO:
+            return
+        self.point += ((2147483647 // 6) * self.cs_round_win - (
+                2147483647 // 7) * self.cs_round_loose)
         if self.cs_round_win >= 5:
             self.scene = ScenePossible.WIN
-        if self.cs_round_loose >= 5:
+        elif self.cs_round_loose >= 5:
+            if self.point < 0:
+                self.point = 0
             self.scene = ScenePossible.LOOSE
 
 

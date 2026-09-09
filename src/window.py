@@ -102,7 +102,8 @@ class Window:
         self.game.save_handler = self.win_screen
         self.cam = Camera()
         self.secret_game = SecretGame(renderer, game_state, self.config,
-                                      de_office, self.cam, transition)
+                                      self.game, de_office, self.cam,
+                                      transition)
         previous_scene = game_state.scene
         last_time = time.perf_counter()
         while (game_state.is_running):

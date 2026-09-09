@@ -17,6 +17,7 @@ from src.transition import Transition
 from src.scene.game.CS.bot import CsBot
 from src.scene.game.CS.bot import ZoneMovement
 from src.scene.game.CS.cam import CameraProps
+from src.scene.game.game import Game
 
 
 class MouseVector2:
@@ -27,11 +28,13 @@ class MouseVector2:
 
 class SecretGame:
     def __init__(self, renderer, game_state: GameState, config: GameConfig,
-                 tilemap, cam: Camera, transition: Transition):
+                 game: Game, tilemap, cam: Camera, transition: Transition):
         self.transition = transition
         self.renderer = renderer
         self.width = config.screen_width
         self.height = config.screen_height
+        self.game = game
+        self.game.remaining_life
         self.pixels = np.zeros((self.height, self.width), dtype=np.uint32)
         self.ui_pixels = np.zeros((self.height, self.width), dtype=np.uint32)
         self.game_state = game_state
@@ -248,7 +251,7 @@ class SecretGame:
                         CsBot(self.enemy_sprite, self.cam,
                               ZoneMovement().zone_lst[4]),
                     ]
-                    self.game_state.point += 429496729
+                    self.game.remaining_life += 1
             if self.player.key_e is False:
                 self.player_diffuse_time = 0
         else:
