@@ -19,7 +19,7 @@ from src.image import Image
 
 
 class Game:
-    MAX_SAVE_NAME_LENGTH = 23
+    MAX_SAVE_NAME_LENGTH = 10
 
     def __init__(self, renderer, game_state: GameState, config: GameConfig,
                  transition: Transition):
@@ -264,7 +264,8 @@ class Game:
                     self.save_name += text[:available]
                     self.save_error = ""
                 if len(text) > available:
-                    self.save_error = "NAME TOO LONG (23 MAX)"
+                    self.save_error = f"NAME TOO LONG ({
+                        self.MAX_SAVE_NAME_LENGTH} MAX)"
             else:
                 self.save_error = "INVALID CHARACTERS"
             return

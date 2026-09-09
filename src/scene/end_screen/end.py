@@ -113,10 +113,12 @@ class EndScreen:
         if invalid_count > 0:
             self.save_error = "INVALID CHARACTER"
         if available <= 0:
-            self.save_error = "NAME TOO LONG (10 MAX)"
+            self.save_error = f"NAME TOO LONG ({
+                        self.max_save_name_length} MAX)"
             return
         if len(valid_text) > available:
-            self.save_error = "NAME TOO LONG (10 MAX)"
+            self.save_error = f"NAME TOO LONG ({
+                        self.max_save_name_length} MAX)"
         elif invalid_count == 0:
             self.save_error = ""
         self.save_name += valid_text[:available]
