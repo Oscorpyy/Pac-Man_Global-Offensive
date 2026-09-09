@@ -77,11 +77,6 @@ package:
 	@printf "#!/bin/bash\n./pac-man config.json" > dist/pac-man/launch.sh
 	chmod +x dist/pac-man/launch.sh
 
-init_test:
-	@printf "$(COLOR_CYAN)Initializing test json...$(COLOR_RESET)\n"
-	@python3 tester.py
-	@printf "$(COLOR_GREEN)✓ Test environment initialized$(COLOR_RESET)\n"
-
 test:
 	@printf "$(COLOR_CYAN)Running parsing tests...$(COLOR_RESET)\n\n"
 	@for file in $$(ls test/*.json 2>/dev/null | sort -V 2>/dev/null || ls test/*.json); do \

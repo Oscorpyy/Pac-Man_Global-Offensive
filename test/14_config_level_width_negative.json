@@ -1,0 +1,63 @@
+{
+    "highscore_filename": "scores.json",
+    "level_array_multiple_levels": [
+        {
+            "name": "level1",
+            "width": -5,
+            "height": 0
+        },
+        {
+            "name": "level2",
+            "width": 15,
+            "height": 15
+        },
+        {
+            "name": "level3",
+            "width": 15,
+            "height": 15
+        },
+        {
+            "name": "level4",
+            "width": 10,
+            "height": 10
+        },
+        {
+            "name": "level5",
+            "width": 15,
+            "height": 15
+        },
+        {
+            "name": "level6",
+            "width": 15,
+            "height": 15
+        },
+        {
+            "name": "level7",
+            "width": 15,
+            "height": 15
+        },
+        {
+            "name": "level8",
+            "width": 10,
+            "height": 10
+        },
+        {
+            "name": "level9",
+            "width": 15,
+            "height": 15
+        },
+        {
+            "name": "level10",
+            "width": 15,
+            "height": 15
+        }
+    ],
+    "lives": 3,
+    "points_per_pacgum": 10,
+    "points_per_super_pacgum": 50,
+    "points_per_ghost": "200",
+    "seed": "42",
+    "level_max_time": "90",
+    "screen_width": 3840,
+    "screen_height": 2160
+}
