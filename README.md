@@ -39,7 +39,7 @@ Alternatively, install the project dependencies with your Python package manager
 python3 -m pip install -e .
 ```
 
-## Running the Game
+## Instructions
 
 The game requires one configuration-file argument:
 
