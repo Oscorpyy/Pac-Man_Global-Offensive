@@ -70,9 +70,7 @@ lint-strict:
 	@printf "$(COLOR_GREEN)✓ Strict verification completed$(COLOR_RESET)\n"
 
 package:
-	uv run pyinstaller --noconsole pac-man.py
-	cp -r assets/ dist/pac-man/
-	cp config.json dist/pac-man/
+	uv run pyinstaller pac-man.spec
 	touch dist/pac-man/launch.sh
 	@printf "#!/bin/bash\n./pac-man config.json" > dist/pac-man/launch.sh
 	chmod +x dist/pac-man/launch.sh
