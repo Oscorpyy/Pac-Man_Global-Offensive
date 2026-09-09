@@ -1,6 +1,7 @@
 import ctypes
 import sdl2
 import numpy as np
+from typing import Any
 from src.color import Color
 from src.scene.helper import get_ptr
 from src.image import Image
@@ -15,8 +16,9 @@ from src.drawing_methods import (
 
 class SettingsWindow:
     def __init__(self, main_widow_width: int, main_widow_height: int,
-                 renderer, pixels: np.ndarray, font,
-                 on_close=None) -> None:
+                 renderer: sdl2.render.SDL_Renderer,
+                 pixels: np.ndarray, font: ctypes.c_int,
+                 on_close: Any = None | Any) -> None:
         self.m_width = main_widow_width
         self.m_height = main_widow_height
         self.pitch_background = self.m_width * 4

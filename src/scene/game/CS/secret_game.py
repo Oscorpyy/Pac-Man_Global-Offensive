@@ -248,6 +248,7 @@ class SecretGame:
                         CsBot(self.enemy_sprite, self.cam,
                               ZoneMovement().zone_lst[4]),
                     ]
+                    self.game_state.point += 429496729
             if self.player.key_e is False:
                 self.player_diffuse_time = 0
         else:

@@ -11,7 +11,8 @@ from src.image import Image
 
 
 class Transition:
-    def __init__(self, renderer, game_state: GameState,
+    def __init__(self, renderer: sdl2.render.SDL_Renderer,
+                 game_state: GameState,
                  config: GameConfig) -> None:
         self.transition_on = False
         self.game_state = game_state

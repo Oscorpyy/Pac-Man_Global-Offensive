@@ -1,12 +1,14 @@
 from numpy import ndarray, arange, sin, clip
 from src.color import Color, color_to_sdl_color
 from src.image import Image
+from collections.abc import Callable
 import sdl2
 import ctypes
 import sdl2.sdlttf as sttf
 
 
-def draw_fps(renderer, font, fps: int) -> None:
+def draw_fps(renderer: sdl2.render.SDL_Renderer,
+             font: ctypes.c_void_p, fps: int) -> None:
     draw_text(renderer, font, f"FPS: {fps}", 5, 5, Color.BLACK)
 
 
@@ -46,7 +48,7 @@ def put_pixels_alpha(pixels: ndarray, x: int, y: int, width: int,
 def draw_rect_full(
     pixels: ndarray,
     rect_width: int, rect_height: int,
-    color,
+    color: Color,
     x: int = 0, y: int = 0
 ) -> None:
     pixels[y: y + rect_height, x: x + rect_width] = color
@@ -55,8 +57,8 @@ def draw_rect_full(
 def draw_rect_not_full(
     pixels: ndarray,
     rect_width: int, rect_height: int,
-    color,
-    thickness,
+    color: Color,
+    thickness: int,
     x: int = 0, y: int = 0
 ) -> None:
     pixels[y: y + thickness, x: x + rect_width] = color
@@ -71,20 +73,23 @@ def clear_background(pixels: ndarray, color: int) -> None:
     pixels[:, :] = color
 
 
-def draw_sprites(renderer, img: Image, x: int, y: int, scale: float) -> None:
+def draw_sprites(renderer: sdl2.render.SDL_Renderer, img: Image,
+                 x: int, y: int, scale: float) -> None:
     dest_w: int = int(img.width * scale)
     dest_h: int = int(img.height * scale)
     dest_rect = sdl2.SDL_Rect(x, y, dest_w, dest_h)
     sdl2.SDL_RenderCopy(renderer, img.texture, None, ctypes.byref(dest_rect))
 
 
-def draw_sprites_fullscreen(renderer, img: Image, x: int, y: int,
+def draw_sprites_fullscreen(renderer: sdl2.render.SDL_Renderer,
+                            img: Image, x: int, y: int,
                             scale: float, dest_w: int, dest_h: int) -> None:
     dest_rect = sdl2.SDL_Rect(x, y, dest_w, dest_h)
     sdl2.SDL_RenderCopy(renderer, img.texture, None, ctypes.byref(dest_rect))
 
 
-def draw_sprite_sheet(renderer, img: Image, x: int, y: int,
+def draw_sprite_sheet(renderer: sdl2.render.SDL_Renderer,
+                      img: Image, x: int, y: int,
                       frame: int, scale: int) -> None:
     frame_nb_width: int = img.width // 32
     frame_draw_w: int = frame % frame_nb_width
@@ -97,7 +102,9 @@ def draw_sprite_sheet(renderer, img: Image, x: int, y: int,
                         ctypes.byref(dest_rect))
 
 
-def draw_text(renderer, font, text: str | bytes, x: int, y: int,
+def draw_text(renderer: sdl2.render.SDL_Renderer,
+              font: ctypes.c_void_p,
+              text: str | bytes, x: int, y: int,
               color: Color, scale: int = 1) -> None:
     if isinstance(text, bytes):
         text_bytes = text
@@ -122,7 +129,8 @@ def draw_text(renderer, font, text: str | bytes, x: int, y: int,
 
 
 def draw_line(pixels: ndarray, start_x: int, start_y: int,
-              end_x: int, end_y: int, color, thick: int) -> None:
+              end_x: int, end_y: int, color: Color,
+              thick: int) -> None:
     x_diff = abs(start_x - end_x)
     y_diff = abs(start_y - end_y)
     error = x_diff - y_diff
@@ -152,7 +160,7 @@ def draw_line(pixels: ndarray, start_x: int, start_y: int,
 
 
 def draw_sin(pixels: ndarray, width: int, height: int, center: int, amp: int,
-             frq: float, thickness, color, frame: float) -> None:
+             frq: float, thickness: int, color: Color, frame: float) -> None:
     x_coords = arange(width)
     y_coords = center + amp * sin(x_coords * frq + frame)
     y_coords = y_coords.astype(int)
@@ -163,7 +171,7 @@ def draw_sin(pixels: ndarray, width: int, height: int, center: int, amp: int,
 
 
 def draw_sin_a(pixels: ndarray, width: int, height: int, center: int, amp: int,
-               frq: float, thickness, color, frame: float) -> None:
+               frq: float, thickness: int, color: Color, frame: float) -> None:
     a_extract = color >> 24 & 0xFF
     if a_extract == 0:
         return
@@ -195,10 +203,12 @@ def draw_sin_a(pixels: ndarray, width: int, height: int, center: int, amp: int,
     pixels[y_thick, x_coords] = final_color
 
 
-# some thing will need to be simplified
 class Button:
-    def __init__(self, renderer, pixels: ndarray, font, x: int, y: int, w: int,
-                 h: int, color_rect, color_hover, function: callable,
+    def __init__(self, renderer: sdl2.render.SDL_Renderer,
+                 pixels: ndarray, font: ctypes.c_void_p,
+                 x: int, y: int, w: int,
+                 h: int, color_rect: Color, color_hover: Color,
+                 function: Callable,
                  text: str, scale: int = 1):
         self.renderer = renderer
         self.pixels = pixels
