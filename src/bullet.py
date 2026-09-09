@@ -15,7 +15,8 @@ class Bullet:
         self.max_travel: int = 1500
 
     def draw_bullet(self, offset_x, offset_y) -> None:
-        draw_sprites(self.renderer, self.img, int((self.x - offset_x) * 2), int((self.y - offset_y) * 2), 2)
+        draw_sprites(self.renderer, self.img, int((self.x - offset_x) * 2),
+                     int((self.y - offset_y) * 2), 2)
         self.update_pos()
 
     def update_pos(self) -> None:
@@ -27,11 +28,11 @@ class Bullet:
             self.y += dir_y
         self.max_travel -= self.speed
 
-
     def set_direction(self, mouse_x, mouse_y, width: int, height: int) -> None:
         self.dx = mouse_x.value - (width // 2)
         self.dy = mouse_y.value - (height // 2)
 
-    def set_direction_target(self, target_x, target_y, bot_x: int, bot_y: int) -> None:
+    def set_direction_target(self, target_x, target_y,
+                             bot_x: int, bot_y: int) -> None:
         self.dx = target_x - bot_x
         self.dy = target_y - bot_y

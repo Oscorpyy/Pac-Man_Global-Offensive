@@ -8,6 +8,7 @@ VULNERABLE_DURATION: float = 7.0
 RESPAWN_DURATION: float = 7.0
 BASE_GHOST_SPEED: float = 3.0
 VULNERABLE_SPEED_RATIO: float = 0.60
+MAX_CHASE_PROBABILITY: float = 0.7
 
 
 def _load_argb_array(filepath: str) -> np.ndarray:
@@ -222,6 +223,8 @@ class Ghost:
         self.respawn_timer: float = 0.0
         self.corners_to_respawn: list[tuple[int, int]] = []
         self.last_dt: float = 1.0 / 60.0
+        self.player_pos: tuple[int, int] | None = None
+        self.chase_probability: float = 0.0
 
     @property
     def pos_x(self) -> int:
@@ -260,12 +263,23 @@ class Ghost:
     # ------------------------------------------------------------------ #
 
     def update(self, dt: float = 1.0 / 60.0,
-               player_pos: tuple[int, int] | None = None) -> None:
+               player_pos: tuple[int, int] | None = None,
+               time_left: float | None = None,
+               max_time: float | None = None) -> None:
         """
         Met à jour l'animation et les timers de vulnérabilité / réapparition.
         """
         dt = min(max(dt, 0.0), 0.1)
         self.last_dt = dt
+        self.player_pos = player_pos
+        if time_left is not None and max_time is not None and max_time > 0:
+            elapsed_ratio = 1.0 - (time_left / max_time)
+            self.chase_probability = min(
+                MAX_CHASE_PROBABILITY, max(0.0, elapsed_ratio)
+                * MAX_CHASE_PROBABILITY / 0.9
+            )
+        else:
+            self.chase_probability = 0.0
 
         # Timer de réapparition
         if self.is_dead:
@@ -402,6 +416,30 @@ class Ghost:
             pool = non_opp if non_opp else valid_moves
         else:
             pool = valid_moves
+
+        if self.player_pos is not None and self.is_vulnerable:
+            player_x, player_y = self.player_pos
+            best_distance = max(
+                abs(nx - player_x) + abs(ny - player_y)
+                for _, nx, ny in pool
+            )
+            pool = [
+                move for move in pool
+                if abs(move[1] - player_x) + abs(move[2] - player_y)
+                == best_distance
+            ]
+        elif (self.player_pos is not None
+              and random.random() < self.chase_probability):
+            player_x, player_y = self.player_pos
+            best_distance = min(
+                abs(nx - player_x) + abs(ny - player_y)
+                for _, nx, ny in pool
+            )
+            pool = [
+                move for move in pool
+                if abs(move[1] - player_x) + abs(move[2] - player_y)
+                == best_distance
+            ]
 
         return random.choice(pool)
 
