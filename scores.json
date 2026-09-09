@@ -7,10 +7,6 @@
         {
             "name": "opernod2",
             "point": 2310
-        },
-        {
-            "name": "teste",
-            "point": 2147483647
         }
     ]
 }
