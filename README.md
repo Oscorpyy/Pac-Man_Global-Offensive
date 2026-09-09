@@ -190,6 +190,11 @@ The acceptance test plan covers:
 
 Project-management documents are intended to live in [`./project_management/`](./project_management/). The directory is not included in the current checkout.
 
+If you wan't to see pushes more clearly
+```bash
+git log --oneline --graph --decorate --all
+```
+
 ## Resources
 
 - [PySDL2 documentation](https://pysdl2.readthedocs.io/)
