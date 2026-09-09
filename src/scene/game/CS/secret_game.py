@@ -30,7 +30,7 @@ class MouseVector2:
 class SecretGame:
     def __init__(self, renderer: sdl2.render.SDL_Renderer,
                  game_state: GameState, config: GameConfig,
-                 tilemap: list, cam: Camera,
+                 game: Game, tilemap: list, cam: Camera,
                  transition: Transition) -> None:
         """Initialize the secret Counter-Strike game mode scene.
 
