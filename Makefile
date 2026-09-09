@@ -38,7 +38,6 @@ clean:
 	@rm -f output.txt
 	@rm -rf .venv
 	@rm -fr package
-	@rm -rf test
 	@printf "$(COLOR_GREEN)✓ Cleanup completed$(COLOR_RESET)\n"
 
 lint:
