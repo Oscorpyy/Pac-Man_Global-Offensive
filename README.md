@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by opernod and lgoderne.*
+*This project has been created as part of the 42 curriculum by lgoderne and opernod.*
 
 # Pac-Man: Global Offensive
 
@@ -188,7 +188,7 @@ The acceptance test plan covers:
 - Victory/defeat handling and score persistence.
 - Invalid highscore names and malformed highscore files.
 
-Project-management documents are intended to live in [`./project_management/`](./project_management/). The directory is not included in the current checkout.
+![project timeline](project_timeline.png)
 
 If you wan't to see pushes more clearly
 ```bash
@@ -202,17 +202,18 @@ git log --oneline --graph --decorate --all
 - [NumPy documentation](https://numpy.org/doc/)
 - [Pydantic documentation](https://docs.pydantic.dev/)
 - [Python documentation](https://docs.python.org/3/)
+- 42 Other students
 - The external `A-Maze-ing` generator supplied as the local project dependency.
 - 42 project subject, evaluation criteria and peer-review feedback.
+- AIs
 
 ## AI Usage
 
 AI tools were used transparently as development assistance. Their use included:
 
 - Explaining existing code paths and tracing scene, input and score-save flows.
-- Suggesting and checking focused test cases for configuration and save-name validation.
+- Suggesting and checking focused test cases for configuration.
 - Assisting with debugging syntax, integration and validation issues.
-- Proposing small refactorings while preserving the existing public behavior.
 - Helping draft and structure this documentation.
+- Explaining new awareness about the project
 
-All generated suggestions were reviewed, adapted and tested by the project author. The AI did not replace understanding of the code, implementation decisions, manual testing or responsibility for the final submission. AI usage remains subject to the 42 school's pedagogical rules and the project subject's specific policy.
