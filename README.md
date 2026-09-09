@@ -33,11 +33,12 @@ From the project directory:
 uv sync
 ```
 
-Alternatively, install the project dependencies with your Python package manager:
+Alternatively, download and run the standalone executable from Itch.io:
 
-```bash
-python3 -m pip install -e .
-```
+1. Go to the project page: `https://opernod.itch.io/pacman-go`
+2. Enter the access password: `MonLeo!`
+3. Download the `.zip` archive.
+4. Extract the file and run the executable directly.
 
 ## Instructions
 
@@ -65,7 +66,6 @@ The Makefile provides the usual project commands:
 | `make test` | Runs the configuration/parser test suite found in `test/`. |
 | `make package` | Builds a distributable executable with PyInstaller. |
 
-The Makefile currently contains two `test` declarations; Make uses the last declaration. Its effective implementation starts each configuration test with a short timeout and reports whether the program launched or failed.
 
 ## Configuration
 
@@ -190,7 +190,7 @@ The acceptance test plan covers:
 
 ![project timeline](project_timeline.png)
 
-If you wan't to see pushes more clearly
+If you want to see pushes more clearly
 ```bash
 git log --oneline --graph --decorate --all
 ```
