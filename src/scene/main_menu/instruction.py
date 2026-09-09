@@ -14,6 +14,7 @@ from src.drawing_methods import (
 )
 from src.image import Image
 from src.print_logs import print_info
+from typing import Any
 
 
 class InstructionWindow:
@@ -31,8 +32,9 @@ class InstructionWindow:
     }
 
     def __init__(self, main_widow_width: int, main_widow_height: int,
-                 renderer, pixels: np.ndarray, font,
-                 on_close=None) -> None:
+                 renderer: sdl2.render.SDL_Renderer,
+                 pixels: np.ndarray, font: ctypes.c_int,
+                 on_close: Any = None | Any) -> None:
         self.m_width = main_widow_width
         self.m_height = main_widow_height
         self.pitch_background = self.m_width * 4
@@ -128,7 +130,7 @@ class InstructionWindow:
             return True
         return False
 
-    def check_input(self, event=None) -> bool:
+    def check_input(self, event: sdl2.events.SDL_Event | None = None) -> bool:
         """
         Check inputs to detect the complete Konami Code.
         Accepts an SDL_Event, int keycode, or str token.
@@ -183,10 +185,10 @@ class InstructionWindow:
 
         return self._feed_token(token)
 
-    def check_inputs(self, event=None) -> bool:
+    def check_inputs(self, event: sdl2.events.SDL_Event | None = None) -> bool:
         return self.check_input(event)
 
-    def handle_event(self, event) -> bool:
+    def handle_event(self, event: sdl2.events.SDL_Event | None = None) -> bool:
         return self.check_input(event)
 
     def _draw_text_line(self, font, text: str, x: int, y: int,

@@ -4,7 +4,8 @@ from src.print_logs import print_error
 
 
 class Image:
-    def __init__(self, img_path: str | bytes, renderer) -> None:
+    def __init__(self, img_path: str | bytes,
+                 renderer: sdl2.render.SDL_Renderer) -> None:
         if isinstance(img_path, bytes):
             load_path = img_path
         else:

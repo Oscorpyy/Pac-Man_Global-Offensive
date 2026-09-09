@@ -26,7 +26,7 @@ class GameState:
             SDLK_b, SDLK_a
         ]
         self.konami_code_entered: list = []
-        self.fps_lst = deque(maxlen=30)
+        self.fps_lst: deque = deque(maxlen=30)
         self.fps: int = 0
         self.cs_round_win: int = 0
         self.cs_round_loose: int = 0
@@ -39,16 +39,16 @@ class GameState:
             self._point = 2147483647
         return self._point
 
-    def get_points(self) -> int:
-        """Retourne le nombre de points du joueur."""
-        return self.point
-
     @point.setter
     def point(self, value: int) -> None:
         if value > 2147483648:
             self._point = 2147483647
         else:
             self._point = value
+
+    def get_points(self) -> int:
+        """Retourne le nombre de points du joueur."""
+        return self.point
 
     def check_cs_finished(self) -> None:
         if self.cs_round_win >= 5:
