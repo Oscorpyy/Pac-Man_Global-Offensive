@@ -8,14 +8,27 @@ from typing import Any
 
 
 class SdlEvent:
+    """Handle global SDL event polling and dispatching to scenes."""
+
     def __init__(self) -> None:
+        """Initialize the event handler."""
         pass
 
     def player_control(self) -> None:
+        """Stub method for player input handling."""
         pass
 
     @staticmethod
     def _check_konami_code(game_state: GameState, key: int) -> bool:
+        """Check whether the entered key sequence matches the Konami code.
+
+        Args:
+            game_state: Current game state tracking code sequence.
+            key: Keycode of the newly pressed key.
+
+        Returns:
+            bool: True if full Konami code was matched, False otherwise.
+        """
         game_state.konami_code_entered.append(key)
         expected = game_state.konami_code_excepted
         if game_state.konami_code_entered == expected:
@@ -29,6 +42,14 @@ class SdlEvent:
 
     def main_loop(self, event: SDL_Event, game_state: GameState, scene: Any,
                   transition: Transition) -> None:
+        """Poll and dispatch all pending SDL events to the active scene.
+
+        Args:
+            event: Reusable SDL event container.
+            game_state: Global game state object.
+            scene: Active scene controller.
+            transition: Active screen transition manager.
+        """
         while sdl2.SDL_PollEvent(ctypes.byref(event)) != 0:
             key = event.key.keysym.sym
             if event.type == sdl2.SDL_QUIT:

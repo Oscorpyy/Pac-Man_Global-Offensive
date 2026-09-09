@@ -12,7 +12,19 @@ MAX_CHASE_PROBABILITY: float = 0.7
 
 
 def _load_argb_array(filepath: str) -> np.ndarray:
-    """Charge une image en tableau numpy ARGB uint32, fond sombre → alpha=0."""
+    """Load an image file into a uint32 ARGB numpy array.
+
+    Dark background pixels (RGB sum < 50) are masked to alpha=0.
+
+    Args:
+        filepath: Path to the image file.
+
+    Returns:
+        np.ndarray: 2D array of uint32 ARGB pixels.
+
+    Raises:
+        RuntimeError: If image loading or surface conversion fails.
+    """
     path_bytes = filepath.encode('utf-8')
     surf = sdim.IMG_Load(path_bytes)
     if not surf:
@@ -41,7 +53,14 @@ def _load_argb_array(filepath: str) -> np.ndarray:
 
 
 def _get_segs(counts: np.ndarray) -> list[tuple[int, int]]:
-    """Retourne les segments contigus de valeurs > 0."""
+    """Find contiguous segments of positive values in an array.
+
+    Args:
+        counts: 1D array of counts or flags.
+
+    Returns:
+        list[tuple[int, int]]: List of (start_index, end_index) tuples.
+    """
     segs: list[tuple[int, int]] = []
     in_s = False
     st = 0
@@ -58,7 +77,14 @@ def _get_segs(counts: np.ndarray) -> list[tuple[int, int]]:
 
 
 def _scale_tile_64(tile: np.ndarray) -> np.ndarray:
-    """Rééchantillonne un sous-tableau vers 64×64 par nearest-neighbour."""
+    """Resample a sub-array to 64x64 using nearest-neighbor interpolation.
+
+    Args:
+        tile: 2D numpy array of pixels.
+
+    Returns:
+        np.ndarray: Scaled 64x64 pixel array.
+    """
     h, w = tile.shape
     iy = (np.arange(64) * h // 64).astype(int)
     ix = (np.arange(64) * w // 64).astype(int)
@@ -66,9 +92,15 @@ def _scale_tile_64(tile: np.ndarray) -> np.ndarray:
 
 
 def extract_ghost_frames(filepath: str) -> list[list[np.ndarray]]:
-    """
-    Extrait les 4 lignes (directions) × 2 colonnes (frames) du sprite-sheet
-    d'un fantôme normal. Chaque frame est réduite à 64×64 ARGB uint32.
+    """Extract directional animation frames from a ghost sprite sheet.
+
+    Extracts 4 directions x 2 animation frames scaled to 64x64 ARGB.
+
+    Args:
+        filepath: Path to the ghost sprite sheet.
+
+    Returns:
+        list[list[np.ndarray]]: Nested list of frames [direction][frame].
     """
     arr = _load_argb_array(filepath)
     h = arr.shape[0]
@@ -95,9 +127,13 @@ def extract_ghost_frames(filepath: str) -> list[list[np.ndarray]]:
 
 
 def extract_dead_ghost_frames(filepath: str) -> list[np.ndarray]:
-    """
-    Extrait les 2 frames d'animation du sprite vulnerable (dead_ghost.png).
-    Renvoie une liste de 2 tableaux 64×64 ARGB.
+    """Extract animation frames from the vulnerable ghost sprite sheet.
+
+    Args:
+        filepath: Path to the vulnerable sprite image (dead_ghost.png).
+
+    Returns:
+        list[np.ndarray]: List of 2 animation frames scaled to 64x64 ARGB.
     """
     arr = _load_argb_array(filepath)
 
@@ -127,9 +163,14 @@ def extract_dead_ghost_frames(filepath: str) -> list[np.ndarray]:
 
 def _blit_tile(pixels: np.ndarray, tile: np.ndarray,
                cx: int, cy: int, size: int) -> None:
-    """
-    Dessine un tile 64×64 ARGB (réduit à size×size) centré en (cx, cy)
-    dans la matrice de pixels ARGB uint32.
+    """Blend a 64x64 ARGB tile centered at (cx, cy) into pixel buffer.
+
+    Args:
+        pixels: Destination ARGB pixel matrix.
+        tile: 64x64 ARGB source tile.
+        cx: Center X coordinate in pixels.
+        cy: Center Y coordinate in pixels.
+        size: Target width and height in pixels.
     """
     if size <= 0:
         return
@@ -171,11 +212,13 @@ def _blit_tile(pixels: np.ndarray, tile: np.ndarray,
 
 
 class Ghost:
-    """
-    Représente un fantôme du jeu Pac-Man avec trois états :
-      - normal    : déplacement fluide continu, sprite coloré
-      - vulnerable: suite à un super-pacgum, vitesse réduite, sprite dead_ghost
-      - dead      : tué par Pac-Man, invisible en attente de réapparition
+    """Represent a Pac-Man ghost with normal, vulnerable, and dead states.
+
+    Attributes:
+        color_name: Name of the ghost color identifier.
+        base_speed: Default movement speed in grid cells per second.
+        is_vulnerable: Whether ghost is currently in vulnerable state.
+        is_dead: Whether ghost was eaten and is waiting to respawn.
     """
 
     _dead_frames: list[np.ndarray] | None = None
@@ -183,6 +226,14 @@ class Ghost:
 
     def __init__(self, color_name: str, sprite_path: str,
                  pos_x: int = 0, pos_y: int = 0) -> None:
+        """Initialize a Ghost instance with appearance and coordinates.
+
+        Args:
+            color_name: Identifier name for the ghost's color/identity.
+            sprite_path: Filepath to the ghost's sprite sheet.
+            pos_x: Initial grid X position.
+            pos_y: Initial grid Y position.
+        """
         self.color_name: str = color_name
         self._pos_x: int = int(pos_x)
         self._pos_y: int = int(pos_y)
@@ -228,10 +279,20 @@ class Ghost:
 
     @property
     def pos_x(self) -> int:
+        """Get the ghost's grid X coordinate.
+
+        Returns:
+            Current grid X position.
+        """
         return self._pos_x
 
     @pos_x.setter
     def pos_x(self, val: int) -> None:
+        """Set the ghost's grid X coordinate and synchronize render position.
+
+        Args:
+            val: New grid X coordinate.
+        """
         self._pos_x = int(val)
         self.target_x = self._pos_x
         self.render_x = float(self._pos_x)
@@ -240,10 +301,20 @@ class Ghost:
 
     @property
     def pos_y(self) -> int:
+        """Get the ghost's grid Y coordinate.
+
+        Returns:
+            Current grid Y position.
+        """
         return self._pos_y
 
     @pos_y.setter
     def pos_y(self, val: int) -> None:
+        """Set the ghost's grid Y coordinate and synchronize render position.
+
+        Args:
+            val: New grid Y coordinate.
+        """
         self._pos_y = int(val)
         self.target_y = self._pos_y
         self.render_y = float(self._pos_y)
@@ -252,8 +323,7 @@ class Ghost:
 
     @property
     def current_speed(self) -> float:
-        """Vitesse actuelle (cases/sec), ralentie quand le fantôme
-        est vulnérable."""
+        """Return current speed in cells per second based on state."""
         if self.is_vulnerable:
             return self.base_speed * self.vulnerable_speed_ratio
         return self.base_speed
@@ -266,8 +336,13 @@ class Ghost:
                player_pos: tuple[int, int] | None = None,
                time_left: float | None = None,
                max_time: float | None = None) -> None:
-        """
-        Met à jour l'animation et les timers de vulnérabilité / réapparition.
+        """Update animation frames and vulnerable or respawn timers.
+
+        Args:
+            dt: Delta time elapsed since last update in seconds.
+            player_pos: Current player grid coordinates (x, y).
+            time_left: Remaining level time in seconds.
+            max_time: Total level time in seconds.
         """
         dt = min(max(dt, 0.0), 0.1)
         self.last_dt = dt
@@ -325,15 +400,16 @@ class Ghost:
             self.current_frame = (self.current_frame + 1) % 2
 
     def make_vulnerable(self) -> None:
-        """Active l'état vulnérable pour VULNERABLE_DURATION secondes."""
+        """Activate vulnerable state for VULNERABLE_DURATION seconds."""
         if not self.is_dead:
             self.is_vulnerable = True
             self.vulnerable_timer = VULNERABLE_DURATION
 
     def kill(self, corners: list[tuple[int, int]]) -> None:
-        """
-        Tue le fantôme : il devient invisible pendant RESPAWN_DURATION s (7s),
-        puis réapparaît dans un coin aléatoire de la map.
+        """Kill the ghost, making it invisible until it respawns in a corner.
+
+        Args:
+            corners: List of valid corner (x, y) coordinates for respawn.
         """
         self.is_dead = True
         self.is_permanently_dead = False
@@ -351,7 +427,7 @@ class Ghost:
         self.is_moving = False
 
     def kill_permanently(self) -> None:
-        """Tue définitivement le fantôme pour le niveau en cours."""
+        """Permanently kill the ghost for the remainder of the level."""
         self.is_dead = True
         self.is_permanently_dead = True
         self.is_vulnerable = False
@@ -375,9 +451,14 @@ class Ghost:
         maze_matrix: list[list[int]],
         allow_reverse: bool = False
     ) -> tuple[int, int, int] | None:
-        """
-        Choisit la prochaine case adjacente valide (direction, nx, ny).
-        Évite le demi-tour immédiat sauf si cul-de-sac.
+        """Select the next valid adjacent cell, avoiding instant reversal.
+
+        Args:
+            maze_matrix: 2D maze representation with wall bitmasks.
+            allow_reverse: Whether 180-degree turn is permitted.
+
+        Returns:
+            tuple[int, int, int] | None: (direction, next_x, next_y) or None.
         """
         NORTH, EAST, SOUTH, WEST = 1, 2, 4, 8
         maze_height = len(maze_matrix)
@@ -445,8 +526,11 @@ class Ghost:
 
     def move_step(self, maze_matrix: list[list[int]],
                   dt: float | None = None) -> None:
-        """
-        Effectue une étape de déplacement fluide continu entre cases.
+        """Execute one step of smooth continuous movement between cells.
+
+        Args:
+            maze_matrix: 2D maze representation with wall bitmasks.
+            dt: Delta time elapsed since last update.
         """
         if self.is_dead:
             self.render_x = -100.0
@@ -512,12 +596,22 @@ class Ghost:
 
     def move_normal(self, maze_matrix: list[list[int]],
                     dt: float | None = None) -> None:
-        """Déplacement en mode normal (vitesse de base)."""
+        """Move the ghost in normal mode at base speed.
+
+        Args:
+            maze_matrix: 2D maze representation with wall bitmasks.
+            dt: Delta time elapsed since last update.
+        """
         self.move_step(maze_matrix, dt)
 
     def move_vulnerable(self, maze_matrix: list[list[int]],
                         dt: float | None = None) -> None:
-        """Déplacement en mode vulnérable (vitesse ralentie)."""
+        """Move the ghost in vulnerable mode at reduced speed.
+
+        Args:
+            maze_matrix: 2D maze representation with wall bitmasks.
+            dt: Delta time elapsed since last update.
+        """
         self.move_step(maze_matrix, dt)
 
     # ------------------------------------------------------------------ #
@@ -526,11 +620,13 @@ class Ghost:
 
     def draw_ghost_pixels(self, pixels: np.ndarray, start_x: int,
                           start_y: int, cellsize: int) -> None:
-        """
-        Dessine le fantôme dans la matrice de pixels à sa position interpolée.
-        - Mort       → invisible
-        - Vulnérable → sprite dead_ghost
-        - Normal     → sprite coloré orienté
+        """Draw the ghost into pixel buffer at interpolated position.
+
+        Args:
+            pixels: ARGB pixel buffer array.
+            start_x: Screen X pixel offset for maze origin.
+            start_y: Screen Y pixel offset for maze origin.
+            cellsize: Size of a single maze cell in pixels.
         """
         if self.is_dead:
             return

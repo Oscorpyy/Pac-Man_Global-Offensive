@@ -35,6 +35,16 @@ class InstructionWindow:
                  renderer: sdl2.render.SDL_Renderer,
                  pixels: np.ndarray, font: ctypes.c_int,
                  on_close: Any = None | Any) -> None:
+        """Initialize the instruction modal window and font resources.
+
+        Args:
+            main_widow_width: Screen width in pixels.
+            main_widow_height: Screen height in pixels.
+            renderer: SDL renderer instance.
+            pixels: 2D numpy pixel buffer.
+            font: Fallback font pointer.
+            on_close: Optional callback invoked when closing modal.
+        """
         self.m_width = main_widow_width
         self.m_height = main_widow_height
         self.pitch_background = self.m_width * 4
@@ -85,6 +95,7 @@ class InstructionWindow:
             self.bomba_img = None
 
     def clean_up(self) -> None:
+        """Release allocated fonts and textures."""
         if self.background:
             sdl2.SDL_DestroyTexture(self.background)
             self.background = None
@@ -113,10 +124,19 @@ class InstructionWindow:
             self.bomba_img = None
 
     def reset(self) -> None:
+        """Reset modal view back to standard Pac-Man instructions."""
         self.show_cs = False
         self.konami_code_entered.clear()
 
     def _feed_token(self, token: str) -> bool:
+        """Advance the Konami code buffer with input token.
+
+        Args:
+            token: Key code token string.
+
+        Returns:
+            True if Konami sequence is completed, False otherwise.
+        """
         self.konami_code_entered.append(token)
         if len(self.konami_code_entered) > len(self.KONAMI_SEQUENCE):
             self.konami_code_entered.pop(0)
@@ -186,13 +206,42 @@ class InstructionWindow:
         return self._feed_token(token)
 
     def check_inputs(self, event: sdl2.events.SDL_Event | None = None) -> bool:
+        """Alias for check_input to process Konami code inputs.
+
+        Args:
+            event: Optional SDL event.
+
+        Returns:
+            True if Konami sequence is completed, False otherwise.
+        """
         return self.check_input(event)
 
     def handle_event(self, event: sdl2.events.SDL_Event | None = None) -> bool:
+        """Handle SDL events for Konami code detection.
+
+        Args:
+            event: Optional SDL event.
+
+        Returns:
+            True if Konami sequence is completed, False otherwise.
+        """
         return self.check_input(event)
 
-    def _draw_text_line(self, font, text: str, x: int, y: int,
+    def _draw_text_line(self, font: ctypes.c_void_p, text: str, x: int, y: int,
                         color: Color, scale: int = 1) -> int:
+        """Render a single text line at specified coordinates.
+
+        Args:
+            font: TTF font pointer.
+            text: String text to draw.
+            x: Destination X coordinate.
+            y: Destination Y coordinate.
+            color: Text color.
+            scale: Font scaling factor.
+
+        Returns:
+            Height of the rendered text line in pixels.
+        """
         if not text or not text.strip():
             return 16 * scale
         text_bytes = text.encode("utf-8")
@@ -200,8 +249,8 @@ class InstructionWindow:
         surface = sttf.TTF_RenderUTF8_Solid(font, text_bytes, sdl_col)
         if not surface:
             return 16 * scale
-        line_w = surface.contents.w
-        line_h = surface.contents.h
+        line_w: int = surface.contents.w
+        line_h: int = surface.contents.h
         texture = sdl2.SDL_CreateTextureFromSurface(self.renderer, surface)
         sdl2.SDL_FreeSurface(surface)
         if texture:
@@ -214,9 +263,24 @@ class InstructionWindow:
             sdl2.SDL_DestroyTexture(texture)
         return line_h * scale
 
-    def _draw_centered_line(self, font, text: str, y: int, box_x: int,
+    def _draw_centered_line(self, font: ctypes.c_void_p,
+                            text: str, y: int, box_x: int,
                             box_w: int, color: Color,
                             scale: int = 1) -> int:
+        """Render a horizontally centered text line within bounding box.
+
+        Args:
+            font: TTF font pointer.
+            text: Text to render.
+            y: Destination Y baseline coordinate.
+            box_x: Box start X coordinate.
+            box_w: Box width.
+            color: Text color.
+            scale: Scaling multiplier.
+
+        Returns:
+            Rendered line height in pixels.
+        """
         if not text or not text.strip():
             return 16 * scale
         w_val, h_val = ctypes.c_int(0), ctypes.c_int(0)
@@ -229,6 +293,14 @@ class InstructionWindow:
 
     def _draw_pacman_instructions(self, box_x: int, box_y: int,
                                   box_w: int, box_h: int) -> None:
+        """Render normal Pac-Man controls and rules within the modal dialog.
+
+        Args:
+            box_x: Dialog box X coordinate.
+            box_y: Dialog box Y coordinate.
+            box_w: Dialog box width in pixels.
+            box_h: Dialog box height in pixels.
+        """
         curr_y = box_y + int(box_h * 0.05)
         step = max(13, int(box_h * 0.04))
 
@@ -348,6 +420,14 @@ class InstructionWindow:
 
     def _draw_cs_instructions(self, box_x: int, box_y: int,
                               box_w: int, box_h: int) -> None:
+        """Render secret CS:GO game mode guide within the modal dialog.
+
+        Args:
+            box_x: Dialog box X coordinate.
+            box_y: Dialog box Y coordinate.
+            box_w: Dialog box width in pixels.
+            box_h: Dialog box height in pixels.
+        """
         curr_y = box_y + int(box_h * 0.05)
         step = max(13, int(box_h * 0.04))
 
@@ -467,6 +547,12 @@ class InstructionWindow:
         curr_y += step
 
     def draw_instructions(self, time: float, bg: int) -> None:
+        """Render the complete instructions window overlay and close button.
+
+        Args:
+            time: Animation time parameter.
+            bg: Background color value.
+        """
         clear_background(self.pixels, bg)
         draw_sin_a(
             self.pixels, self.m_width, self.m_height,

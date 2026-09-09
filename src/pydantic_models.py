@@ -26,6 +26,17 @@ class Config(BaseModel):
     @field_validator("highscore_filename")
     @classmethod
     def highscore_filename_must_not_be_blank(cls, value: str) -> str:
+        """Validate that highscore_filename is not blank.
+
+        Args:
+            value: Highscore file path string to validate.
+
+        Returns:
+            str: Validated highscore file path string.
+
+        Raises:
+            ValueError: If the file path string is blank.
+        """
         if not value.strip():
             raise ValueError("highscore_filename must not be empty")
         return value

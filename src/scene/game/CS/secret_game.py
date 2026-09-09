@@ -21,13 +21,26 @@ from src.scene.game.CS.cam import CameraProps
 
 class MouseVector2:
     def __init__(self) -> None:
+        """Initialize mouse vector coordinates and button mask."""
         self.x, self.y = ctypes.c_int(0), ctypes.c_int(0)
         self.mouse_button: sdl2.Uint32
 
 
 class SecretGame:
-    def __init__(self, renderer, game_state: GameState, config: GameConfig,
-                 tilemap, cam: Camera, transition: Transition):
+    def __init__(self, renderer: sdl2.render.SDL_Renderer,
+                 game_state: GameState, config: GameConfig,
+                 tilemap: list, cam: Camera,
+                 transition: Transition) -> None:
+        """Initialize the secret Counter-Strike game mode scene.
+
+        Args:
+            renderer: SDL renderer instance.
+            game_state: Global game state.
+            config: Game configuration options.
+            tilemap: Loaded tile layer data for the map.
+            cam: Camera tracking the player and mouse.
+            transition: Scene transition manager.
+        """
         self.transition = transition
         self.renderer = renderer
         self.width = config.screen_width
@@ -96,6 +109,7 @@ class SecretGame:
         self.tick_counter: int = 0
 
     def clean_up(self) -> None:
+        """Free textures and fonts allocated for the secret CS game."""
         sdim.IMG_Quit()
         sttf.TTF_CloseFont(self.font)
         sttf.TTF_Quit()
@@ -105,7 +119,12 @@ class SecretGame:
         sdl2.SDL_DestroyTexture(self.bomba.texture)
         sdl2.SDL_DestroyTexture(self.character_icons.texture)
 
-    def draw_tilemap(self, scale) -> None:
+    def draw_tilemap(self, scale: int) -> None:
+        """Render tilemap layers taking camera offset and scale into account.
+
+        Args:
+            scale: Integer tile scaling factor.
+        """
         renderer = self.renderer
         map_tiles = self.map_tiles
         cam_scaled_x = self.cam.offset_x * scale
@@ -162,7 +181,13 @@ class SecretGame:
                     tile_count = 0
             i += 1
 
-    def set_keystate(self, key, is_pressed: bool) -> None:
+    def set_keystate(self, key: int, is_pressed: bool) -> None:
+        """Update player movement and interaction key flags.
+
+        Args:
+            key: SDL keycode.
+            is_pressed: Boolean indicating whether key is down.
+        """
         if key == sdl2.SDLK_w:
             self.player.key_w = is_pressed
         elif key == sdl2.SDLK_s:
@@ -175,6 +200,15 @@ class SecretGame:
             self.player.key_e = is_pressed
 
     def can_player_move(self, pos_x: int, pos_y: int) -> bool:
+        """Check if candidate player coordinates collide with collision layer.
+
+        Args:
+            pos_x: Candidate X coordinate.
+            pos_y: Candidate Y coordinate.
+
+        Returns:
+            True if cell is traversable, False if blocked by tile.
+        """
         x = 0
         y = 0
         tile_count = 0
@@ -193,6 +227,7 @@ class SecretGame:
         return True
 
     def update_player_pos(self) -> None:
+        """Update player coordinates based on active movement keys."""
         if (self.player.key_w is True):
             pos_y = self.player.pos_y - self.speed
             if self.can_player_move(self.player.pos_x, pos_y) is True:
@@ -211,6 +246,7 @@ class SecretGame:
                 self.player.pos_x = pos_x
 
     def defuse_bomb(self) -> None:
+        """Handle bomb defusal interaction progress and round victory."""
         bomb_size: int = 32
         bomb_pos_x: int = 32
         bomb_pos_y: int = 64
@@ -255,6 +291,11 @@ class SecretGame:
             self.player_diffuse_time = 0
 
     def update_cam_mouse_move(self, scale: int) -> None:
+        """Adjust camera offset dynamically based on mouse cursor position.
+
+        Args:
+            scale: Display scale factor.
+        """
         factor = 0.3
         self.current_mouse_pos.mouse_button = sdl2.SDL_GetMouseState(
             ctypes.byref(self.current_mouse_pos.x),
@@ -268,6 +309,7 @@ class SecretGame:
         self.cam.offset_y = int(base_y + ((diff_y / scale) * factor))
 
     def draw_scores(self) -> None:
+        """Render round win and loss counts on the HUD."""
         my_score = f"{self.game_state.cs_round_win}"
         ennemy_score = f"{self.game_state.cs_round_loose}"
         draw_text(self.renderer, self.font, my_score.encode(),
@@ -276,12 +318,14 @@ class SecretGame:
                   (self.width // 2) + 15, 10, Color.BLACK)
 
     def draw_timer(self) -> None:
+        """Render round countdown timer or freeze time timer."""
+        timer: str
         if self.round_start_timer > 0:
-            timer: str = f"{int(self.round_start_timer)}"
+            timer = f"{int(self.round_start_timer)}"
             draw_text(self.renderer, self.font, timer.encode(),
                       (self.width // 2), 40, Color.RED)
         else:
-            timer: str = f"{int(self.round_timer)}"
+            timer = f"{int(self.round_timer)}"
             if self.round_timer <= 10.0:
                 draw_text(self.renderer, self.font, timer.encode(),
                           (self.width // 2), 40, Color.RED)
@@ -290,6 +334,7 @@ class SecretGame:
                           (self.width // 2) - 10, 40, Color.BLACK)
 
     def draw_number_player(self) -> None:
+        """Render alive player and enemy counts with character icons."""
         draw_sprite_sheet(self.renderer, self.character_icons,
                           (self.width // 2) - 100, 10,
                           self.current_icons_frame + 24, 2)
@@ -303,6 +348,7 @@ class SecretGame:
                   (self.width // 2) + 50, 10, Color.WHITE)
 
     def update_timers(self) -> None:
+        """Update freeze time and round timers, handling round timeout."""
         self.round_timer -= self.game_state.dt
         self.round_start_timer -= self.game_state.dt
         if self.round_start_timer <= 0.0:
@@ -325,6 +371,7 @@ class SecretGame:
             ]
 
     def update_character_icons(self) -> None:
+        """Update character icon animation frame counter."""
         frame_number = 24
         animation_speed = 5
         self.tick_counter += 1
@@ -334,6 +381,7 @@ class SecretGame:
             self.current_icons_frame = self.current_icons_frame % frame_number
 
     def draw_secret_game(self) -> None:
+        """Render complete secret game frame including map, actors, and HUD."""
         clear_background(self.pixels, Color.GRAY)
         pixel_ptr = get_ptr(self.pixels)
         sdl2.SDL_UpdateTexture(self.background, None, pixel_ptr,

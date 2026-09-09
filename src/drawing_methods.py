@@ -9,17 +9,44 @@ import sdl2.sdlttf as sttf
 
 def draw_fps(renderer: sdl2.render.SDL_Renderer,
              font: ctypes.c_void_p, fps: int) -> None:
+    """Render the current FPS counter text onto the screen.
+
+    Args:
+        renderer: SDL renderer used for rendering text.
+        font: Loaded TTF font pointer.
+        fps: Current frames per second value.
+    """
     draw_text(renderer, font, f"FPS: {fps}", 5, 5, Color.BLACK)
 
 
 def put_pixels(pixels_array: ndarray, x: int, y: int, width: int,
                height: int, color: Color) -> None:
+    """Set the pixel color at coordinates (x, y) if within bounds.
+
+    Args:
+        pixels_array: Flat 1D numpy array of screen pixels.
+        x: Horizontal pixel coordinate.
+        y: Vertical pixel coordinate.
+        width: Screen width in pixels.
+        height: Screen height in pixels.
+        color: ARGB color value to write.
+    """
     if 0 <= x < width and 0 <= y < height:
         pixels_array[y * width + x] = color
 
 
 def put_pixels_alpha(pixels: ndarray, x: int, y: int, width: int,
                      height: int, color: Color) -> None:
+    """Alpha-blend and write a single pixel into the pixel buffer.
+
+    Args:
+        pixels: 2D numpy array of screen pixels (height x width).
+        x: Horizontal coordinate.
+        y: Vertical coordinate.
+        width: Pixel buffer width.
+        height: Pixel buffer height.
+        color: ARGB color value with alpha channel.
+    """
     if 0 <= x < width and 0 <= y < height:
         a_extract = color >> 24 & 0xFF
         if a_extract == 0:
@@ -51,6 +78,16 @@ def draw_rect_full(
     color: Color,
     x: int = 0, y: int = 0
 ) -> None:
+    """Fill a solid rectangle into a 2D numpy pixel buffer.
+
+    Args:
+        pixels: 2D numpy array of screen pixels.
+        rect_width: Width of rectangle in pixels.
+        rect_height: Height of rectangle in pixels.
+        color: Color to fill.
+        x: Starting horizontal coordinate.
+        y: Starting vertical coordinate.
+    """
     pixels[y: y + rect_height, x: x + rect_width] = color
 
 
@@ -61,6 +98,17 @@ def draw_rect_not_full(
     thickness: int,
     x: int = 0, y: int = 0
 ) -> None:
+    """Draw a hollow rectangle outline into a 2D numpy pixel buffer.
+
+    Args:
+        pixels: 2D numpy array of screen pixels.
+        rect_width: Width of the rectangle bounding box.
+        rect_height: Height of the rectangle bounding box.
+        color: Color for rectangle borders.
+        thickness: Border thickness in pixels.
+        x: Starting horizontal coordinate.
+        y: Starting vertical coordinate.
+    """
     pixels[y: y + thickness, x: x + rect_width] = color
     pixels[rect_height + y: rect_height + y + thickness,
            x: x + rect_width] = color
@@ -70,11 +118,26 @@ def draw_rect_not_full(
 
 
 def clear_background(pixels: ndarray, color: int) -> None:
+    """Fill the entire pixel buffer with a solid color.
+
+    Args:
+        pixels: 2D numpy pixel array.
+        color: ARGB color value to clear buffer with.
+    """
     pixels[:, :] = color
 
 
 def draw_sprites(renderer: sdl2.render.SDL_Renderer, img: Image,
                  x: int, y: int, scale: float) -> None:
+    """Render a scaled image sprite to the screen.
+
+    Args:
+        renderer: SDL renderer instance.
+        img: Source Image object to draw.
+        x: Destination X screen coordinate.
+        y: Destination Y screen coordinate.
+        scale: Scaling multiplier for image dimensions.
+    """
     dest_w: int = int(img.width * scale)
     dest_h: int = int(img.height * scale)
     dest_rect = sdl2.SDL_Rect(x, y, dest_w, dest_h)
@@ -84,6 +147,17 @@ def draw_sprites(renderer: sdl2.render.SDL_Renderer, img: Image,
 def draw_sprites_fullscreen(renderer: sdl2.render.SDL_Renderer,
                             img: Image, x: int, y: int,
                             scale: float, dest_w: int, dest_h: int) -> None:
+    """Render a sprite stretched to specified destination dimensions.
+
+    Args:
+        renderer: SDL renderer instance.
+        img: Source Image object to draw.
+        x: Destination X screen coordinate.
+        y: Destination Y screen coordinate.
+        scale: Unused scale parameter preserved for API compatibility.
+        dest_w: Destination width in pixels.
+        dest_h: Destination height in pixels.
+    """
     dest_rect = sdl2.SDL_Rect(x, y, dest_w, dest_h)
     sdl2.SDL_RenderCopy(renderer, img.texture, None, ctypes.byref(dest_rect))
 
@@ -91,6 +165,16 @@ def draw_sprites_fullscreen(renderer: sdl2.render.SDL_Renderer,
 def draw_sprite_sheet(renderer: sdl2.render.SDL_Renderer,
                       img: Image, x: int, y: int,
                       frame: int, scale: int) -> None:
+    """Draw an individual 32x32 frame from a sprite sheet texture.
+
+    Args:
+        renderer: SDL renderer instance.
+        img: Sprite sheet Image object.
+        x: Destination X screen coordinate.
+        y: Destination Y screen coordinate.
+        frame: 0-indexed frame index to extract.
+        scale: Integer scale factor.
+    """
     frame_nb_width: int = img.width // 32
     frame_draw_w: int = frame % frame_nb_width
     frame_draw_h: int = frame // frame_nb_width
@@ -106,6 +190,17 @@ def draw_text(renderer: sdl2.render.SDL_Renderer,
               font: ctypes.c_void_p,
               text: str | bytes, x: int, y: int,
               color: Color, scale: int = 1) -> None:
+    """Render multiline text to the screen using SDL TTF.
+
+    Args:
+        renderer: SDL renderer instance.
+        font: Loaded TTF font pointer.
+        text: String or bytes text to render.
+        x: Starting X coordinate.
+        y: Starting Y coordinate.
+        color: Text color.
+        scale: Integer font scaling factor.
+    """
     if isinstance(text, bytes):
         text_bytes = text
     else:
@@ -131,6 +226,17 @@ def draw_text(renderer: sdl2.render.SDL_Renderer,
 def draw_line(pixels: ndarray, start_x: int, start_y: int,
               end_x: int, end_y: int, color: Color,
               thick: int) -> None:
+    """Draw a Bresenham line segment onto a 2D numpy pixel buffer.
+
+    Args:
+        pixels: 2D numpy array representing screen pixels.
+        start_x: Line start X coordinate.
+        start_y: Line start Y coordinate.
+        end_x: Line end X coordinate.
+        end_y: Line end Y coordinate.
+        color: Color of the line.
+        thick: Unused thickness parameter.
+    """
     x_diff = abs(start_x - end_x)
     y_diff = abs(start_y - end_y)
     error = x_diff - y_diff
@@ -161,6 +267,19 @@ def draw_line(pixels: ndarray, start_x: int, start_y: int,
 
 def draw_sin(pixels: ndarray, width: int, height: int, center: int, amp: int,
              frq: float, thickness: int, color: Color, frame: float) -> None:
+    """Draw an opaque sine wave across the pixel buffer.
+
+    Args:
+        pixels: 2D numpy pixel array.
+        width: Screen width.
+        height: Screen height.
+        center: Vertical center baseline.
+        amp: Sine wave amplitude in pixels.
+        frq: Frequency of the sine wave.
+        thickness: Line thickness in pixels.
+        color: ARGB color.
+        frame: Phase offset for animation.
+    """
     x_coords = arange(width)
     y_coords = center + amp * sin(x_coords * frq + frame)
     y_coords = y_coords.astype(int)
@@ -172,6 +291,19 @@ def draw_sin(pixels: ndarray, width: int, height: int, center: int, amp: int,
 
 def draw_sin_a(pixels: ndarray, width: int, height: int, center: int, amp: int,
                frq: float, thickness: int, color: Color, frame: float) -> None:
+    """Draw an alpha-blended animated sine wave across the pixel buffer.
+
+    Args:
+        pixels: 2D numpy pixel array.
+        width: Screen width.
+        height: Screen height.
+        center: Vertical center baseline.
+        amp: Sine wave amplitude in pixels.
+        frq: Frequency of the sine wave.
+        thickness: Line thickness in pixels.
+        color: ARGB color with alpha component.
+        frame: Phase offset for animation.
+    """
     a_extract = color >> 24 & 0xFF
     if a_extract == 0:
         return
@@ -209,7 +341,23 @@ class Button:
                  x: int, y: int, w: int,
                  h: int, color_rect: Color, color_hover: Color,
                  function: Callable,
-                 text: str, scale: int = 1):
+                 text: str | bytes, scale: int = 1) -> None:
+        """Initialize an interactive UI button with label and click handler.
+
+        Args:
+            renderer: SDL renderer instance.
+            pixels: 2D pixel array for rendering button background.
+            font: TTF font pointer for rendering button text.
+            x: X position of the button bounding box.
+            y: Y position of the button bounding box.
+            w: Width of the button.
+            h: Height of the button.
+            color_rect: Normal background color.
+            color_hover: Hovered background color.
+            function: Callback invoked when button is clicked.
+            text: Button label text.
+            scale: Text rendering scale factor.
+        """
         self.renderer = renderer
         self.pixels = pixels
         self.font = font
@@ -225,6 +373,7 @@ class Button:
         self.h = h
 
     def draw_background(self) -> None:
+        """Render the button rectangle and trigger click action on press."""
         mouse_x, mouse_y = ctypes.c_int(0), ctypes.c_int(0)
         button_state = sdl2.mouse.SDL_GetMouseState(ctypes.byref(mouse_x),
                                                     ctypes.byref(mouse_y))
@@ -244,6 +393,11 @@ class Button:
                 self.hold_boutton_state = False
 
     def draw_text(self, color: Color) -> None:
+        """Render centered label text on top of the button.
+
+        Args:
+            color: Text color to render.
+        """
         if isinstance(self.text, bytes):
             text_bytes = self.text
         else:

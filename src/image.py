@@ -4,8 +4,16 @@ from src.print_logs import print_error
 
 
 class Image:
+    """Represent a loaded image converted into an SDL texture."""
+
     def __init__(self, img_path: str | bytes,
                  renderer: sdl2.render.SDL_Renderer) -> None:
+        """Load an image file and create an SDL texture from its surface.
+
+        Args:
+            img_path: Path to the image file as a string or byte string.
+            renderer: SDL2 renderer to bind texture with.
+        """
         if isinstance(img_path, bytes):
             load_path = img_path
         else:

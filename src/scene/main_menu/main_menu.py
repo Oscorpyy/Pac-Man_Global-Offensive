@@ -24,13 +24,23 @@ from src.transition import Transition
 
 class MenuDrawingState:
     def __init__(self) -> None:
+        """Initialize menu sub-view state tracker."""
         self.state_lst: list = ["main", "instruction", "settings"]
         self.current = self.state_lst[0]
 
 
 class MainMenu:
-    def __init__(self, renderer, game_state: GameState,
+    def __init__(self, renderer: sdl2.render.SDL_Renderer,
+                 game_state: GameState,
                  game_config: GameConfig, transition: Transition) -> None:
+        """Initialize the main menu scene, buttons, and sub-windows.
+
+        Args:
+            renderer: SDL renderer instance.
+            game_state: Global game state object.
+            game_config: Game configuration options.
+            transition: Transition animation controller.
+        """
         self.game_state = game_state
         self.menu_state = MenuDrawingState()
         self.game_config = game_config
@@ -95,6 +105,11 @@ class MainMenu:
         self.background_color = 0xFF0000FF
 
     def get_highscore(self) -> dict:
+        """Read and parse the high score JSON file.
+
+        Returns:
+            Dictionary containing score records.
+        """
         content: dict = {}
         try:
             with open(self.game_config.highscore_filename, "r") as f:
@@ -104,11 +119,13 @@ class MainMenu:
         return content
 
     def refresh_scores(self) -> None:
+        """Reload high scores from disk and sort them in descending order."""
         self.top_score = self.get_highscore()
         self.scores = self.top_score.get("scores", [])
         self.scores.sort(key=lambda item: item.get('point', 0), reverse=True)
 
     def clean_up(self) -> None:
+        """Release allocated textures, fonts, and sub-window resources."""
         sdim.IMG_Quit()
         sttf.TTF_CloseFont(self.font)
         sttf.TTF_Quit()
@@ -118,9 +135,11 @@ class MainMenu:
         self.instruction_win.clean_up()
 
     def next_scene(self) -> None:
+        """Trigger transition into the active gameplay scene."""
         self.transition.start_image_transition(ScenePossible.GAME)
 
     def draw_scores(self) -> None:
+        """Render top high score entries onto the main menu screen."""
         scores = self.scores
         draw_text(self.renderer, self.font, b"HIGHSCORE",
                   self.width // 2 - (len("HIGHSCORE") * 16 // 2),
@@ -136,8 +155,8 @@ class MainMenu:
                 for stat in scores:
                     if i > 9:
                         continue
-                    txt: str = f"{stat.get('name')}: {stat.get('point')}"
-                    txt = txt.encode("utf-8")
+                    txt_str: str = f"{stat.get('name')}: {stat.get('point')}"
+                    txt: bytes = txt_str.encode("utf-8")
                     draw_text(self.renderer, self.font, txt,
                               self.width // 2 - (len(txt) * 16 // 2),
                               y_offset, Color.WHITE)
@@ -145,33 +164,51 @@ class MainMenu:
                     i += 1
 
     def set_can_draw_main(self) -> None:
+        """Set active menu state back to the primary main menu."""
         self.menu_state.current = self.menu_state.state_lst[0]
         if hasattr(self, 'instruction_win') and hasattr(
                 self.instruction_win, 'reset'):
             self.instruction_win.reset()
 
     def handle_escape(self) -> bool:
+        """Handle ESC key press to exit sub-menus back to main menu.
+
+        Returns:
+            True if a sub-menu was closed, False if already on main menu.
+        """
         if self.menu_state.current != self.menu_state.state_lst[0]:
             self.set_can_draw_main()
             return True
         return False
 
-    def handle_event(self, event) -> bool:
+    def handle_event(self, event: sdl2.events.SDL_Event) -> bool:
+        """Dispatch SDL input event to active sub-menu window.
+
+        Args:
+            event: Incoming SDL event.
+
+        Returns:
+            True if the event was consumed by a sub-menu, False otherwise.
+        """
         if self.menu_state.current == self.menu_state.state_lst[1]:
             if hasattr(self.instruction_win, 'handle_event'):
                 return self.instruction_win.handle_event(event)
         return False
 
     def set_can_draw_settings(self) -> None:
+        """Switch active menu view to settings window."""
         self.menu_state.current = self.menu_state.state_lst[2]
 
     def set_can_draw_instructions(self) -> None:
+        """Switch active menu view to instructions window."""
         self.menu_state.current = self.menu_state.state_lst[1]
 
     def close_game(self) -> None:
+        """Stop the main game loop and exit application."""
         self.game_state.is_running = False
 
     def draw_background(self) -> None:
+        """Render animated rainbow background, logo, and menu buttons."""
         clear_background(self.pixels, self.get_rainbow_color(self.time * 0.2))
         draw_sin_a(self.pixels, self.width, self.height,
                    int(self.height * 0.5), 50, 0.01, 100,
@@ -192,6 +229,14 @@ class MainMenu:
         self.draw_scores()
 
     def get_rainbow_color(self, time_var: float) -> int:
+        """Compute cycling ARGB color based on sine oscillations.
+
+        Args:
+            time_var: Time parameter controlling color phase.
+
+        Returns:
+            32-bit ARGB color integer.
+        """
         center = 100
         amp = 40
         r = int(center + amp * math.sin(time_var))
@@ -200,6 +245,7 @@ class MainMenu:
         return (0xFF << 24) | (r << 16) | (g << 8) | b
 
     def draw_main_menu(self) -> None:
+        """Render current menu state, active sub-window, and FPS overlay."""
         if self.menu_state.current == self.menu_state.state_lst[2]:
             self.settings_win.draw_settings(
                 self.time, self.get_rainbow_color(self.time * 0.2))
