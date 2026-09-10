@@ -57,7 +57,7 @@
     "points_per_super_pacgum": 50,
     "points_per_ghost": "200",
     "seed": "42",
-    "level_max_time": "90",
+    "level_max_time": "2147483647",
     "screen_width": 3840,
     "screen_height": 2160
 }
