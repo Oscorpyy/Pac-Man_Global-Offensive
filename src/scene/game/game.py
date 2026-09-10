@@ -1,5 +1,3 @@
-# mypy: disable-error-code=import-untyped
-
 import math
 import random
 import sdl2
@@ -431,7 +429,6 @@ class Game:
                                  tuple([level["width"] - 1,
                                         level["height"] - 1]),
                                  self.seed)
-            # print(f"Level {level} generated with seed {maze._seed}")
             self.maze_levels.append(maze.maze)
 
     def draw_game(self) -> None:
@@ -844,7 +841,6 @@ class Game:
 
         menu_x, menu_y, menu_w, menu_h = self._get_cheat_menu_rect()
 
-        # 1. Fond sombre semi-transparent
         overlay = sdl2.SDL_Rect(menu_x, menu_y, menu_w, menu_h)
         sdl2.SDL_SetRenderDrawBlendMode(
             self.renderer, sdl2.SDL_BLENDMODE_BLEND
@@ -852,7 +848,6 @@ class Game:
         sdl2.SDL_SetRenderDrawColor(self.renderer, 10, 10, 20, 235)
         sdl2.SDL_RenderFillRect(self.renderer, ctypes.byref(overlay))
 
-        # 2. Contours rouges (et pas bleu !)
         sdl2.SDL_SetRenderDrawColor(self.renderer, 255, 0, 0, 255)
         sdl2.SDL_RenderDrawRect(self.renderer, ctypes.byref(overlay))
         overlay_inner = sdl2.SDL_Rect(
@@ -860,7 +855,6 @@ class Game:
         )
         sdl2.SDL_RenderDrawRect(self.renderer, ctypes.byref(overlay_inner))
 
-        # 3. Titre CHEAT MENU
         title_text = b"CHEAT MENU"
         w_val, h_val = ctypes.c_int(0), ctypes.c_int(0)
         sttf.TTF_SizeUTF8(
@@ -874,7 +868,6 @@ class Game:
             title_x, title_y, Color.RED, 1
         )
 
-        # 4. Statut GAME PAUSED
         sub_text = b"* GAME PAUSED *"
         sttf.TTF_SizeUTF8(
             self.font, sub_text,
@@ -887,7 +880,6 @@ class Game:
             sub_x, sub_y, Color.YELLOW, 1
         )
 
-        # 5. Séparateur rouge
         sdl2.SDL_SetRenderDrawColor(self.renderer, 255, 0, 0, 200)
         sdl2.SDL_RenderDrawLine(
             self.renderer,
@@ -895,7 +887,6 @@ class Game:
             menu_x + menu_w - 16, menu_y + 66
         )
 
-        # 6. Bouton [X] en haut a droite
         cx, cy, cw, ch = self._get_cheat_close_rect()
         mx, my = ctypes.c_int(0), ctypes.c_int(0)
         sdl2.SDL_GetMouseState(ctypes.byref(mx), ctypes.byref(my))
@@ -912,7 +903,6 @@ class Game:
             self.renderer, cx + cw - 3, cy + 3, cx + 3, cy + ch - 3
         )
 
-        # 7. Boutons de cheat
         buttons = self._get_cheat_buttons()
         for btn in buttons:
             bx, by, bw, bh = btn["x"], btn["y"], btn["w"], btn["h"]
@@ -957,7 +947,6 @@ class Game:
                 lbl_x, lbl_y, text_col, 1
             )
 
-        # 8. Indication raccourci
         hint_text = b"[ESC] or [C] to resume"
         sttf.TTF_SizeUTF8(
             self.font, hint_text,

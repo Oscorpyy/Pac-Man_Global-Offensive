@@ -466,23 +466,19 @@ class SecretGame:
 
     def reset(self) -> None:
         """Réinitialise complètement la partie CS."""
-        # Réinitialisation des scores du game_state
         self.game_state.cs_round_win = 0
         self.game_state.cs_round_loose = 0
 
-        # Réinitialisation des timers
         self.player_diffuse_time = 0.0
         self.round_start_timer = 4.0
         self.round_timer = 49.0
 
-        # Réinitialisation du joueur
         self.player.pos_x = self.default_player_pos_x
         self.player.pos_y = self.default_player_pos_y
         self.player.can_move = False
         self.player.can_shoot = False
         self.player.bullet_lst = []
 
-        # Réinitialisation des ennemis
         self.ennemy_lst = [
             CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[0]),
             CsBot(self.enemy_sprite, self.cam, ZoneMovement().zone_lst[1]),

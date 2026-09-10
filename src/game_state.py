@@ -4,6 +4,7 @@ from sdl2 import (
 )
 from collections import deque
 from typing import Any
+from src.pydantic_models import generate_default_levels
 
 
 class ScenePossible(Enum):
@@ -94,7 +95,9 @@ class GameConfig:
             config_content.get("highscore_filename", "scores.json")
         )
         self.level_array_multiple_levels = config_content.get(
-            "level_array_multiple_levels", None)
+            "level_array_multiple_levels", None) or [
+            level.model_dump() for level in generate_default_levels()
+        ]
         self.lives = config_content.get("lives", None)
         self.pacgum = config_content.get("pacgum", None)
         self.points_per_pacgum = config_content.get("points_per_pacgum", None)

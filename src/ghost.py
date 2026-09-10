@@ -48,7 +48,7 @@ def _load_argb_array(filepath: str) -> np.ndarray:
     b = arr & 0xFF
     rgb_sum = r.astype(int) + g.astype(int) + b.astype(int)
     dark_mask = rgb_sum < 50
-    arr[dark_mask] = arr[dark_mask] & 0x00FFFFFF   # alpha=0 sur fond sombre
+    arr[dark_mask] = arr[dark_mask] & 0x00FFFFFF
     return arr
 
 
@@ -244,29 +244,24 @@ class Ghost:
         self.progress: float = 0.0
         self.is_moving: bool = False
 
-        self.direction: int = 0   # 0=Right 1=Left 2=Up 3=Down
+        self.direction: int = 0
 
-        # Vitesse
         self.base_speed: float = BASE_GHOST_SPEED
         self.vulnerable_speed_ratio: float = VULNERABLE_SPEED_RATIO
         self.move_cooldown: int = int(round(60.0 / self.base_speed))
         self.move_tick: int = 0
 
-        # Animation
         self.current_frame: int = 0
         self.tick_counter: int = 0
         self.animation_speed: int = 10
 
-        # Sprite normal (4 dirs × 2 frames)
         self.frames: list[list[np.ndarray]] = extract_ghost_frames(sprite_path)
 
-        # Sprite vulnérable (partagé, chargé une seule fois)
         if Ghost._dead_frames is None:
             Ghost._dead_frames = extract_dead_ghost_frames(
                 Ghost._dead_frames_path
             )
 
-        # État
         self.is_vulnerable: bool = False
         self.vulnerable_timer: float = 0.0
         self.is_dead: bool = False
@@ -328,10 +323,6 @@ class Ghost:
             return self.base_speed * self.vulnerable_speed_ratio
         return self.base_speed
 
-    # ------------------------------------------------------------------ #
-    #  MISE À JOUR                                                         #
-    # ------------------------------------------------------------------ #
-
     def update(self, dt: float = 1.0 / 60.0,
                player_pos: tuple[int, int] | None = None,
                time_left: float | None = None,
@@ -356,7 +347,6 @@ class Ghost:
         else:
             self.chase_probability = 0.0
 
-        # Timer de réapparition
         if self.is_dead:
             if self.is_permanently_dead:
                 return
@@ -384,14 +374,12 @@ class Ghost:
                 self.direction = random.randint(0, 3)
             return
 
-        # Timer de vulnérabilité
         if self.is_vulnerable:
             self.vulnerable_timer -= dt
             if self.vulnerable_timer <= 0.0:
                 self.is_vulnerable = False
                 self.vulnerable_timer = 0.0
 
-        # Animation du sprite
         self.tick_counter += 1
         anim_speed = self.animation_speed if not self.is_vulnerable else int(
                 self.animation_speed * 1.5)
@@ -441,10 +429,6 @@ class Ghost:
         self.render_y = -100.0
         self.progress = 0.0
         self.is_moving = False
-
-    # ------------------------------------------------------------------ #
-    #  DÉPLACEMENT FLUIDE                                                  #
-    # ------------------------------------------------------------------ #
 
     def _choose_next_cell(
         self,
@@ -613,10 +597,6 @@ class Ghost:
             dt: Delta time elapsed since last update.
         """
         self.move_step(maze_matrix, dt)
-
-    # ------------------------------------------------------------------ #
-    #  RENDU                                                               #
-    # ------------------------------------------------------------------ #
 
     def draw_ghost_pixels(self, pixels: np.ndarray, start_x: int,
                           start_y: int, cellsize: int) -> None:

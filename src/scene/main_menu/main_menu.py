@@ -49,10 +49,8 @@ class MainMenu:
         self.scores: list[dict[str, int]] = self.top_score.get("scores", [])
         if self.scores is not None:
             self.scores.sort(key=lambda item: item['point'], reverse=True)
-        # img loading
         sdim.IMG_Init(sdim.IMG_INIT_PNG)
         self.logo = Image(b"assets/game_logo.png", renderer)
-        # Font loading
         sttf.TTF_Init()
         self.font_size: int = 16
         self.font = sttf.TTF_OpenFont(

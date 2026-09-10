@@ -19,5 +19,5 @@ dependencies = [
 mazegenerator = { path = "mazegenerator-00001/mazegenerator-2.1.0-py3-none-any.whl" }
 
 [[tool.mypy.overrides]]
-module = ["sdl2", "sdl2.*"]
+module = ["sdl2", "sdl2.*", "mazegenerator", "mazegenerator.*"]
 ignore_missing_imports = true

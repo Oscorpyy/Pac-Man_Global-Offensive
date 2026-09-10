@@ -11,10 +11,10 @@ import numpy as np
 from src.ghost import BASE_GHOST_SPEED, VULNERABLE_DURATION
 
 DIR_MAP = {
-    0: (1, 0, 2),   # EAST
-    1: (-1, 0, 8),  # WEST
-    2: (0, -1, 1),  # NORTH
-    3: (0, 1, 4),   # SOUTH
+    0: (1, 0, 2),
+    1: (-1, 0, 8),
+    2: (0, -1, 1),
+    3: (0, 1, 4),
 }
 OPPOSITE_DIR = {0: 1, 1: 0, 2: 3, 3: 2}
 
@@ -277,7 +277,7 @@ class PacPlayer:
         self.key_a: bool = False
         self.key_d: bool = False
 
-        self.direction: int = 0  # 0=Right, 1=Left, 2=Up, 3=Down
+        self.direction: int = 0
         self.next_direction: int | None = None
         self.is_powered_up: bool = False
         self.power_timer: float = 0.0
@@ -406,13 +406,13 @@ class PacPlayer:
         maze_w = len(items_matrix[0]) if maze_h > 0 else 0
         if 0 <= self._pos_y < maze_h and 0 <= self._pos_x < maze_w:
             item = items_matrix[self._pos_y][self._pos_x]
-            if item == 1:  # Pacgum
+            if item == 1:
                 items_matrix[self._pos_y][self._pos_x] = 0
                 if game_state is not None and config is not None:
                     pts = (config.points_per_pacgum
                            if config.points_per_pacgum is not None else 10)
                     game_state.point += int(pts)
-            elif item == 2:  # Super-pacgum
+            elif item == 2:
                 items_matrix[self._pos_y][self._pos_x] = 0
                 self.is_powered_up = True
                 self.power_timer = VULNERABLE_DURATION
@@ -449,7 +449,6 @@ class PacPlayer:
         desired = self.get_desired_direction()
 
         if self.is_moving:
-            # 1. Demi-tour immédiat à 180° au milieu du couloir
             if desired is not None and desired == OPPOSITE_DIR.get(
                     self.direction, -1):
                 self._pos_x, self.target_x = self.target_x, self._pos_x
@@ -458,7 +457,6 @@ class PacPlayer:
                 self.direction = desired
                 self.next_direction = None
 
-            # 2. Avance
             self.progress += step
             if self.progress < 1.0:
                 self.render_x = (
@@ -468,7 +466,6 @@ class PacPlayer:
                     1.0 - self.progress
                     ) * self._pos_y + self.progress * self.target_y
             else:
-                # Arrivé à la case cible
                 self._pos_x = self.target_x
                 self._pos_y = self.target_y
                 excess = self.progress - 1.0
@@ -598,7 +595,6 @@ class PacPlayer:
 
                 if self.is_powered_up and (int(
                         self.power_timer * 10) % 2 == 0):
-                    # Clignotement cyan pendant le super-pouvoir
                     sub_tile = np.where(sub_tile & 0xFF000000 != 0,
                                         0xFF00FFFF, sub_tile)
 
