@@ -1232,8 +1232,7 @@ class Game:
     def draw_info(self) -> None:
         """Draw HUD overlay with level, score, time left, and lives."""
         rect_x, rect_y = 20, 20
-        rect_w, rect_h = 300, ((130 + (self.remaining_life // 7) * 20))
-
+        rect_w, rect_h = 300, ((130 + ((self.remaining_life - 1) // 7) * 20))
         sdl2.SDL_SetRenderDrawBlendMode(self.renderer,
                                         sdl2.SDL_BLENDMODE_BLEND)
 
