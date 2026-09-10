@@ -18,7 +18,7 @@ class Config(BaseModel):
     points_per_pacgum: int = Field(ge=0, le=2147483647)
     points_per_super_pacgum: int = Field(ge=0, le=2147483647)
     points_per_ghost: int = Field(ge=0, le=2147483647)
-    seed: int
+    seed: int = Field(gt=0)
     level_max_time: int = Field(gt=0)
     screen_width: int = Field(gt=0)
     screen_height: int = Field(gt=0)

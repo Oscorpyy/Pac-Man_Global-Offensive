@@ -52,6 +52,11 @@ class Window:
             return -1
         return window
 
+    def end_screen_quit(self) -> None:
+        """Reset both game modes and return to the main menu."""
+        self.secret_game.reset()
+        self.game.end_screen_quit()
+
     def scene_to_free(self, game_state: GameState) -> None:
         """Free resources for the currently active scene upon exit.
 
@@ -118,12 +123,12 @@ class Window:
         self.win_screen = EndScreen(
             renderer, game_state, self.width, self.height,
             "assets/win_picture.png", self.config.highscore_filename,
-            self.game.end_screen_quit
+            self.end_screen_quit
         )
         self.loose_screen = EndScreen(
             renderer, game_state, self.width, self.height,
             "assets/loose_picture.png", self.config.highscore_filename,
-            self.game.end_screen_quit
+            self.end_screen_quit
         )
         self.game.save_handler = self.win_screen
         self.cam = Camera()
