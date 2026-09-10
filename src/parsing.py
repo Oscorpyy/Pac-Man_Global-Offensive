@@ -41,7 +41,8 @@ def load_json_file(path: str) -> Any:
             in_string = True
             cleaned.append(char)
             index += 1
-        elif char == "/" and next_char == "/":
+        elif (char == "/" and next_char == "/") or (
+                char == "#" and not in_string):
             index += 2
             while index < len(content) and content[index] not in "\r\n":
                 index += 1
@@ -102,9 +103,15 @@ def check_file_content(path: str) -> bool | Any:
             print_error("Not enough level to launch the game")
             return False
         highscore_path = validate_content.highscore_filename
-        if (not os.path.isfile(highscore_path)
-                or not os.access(highscore_path, os.R_OK)):
-            print_error("Highscore file can't be found or read")
+        if not os.path.isfile(highscore_path):
+            try:
+                with open(highscore_path, "w") as score_file:
+                    json.dump({"scores": []}, score_file, indent=4)
+            except (OSError, PermissionError) as e:
+                print_error(f"Highscore file can't be created: {e}")
+                return False
+        elif not os.access(highscore_path, os.R_OK):
+            print_error("Highscore file can't be read")
             return False
         return validate_content
     except (
