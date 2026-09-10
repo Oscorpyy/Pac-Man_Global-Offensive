@@ -136,27 +136,20 @@ class CsBot:
             bullet.draw_bullet(offset_x, offset_y)
             bullet.update_pos()
 
-    def kill_bullet(self, tilemap: list[int]) -> bool:
+    def kill_bullet(self, tilemap: list[int]) -> None:
         """Remove bullets that exceeded max range or hit walls.
 
         Args:
             tilemap: Map tile layer data for wall collision checks.
         """
-        i = 0
-        for bullet in self.bullet_lst:
-            if bullet.max_travel < 0:
-                self.bullet_lst.pop(i)
-                return True
-            if self.check_bullet_collide_wall(
-                                              int(bullet.x + bullet.speed),
-                                              int(bullet.y + bullet.speed),
-                                              tilemap
-                                              ) is False:
-
-                self.bullet_lst.pop(i)
-                return True
-            i += 1
-        return False
+        self.bullet_lst = [
+            bullet for bullet in self.bullet_lst
+            if bullet.max_travel >= 0 and self.check_bullet_collide_wall(
+                int(bullet.x + bullet.speed),
+                int(bullet.y + bullet.speed),
+                tilemap
+            )
+        ]
 
     def check_bullet_collide_wall(self, pos_x: int, pos_y: int,
                                   tilemap: list[int]) -> bool:

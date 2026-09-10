@@ -409,22 +409,22 @@ class SecretGame:
         self.player.shoot(self.renderer)
         self.player.draw_bullet_lst(self.cam.offset_x, self.cam.offset_y)
         self.player.kill_bullet(self.tilemap_data[3])
-        i = 0
+        new_player_bullets = []
         for bullet in self.player.bullet_lst:
-            if self.player.check_bullet_collide_ennemy(self.ennemy_lst,
-                                                       bullet.x,
-                                                       bullet.y) is True:
-                self.player.bullet_lst.pop(i)
-            i += 1
+            if not self.player.check_bullet_collide_ennemy(self.ennemy_lst,
+                                                           bullet.x,
+                                                           bullet.y):
+                new_player_bullets.append(bullet)
+        self.player.bullet_lst = new_player_bullets
+        round_lost = False
         for bot in self.ennemy_lst:
             bot.get_next_location()
             bot.detect_player(self.player.pos_x, self.player.pos_y,
                               self.renderer)
             bot.move_bot()
-            i = 0
+            bot.kill_bullet(self.tilemap_data[3])
+            new_bot_bullets = []
             for bullet in bot.bullet_lst:
-                if bot.kill_bullet(self.tilemap_data[3]) is True:
-                    bot.bullet_lst.pop(i)
                 if bot.check_bullet_collide_ennemy(bullet.x, bullet.y,
                                                    self.player.pos_x,
                                                    self.player.pos_y) is True:
@@ -448,7 +448,13 @@ class SecretGame:
                         CsBot(self.enemy_sprite, self.cam,
                               ZoneMovement().zone_lst[4]),
                     ]
-                i += 1
+                    round_lost = True
+                    break
+                else:
+                    new_bot_bullets.append(bullet)
+            if round_lost:
+                break
+            bot.bullet_lst = new_bot_bullets
             bot.draw_bullet(self.cam.offset_x, self.cam.offset_y)
             bot.update(self.game_state)
         for cam in self.camera_lst:
