@@ -21,7 +21,7 @@ class Bullet:
         self.y = float(y)
         self.dx: int = 0
         self.dy: int = 0
-        self.speed: int = 8
+        self.speed: int = 6
         self.renderer = renderer
         self.img = Image(b"assets/3D_model/computer.png", renderer)
         self.max_travel: int = 1500
