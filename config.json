@@ -58,6 +58,6 @@
     "points_per_ghost": "200",
     "seed": "42",
     "level_max_time": "2147483647",
-    "screen_width": 3840,
-    "screen_height": 2160
+    "screen_width": 1366,
+    "screen_height": 768
 }

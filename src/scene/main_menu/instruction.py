@@ -4,6 +4,7 @@ import sdl2.sdlttf as sttf
 import numpy as np
 from src.color import Color, color_to_sdl_color
 from src.scene.helper import get_ptr
+from src.game_state import GameConfig
 from src.drawing_methods import (
     draw_rect_full,
     clear_background,
@@ -34,7 +35,8 @@ class InstructionWindow:
     def __init__(self, main_widow_width: int, main_widow_height: int,
                  renderer: sdl2.render.SDL_Renderer,
                  pixels: np.ndarray, font: ctypes.c_int,
-                 on_close: Any = None | Any) -> None:
+                 on_close: Any = None | Any,
+                 game_config: GameConfig | None = None) -> None:
         """Initialize the instruction modal window and font resources.
 
         Args:
@@ -44,6 +46,7 @@ class InstructionWindow:
             pixels: 2D numpy pixel buffer.
             font: Fallback font pointer.
             on_close: Optional callback invoked when closing modal.
+            game_config: Optional game configuration for dynamic values.
         """
         self.m_width = main_widow_width
         self.m_height = main_widow_height
@@ -59,6 +62,7 @@ class InstructionWindow:
         self.pixels = pixels
         self.font = font
         self.on_close = on_close
+        self.game_config = game_config
         self.hold_button_state = False
 
         self.show_cs: bool = False
@@ -364,23 +368,26 @@ class InstructionWindow:
         )
         curr_y += step
 
+        num_ghosts = 4
         self._draw_text_line(
             self.body_font,
-            "* Avoid the 4 ghosts: touching one costs 1 life!",
+            f"* Avoid the {num_ghosts} ghosts: touching one costs 1 life!",
             left_margin + 12, curr_y, Color.WHITE
         )
         curr_y += step
 
+        lives = self.game_config.lives if self.game_config and self.game_config.lives else 3
         self._draw_text_line(
             self.body_font,
-            "* You start the game with 3 lives.",
+            f"* You start the game with {lives} lives.",
             left_margin + 12, curr_y, Color.WHITE
         )
         curr_y += step
 
+        level_time = self.game_config.level_max_time if self.game_config and self.game_config.level_max_time else 90
         self._draw_text_line(
             self.body_font,
-            "* Watch the timer: finish before the countdown ends!",
+            f"* Watch the timer: finish before {level_time}s runs out!",
             left_margin + 12, curr_y, Color.WHITE
         )
         curr_y += step + 8
@@ -391,23 +398,26 @@ class InstructionWindow:
         )
         curr_y += step
 
+        pts_pacgum = self.game_config.points_per_pacgum if self.game_config and self.game_config.points_per_pacgum is not None else 10
         self._draw_text_line(
             self.body_font,
-            "* PAC-DOT       : +10 pts. Collect them all!",
+            f"* PAC-DOT       : +{pts_pacgum} pts. Collect them all!",
             left_margin + 12, curr_y, Color.WHITE
         )
         curr_y += step
 
+        pts_super = self.game_config.points_per_super_pacgum if self.game_config and self.game_config.points_per_super_pacgum is not None else 50
         self._draw_text_line(
             self.body_font,
-            "* POWER PELLET  : +50 pts. Ghosts turn blue & vulnerable.",
+            f"* POWER PELLET  : +{pts_super} pts. Ghosts turn blue & vulnerable.",
             left_margin + 12, curr_y, Color.YELLOW
         )
         curr_y += step
 
+        pts_ghost = self.game_config.points_per_ghost if self.game_config and self.game_config.points_per_ghost is not None else 200
         self._draw_text_line(
             self.body_font,
-            "* EATEN GHOST   : +200 pts while in frightened mode!",
+            f"* EATEN GHOST   : +{pts_ghost} pts while in frightened mode!",
             left_margin + 12, curr_y, Color.GREEN
         )
         curr_y += step

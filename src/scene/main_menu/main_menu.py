@@ -66,7 +66,8 @@ class MainMenu:
         )
         self.instruction_win = InstructionWindow(
             self.width, self.height, renderer, self.pixels, self.font,
-            on_close=self.set_can_draw_main
+            on_close=self.set_can_draw_main,
+            game_config=self.game_config
         )
         self.transition = transition
         self.background = sdl2.SDL_CreateTexture(
