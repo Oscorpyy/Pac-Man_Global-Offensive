@@ -6,6 +6,7 @@ from src.bullet import Bullet
 from src.game_state import GameState
 import math
 import sdl2
+import random
 
 
 class ZoneMovement:
@@ -111,7 +112,7 @@ class CsBot:
             player_y: Player Y coordinate.
             renderer: SDL renderer instance for bullet texture.
         """
-        detection_size: int = 128
+        detection_size: int = 192
         if (
             self.pos_x + detection_size > player_x
             and self.pos_x < player_x + detection_size
@@ -120,10 +121,12 @@ class CsBot:
         ):
             if self.cooldown < 0:
                 new_bullet = Bullet(renderer, self.pos_x, self.pos_y)
-                new_bullet.set_direction_target(player_x, player_y,
+                target_x = random.randrange(player_x - 64, player_x + 64)
+                target_y = random.randrange(player_y - 64, player_y + 64)
+                new_bullet.set_direction_target(target_x, target_y,
                                                 self.pos_x, self.pos_y)
                 self.bullet_lst.append(new_bullet)
-                self.cooldown = 0.6
+                self.cooldown = 0.4
 
     def draw_bullet(self, offset_x: int, offset_y: int) -> None:
         """Render and advance all active bullets fired by the bot.
@@ -166,7 +169,7 @@ class CsBot:
         x = 0
         y = 0
         tile_count = 0
-        bullet_size: int = 32
+        bullet_size: int = 16
         for tile in tilemap:
             if tile != 0:
                 if (pos_x + bullet_size > x and pos_x < x + 32 and
@@ -194,7 +197,7 @@ class CsBot:
         Returns:
             True if colliding with player, False otherwise.
         """
-        bullet_size: int = 32
+        bullet_size: int = 16
         if (
             bullet_pos_x + bullet_size > player_x
             and bullet_pos_x < player_x + 32

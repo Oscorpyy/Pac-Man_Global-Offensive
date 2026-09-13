@@ -199,7 +199,7 @@ class CsPlayer:
         x = 0
         y = 0
         tile_count = 0
-        bullet_size: int = 32
+        bullet_size: int = 16
         for tile in tilemap:
             if tile != 0:
                 if (pos_x + bullet_size > x and pos_x < x + 32 and
@@ -225,7 +225,7 @@ class CsPlayer:
         Returns:
             True if an enemy was hit and removed, False otherwise.
         """
-        bullet_size: int = 32
+        bullet_size: int = 16
         i = 0
         for ennemy in lst_ennemy:
             if (ennemy.pos_x + bullet_size > x and ennemy.pos_x < x + 32 and
