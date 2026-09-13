@@ -376,7 +376,11 @@ class InstructionWindow:
         )
         curr_y += step
 
-        lives = self.game_config.lives if self.game_config and self.game_config.lives else 3
+        lives = (
+            self.game_config.lives
+            if self.game_config and self.game_config.lives
+            else 3
+        )
         self._draw_text_line(
             self.body_font,
             f"* You start the game with {lives} lives.",
@@ -384,7 +388,11 @@ class InstructionWindow:
         )
         curr_y += step
 
-        level_time = self.game_config.level_max_time if self.game_config and self.game_config.level_max_time else 90
+        level_time = (
+            self.game_config.level_max_time
+            if self.game_config and self.game_config.level_max_time
+            else 90
+        )
         self._draw_text_line(
             self.body_font,
             f"* Watch the timer: finish before {level_time}s runs out!",
@@ -398,7 +406,12 @@ class InstructionWindow:
         )
         curr_y += step
 
-        pts_pacgum = self.game_config.points_per_pacgum if self.game_config and self.game_config.points_per_pacgum is not None else 10
+        pts_pacgum = (
+            self.game_config.points_per_pacgum
+            if self.game_config
+            and self.game_config.points_per_pacgum is not None
+            else 10
+        )
         self._draw_text_line(
             self.body_font,
             f"* PAC-DOT       : +{pts_pacgum} pts. Collect them all!",
@@ -406,15 +419,26 @@ class InstructionWindow:
         )
         curr_y += step
 
-        pts_super = self.game_config.points_per_super_pacgum if self.game_config and self.game_config.points_per_super_pacgum is not None else 50
+        pts_super = (
+            self.game_config.points_per_super_pacgum
+            if self.game_config
+            and self.game_config.points_per_super_pacgum is not None
+            else 50
+        )
         self._draw_text_line(
             self.body_font,
-            f"* POWER PELLET  : +{pts_super} pts. Ghosts turn blue & vulnerable.",
+            f"* POWER PELLET  : +{pts_super} pts. Ghosts turn blue & "
+            f"vulnerable.",
             left_margin + 12, curr_y, Color.YELLOW
         )
         curr_y += step
 
-        pts_ghost = self.game_config.points_per_ghost if self.game_config and self.game_config.points_per_ghost is not None else 200
+        pts_ghost = (
+            self.game_config.points_per_ghost
+            if self.game_config
+            and self.game_config.points_per_ghost is not None
+            else 200
+        )
         self._draw_text_line(
             self.body_font,
             f"* EATEN GHOST   : +{pts_ghost} pts while in frightened mode!",
