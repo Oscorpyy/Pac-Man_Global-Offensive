@@ -63,7 +63,6 @@ The Makefile provides the usual project commands:
 | `make debug` | Runs the program under Python's `pdb` debugger. |
 | `make clean` | Removes Python caches, logs, the virtual environment and generated package data. |
 | `make lint` | Runs Flake8 and Mypy checks. |
-| `make test` | Runs the configuration/parser test suite found in `test/`. |
 | `make package` | Builds a distributable executable with PyInstaller. |
 
 

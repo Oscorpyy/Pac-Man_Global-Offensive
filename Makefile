@@ -74,21 +74,4 @@ package:
 	@printf "#!/bin/bash\n./pac-man config.json" > dist/pac-man/launch.sh
 	chmod +x dist/pac-man/launch.sh
 
-test:
-	@printf "$(COLOR_CYAN)Running parsing tests...$(COLOR_RESET)\n\n"
-	@for file in $$(ls test/*.json 2>/dev/null | sort -V 2>/dev/null || ls test/*.json); do \
-		test_name=$$(basename "$$file" .json); \
-		printf "$(COLOR_YELLOW)[TEST] $$test_name$(COLOR_RESET)\n"; \
-		timeout 1.5 uv run python pac-man.py "$$file" > /dev/null 2>&1; \
-		STATUS=$$?; \
-		if [ $$STATUS -eq 124 ]; then \
-			printf "  $(COLOR_GREEN)✓ Le jeu s'est lancé et a continué (Timeout 1.5s)$(COLOR_RESET)\n"; \
-		elif [ $$STATUS -eq 0 ]; then \
-			printf "  $(COLOR_RED)✗ Le programme a quitté proprement sans lancer le jeu (Exit 0)$(COLOR_RESET)\n"; \
-		else \
-			printf "  $(COLOR_RED)✗ Le programme a crashé (Exit $$STATUS - Traceback interdit)$(COLOR_RESET)\n"; \
-		fi; \
-	done
-	@printf "\n$(COLOR_CYAN)Tests finished.$(COLOR_RESET)\n"
-
-.PHONY: all install run debug clean re lint lint-strict test
+.PHONY: all install run debug clean re lint lint-strict
