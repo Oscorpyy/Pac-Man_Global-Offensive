@@ -37,7 +37,8 @@ clean:
 	@find . -type d -name ".mypy_cache" -exec rm -rf {} +
 	@rm -f output.txt
 	@rm -rf .venv
-	@rm -fr package
+	@rm -rf dist
+	@rm -rf build
 	@printf "$(COLOR_GREEN)✓ Cleanup completed$(COLOR_RESET)\n"
 
 lint:
