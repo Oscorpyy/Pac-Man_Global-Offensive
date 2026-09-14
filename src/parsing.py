@@ -1,6 +1,6 @@
 import os
 import json
-from src.print_logs import print_error
+from src.print_logs import print_error, print_warning
 from src.pydantic_models import Config
 from pydantic import ValidationError
 from typing import Any
@@ -79,6 +79,12 @@ def file_is_good(path: str) -> bool:
     return True
 
 
+def check_if_default_value_use(config: Config) -> None:
+    for name, value in config:
+        if name not in config.model_fields_set:
+            print_warning(f"{name} using default value")
+
+
 def check_file_content(path: str) -> bool | Any:
     """Validate JSON content against the Config schema.
 
@@ -99,6 +105,7 @@ def check_file_content(path: str) -> bool | Any:
         return False
     try:
         validate_content = Config.model_validate(content)
+        check_if_default_value_use(validate_content)
         if len(validate_content.level_array_multiple_levels) < 10:
             print_error("Not enough level to launch the game")
             return False
